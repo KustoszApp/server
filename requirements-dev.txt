@@ -1,0 +1,5 @@
+-r requirements-test.txt
+black
+flake8
+ipython
+pre-commit
