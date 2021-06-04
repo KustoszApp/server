@@ -19,6 +19,8 @@ default:
     - 'django.contrib.messages'
     - 'django.contrib.staticfiles'
     - 'django_extensions'
+    - 'django_celery_beat'
+    - 'django_celery_results'
     - 'rest_framework.authtoken'
   MIDDLEWARE:
     - 'django.middleware.security.SecurityMiddleware'
@@ -64,6 +66,8 @@ default:
     - 'http://127.0.0.1:8080'
     - 'http://localhost:8080'
     - 'http://testserver:8000'
+  CELERY_BROKER_URL: 'memory://localhost'
+  CELERY_RESULT_BACKEND: 'django-cache'
 
 production:
   DEBUG: False
