@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
+from .models import Channel
 from .models import Entry
-from .models import Feed
 
 
 class EntrySerializer(serializers.ModelSerializer):
@@ -22,9 +22,9 @@ class EntrySerializer(serializers.ModelSerializer):
         }
 
 
-class FeedSerializer(serializers.ModelSerializer):
+class ChannelSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Feed
+        model = Channel
         fields = [
             "id",
             "url",
@@ -39,11 +39,11 @@ class FeedSerializer(serializers.ModelSerializer):
         }
 
 
-class FeedDetailSerializer(serializers.ModelSerializer):
+class ChannelDetailSerializer(serializers.ModelSerializer):
     entries = EntrySerializer(source="entry_set", many=True, read_only=True)
 
     class Meta:
-        model = Feed
+        model = Channel
         fields = [
             "id",
             "url",

@@ -1,53 +1,110 @@
-from django.contrib.auth.models import User
+from autoslug import AutoSlugField
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-
-class SourceTypes(models.TextChoices):
-    FEED_SUMMARY = "summary", "Feed summary"
-    FEED_CONTENT = "content", "Feed content"
-    READABILITY = "readability", "Readability"
-    NODE_READABILITY = "nodereadability", "Node Readability"
+from .enums import ChannelTypesEnum
+from .enums import EntryContentSourceTypesEnum
 
 
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.user.username} - profile"
+class User(AbstractUser):
+    pass
 
 
-class Feed(models.Model):
-    # TODO: type - RSS/Atom, JSON Feed, WebSub, email
-    url = models.URLField(max_length=2048, unique=True)
-    title = models.TextField(blank=True)
-    custom_title = models.TextField(blank=True)
-    last_checked = models.DateTimeField(blank=True, null=True)
-    added = models.DateTimeField(auto_now_add=True)
-    active = models.BooleanField(default=True)
+class Channel(models.Model):
+    uri = models.URLField(max_length=2048, unique=True)
+    channel_type = models.CharField(max_length=20, choices=ChannelTypesEnum.choices)
+    title = models.TextField(blank=True, help_text="Title (name) of channel")
+    last_checked = models.DateTimeField(
+        blank=True, null=True, help_text="When channel was last checked"
+    )
+    added = models.DateTimeField(
+        auto_now_add=True, help_text="When channel was added to database"
+    )
+    active = models.BooleanField(
+        default=True, help_text="Is this channel actively checked for new content?"
+    )
     update_frequency = models.IntegerField(
-        default=3600, help_text="How often feed should be checked, in seconds"
+        default=3600, help_text="How often channel should be checked, in seconds"
+    )
+    username = models.CharField(
+        max_length=256,
+        blank=True,
+        help_text="Username for authentication (currently unused)",
+    )
+    password = models.CharField(
+        max_length=256,
+        blank=True,
+        help_text="Password for authentication (currently unused)",
+    )
+    token = models.CharField(
+        max_length=256,
+        blank=True,
+        help_text="Token for authentication (currently unused)",
+    )
+
+
+class ChannelFeed(models.Model):
+    channel = models.OneToOneField(
+        Channel, on_delete=models.CASCADE, related_name="feed_data"
+    )
+    original_title = models.TextField(
+        blank=True, help_text="Feed title, as specified by feed itself"
     )
 
 
 class Entry(models.Model):
-    feed = models.ForeignKey(Feed, on_delete=models.CASCADE)
-    title = models.TextField(blank=True)
-    link = models.URLField(max_length=2048)
-    updated = models.DateTimeField(blank=True, null=True)
-    author = models.TextField(blank=True)
-    published = models.DateTimeField(blank=True, null=True)
-    read = models.BooleanField(default=True)
+    channel = models.ForeignKey(
+        Channel, on_delete=models.CASCADE, related_name="entries"
+    )
+    url = models.URLField(max_length=2048, blank=True, help_text="URL of entry")
+    mid = models.TextField(
+        max_length=1024, blank=True, help_text="Message-ID of entry (currently unused)"
+    )
+    title = models.TextField(blank=True, help_text="Title (subject) of entry")
+    author = models.TextField(blank=True, help_text="Author of entry")
+    added = models.DateTimeField(
+        auto_now_add=True, help_text="When entry was added to database"
+    )
+    published = models.DateTimeField(
+        blank=True, null=True, help_text="Publication date of entry"
+    )
+    archived = models.BooleanField(
+        default=False, help_text="Is this entry archived (read)?"
+    )
+    updated = models.DateTimeField(
+        blank=True, null=True, help_text="When entry was last updated in database"
+    )
+    upstream_updated = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="When entry/channel claims entry was last updated",
+    )
 
 
 class EntryContent(models.Model):
-    entry = models.ForeignKey(Entry, on_delete=models.CASCADE)
-    source = models.CharField(max_length=20, choices=SourceTypes.choices)
+    entry = models.ForeignKey(
+        Entry, on_delete=models.CASCADE, related_name="content_set"
+    )
+    source = models.CharField(
+        max_length=20,
+        choices=EntryContentSourceTypesEnum.choices,
+        help_text="Source of this content",
+    )
+    content = models.TextField(help_text="Content itself")
+
+
+class EntryNote(models.Model):
+    entry = models.ForeignKey(Entry, on_delete=models.CASCADE, related_name="note")
     content = models.TextField()
 
 
-class FeedTag(models.Model):
+class ChannelTag(models.Model):
+    channels = models.ManyToManyField(Channel, related_name="tags")
     name = models.CharField(max_length=255, unique=True)
+    slug = AutoSlugField(populate_from="name", unique=True)
 
 
 class EntryTag(models.Model):
+    entries = models.ManyToManyField(Entry, related_name="tags")
     name = models.CharField(max_length=255, unique=True)
+    slug = AutoSlugField(populate_from="name", unique=True)

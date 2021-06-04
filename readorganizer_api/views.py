@@ -6,13 +6,13 @@ from readorganizer_api import serializers
 # from rest_framework import permissions
 
 
-class FeedList(generics.ListAPIView):
-    queryset = models.Feed.objects.all()
-    serializer_class = serializers.FeedSerializer
+class ChannelList(generics.ListAPIView):
+    queryset = models.Channel.objects.all()
+    serializer_class = serializers.ChannelSerializer
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class FeedDetail(generics.RetrieveAPIView):
-    queryset = models.Feed.objects.all()
-    serializer_class = serializers.FeedDetailSerializer
+class ChannelDetail(generics.RetrieveAPIView):
+    queryset = models.Channel.objects.all()
+    serializer_class = serializers.ChannelDetailSerializer
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
