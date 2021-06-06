@@ -4,6 +4,7 @@ from django.db import models
 
 from .enums import ChannelTypesEnum
 from .enums import EntryContentSourceTypesEnum
+from .managers import ChannelManager
 
 
 class User(AbstractUser):
@@ -11,6 +12,8 @@ class User(AbstractUser):
 
 
 class Channel(models.Model):
+    objects = ChannelManager()
+
     uri = models.URLField(max_length=2048, unique=True)
     channel_type = models.CharField(max_length=20, choices=ChannelTypesEnum.choices)
     title = models.TextField(blank=True, help_text="Title (name) of channel")
@@ -41,6 +44,14 @@ class Channel(models.Model):
         blank=True,
         help_text="Token for authentication (currently unused)",
     )
+
+    @property
+    def displayed_title(self):
+        if self.title:
+            return self.title
+
+        if hasattr(self, "feed_data"):
+            return self.feed_data.original_title
 
 
 class ChannelFeed(models.Model):

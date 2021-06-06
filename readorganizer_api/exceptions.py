@@ -1,0 +1,2 @@
+class NoNewChannelsAddedException(Exception):
+    pass
