@@ -71,6 +71,7 @@ default:
     - 'http://localhost:8080'
     - 'http://testserver:8000'
   CELERY_BROKER_URL: 'memory://localhost'
+  CELERY_BEAT_SCHEDULER: 'django_celery_beat.schedulers:DatabaseScheduler'
   CELERY_RESULT_BACKEND: 'django-db'
 
 production:
