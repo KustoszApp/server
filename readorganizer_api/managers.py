@@ -1,8 +1,10 @@
 from dataclasses import asdict
+from sys import maxsize as time_always_update
 from typing import Iterable
 
 from django.db import models
 from django.db.models.query import QuerySet
+from django.utils.timezone import now as django_now
 
 from .enums import ChannelTypesEnum
 from .enums import InternalTasksEnum
@@ -44,27 +46,52 @@ class ChannelManager(models.Manager):
 
         return (inserted_channels_ids, fetch_content_tasks)
 
-    def fetch_channels_content(self, channels: QuerySet) -> tuple[AsyncTaskResult, ...]:
+    def fetch_channels_content(
+        self, channels: QuerySet, force_fetch: bool = False
+    ) -> tuple[AsyncTaskResult, ...]:
         active_channels = channels.filter(active=True)
 
         feed_channels = active_channels.filter(channel_type=ChannelTypesEnum.FEED)
 
-        fetch_feed_tasks = self._request_feed_channels_content_fetch(feed_channels)
+        fetch_feeds_task = self._request_feed_channels_content_fetch(
+            feed_channels, force_fetch
+        )
 
-        return fetch_feed_tasks
+        return (fetch_feeds_task,)
 
     def _request_feed_channels_content_fetch(
-        self, channels: QuerySet
-    ) -> tuple[AsyncTaskResult, ...]:
-        fetch_feed_tasks = []
-        for channel in channels:
-            if not channel.id:
-                print("dostałem kanał, który nie ma id")
-                # something went wrong - log
-                continue
-            task = dispatch_task_by_name(
-                InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT,
-                kwargs={"channel_id": channel.id},
-            )
-            fetch_feed_tasks.append(task)
-        return fetch_feed_tasks
+        self, channels: QuerySet, force_fetch: bool
+    ) -> AsyncTaskResult:
+        channel_ids = [channel.id for channel in channels if channel.id]
+        task = dispatch_task_by_name(
+            InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT,
+            kwargs={"channel_ids": channel_ids, "force_fetch": force_fetch},
+        )
+        return task
+
+    def __discard_channels_updated_recently(self, queryset: QuerySet):
+        now = django_now()
+        channels = []
+        for channel in queryset:
+            try:
+                time_since_last_update = (now - channel.last_checked).total_seconds()
+            except TypeError:
+                time_since_last_update = time_always_update
+
+            if time_since_last_update > channel.update_frequency:
+                channels.append(channel)
+        return channels
+
+    def _fetch_feed_channels_content(
+        self, channel_ids: Iterable[int], force_fetch: bool
+    ):  # return ids of entries that were fetched?
+        queryset = self.get_queryset().filter(pk__in=channel_ids)
+
+        if not force_fetch:
+            requested_feeds = self.__discard_channels_updated_recently(queryset)
+            requested_feed_urls = [feed.uri for feed in requested_feeds]
+        else:
+            requested_feed_urls = queryset.values_list("uri", flat=True)
+            requested_feed_urls = list(requested_feed_urls)
+
+        # pass feed uris to dedicated fetcher
