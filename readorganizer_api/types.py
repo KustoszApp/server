@@ -11,7 +11,7 @@ AsyncTaskResult = AsyncResult
 @dataclass(frozen=True)
 class ChannelDataInput:
     #: The URL of the feed.
-    uri: str
+    url: str
 
     #: Type of channel
     channel_type: str

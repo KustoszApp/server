@@ -22,7 +22,7 @@ class Command(BaseCommand):
             feeds_conf = yaml.load(fh, Loader=yaml.FullLoader)
 
         channels = [
-            ChannelDataInput(uri=feed.get("url"), channel_type=ChannelTypesEnum.FEED)
+            ChannelDataInput(url=feed.get("url"), channel_type=ChannelTypesEnum.FEED)
             for feed in feeds_conf
         ]
 

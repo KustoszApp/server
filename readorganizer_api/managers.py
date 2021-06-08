@@ -20,8 +20,8 @@ class ChannelManager(models.Manager):
     ) -> tuple[tuple[int, ...], tuple[AsyncTaskResult, ...]]:
         queryset = self.get_queryset()
 
-        all_urls = [channel.uri for channel in channels_list]
-        existing_urls = queryset.filter(uri__in=all_urls).values_list("uri", flat=True)
+        all_urls = [channel.url for channel in channels_list]
+        existing_urls = queryset.filter(url__in=all_urls).values_list("url", flat=True)
         new_urls = set(all_urls) - set(existing_urls)
 
         if not new_urls:
@@ -30,13 +30,13 @@ class ChannelManager(models.Manager):
         channels_to_insert = [
             self.model(**asdict(channel_data))
             for channel_data in channels_list
-            if channel_data.uri in new_urls
+            if channel_data.url in new_urls
         ]
 
         inserted_channels = queryset.bulk_create(channels_to_insert)
 
         if not inserted_channels[0].id:
-            inserted_channels = queryset.filter(uri__in=new_urls)
+            inserted_channels = queryset.filter(url__in=new_urls)
 
         fetch_content_tasks = []
         if fetch_content:
@@ -89,9 +89,9 @@ class ChannelManager(models.Manager):
 
         if not force_fetch:
             requested_feeds = self.__discard_channels_updated_recently(queryset)
-            requested_feed_urls = [feed.uri for feed in requested_feeds]
+            requested_feed_urls = [feed.url for feed in requested_feeds]
         else:
-            requested_feed_urls = queryset.values_list("uri", flat=True)
+            requested_feed_urls = queryset.values_list("url", flat=True)
             requested_feed_urls = list(requested_feed_urls)
 
-        # pass feed uris to dedicated fetcher
+        # pass feed urls to dedicated fetcher

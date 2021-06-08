@@ -14,7 +14,7 @@ class User(AbstractUser):
 class Channel(models.Model):
     objects = ChannelManager()
 
-    uri = models.URLField(max_length=2048, unique=True)
+    url = models.URLField(max_length=2048, unique=True)
     channel_type = models.CharField(max_length=20, choices=ChannelTypesEnum.choices)
     title = models.TextField(blank=True, help_text="Title (name) of channel")
     last_checked = models.DateTimeField(
@@ -67,10 +67,10 @@ class Entry(models.Model):
     channel = models.ForeignKey(
         Channel, on_delete=models.CASCADE, related_name="entries"
     )
-    url = models.URLField(max_length=2048, blank=True, help_text="URL of entry")
-    mid = models.TextField(
-        max_length=1024, blank=True, help_text="Message-ID of entry (currently unused)"
+    gid = models.TextField(
+        max_length=2048, unique=True, help_text="Unique identifier of entry"
     )
+    url = models.URLField(max_length=2048, blank=True, help_text="URL of entry")
     title = models.TextField(blank=True, help_text="Title (subject) of entry")
     author = models.TextField(blank=True, help_text="Author of entry")
     added = models.DateTimeField(
@@ -85,7 +85,7 @@ class Entry(models.Model):
     updated = models.DateTimeField(
         blank=True, null=True, help_text="When entry was last updated in database"
     )
-    upstream_updated = models.DateTimeField(
+    updated_claim = models.DateTimeField(
         blank=True,
         null=True,
         help_text="When entry/channel claims entry was last updated",
