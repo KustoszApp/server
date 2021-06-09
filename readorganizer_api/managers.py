@@ -2,6 +2,8 @@ from dataclasses import asdict
 from sys import maxsize as time_always_update
 from typing import Iterable
 
+from django.conf import settings
+from django.core.paginator import Paginator
 from django.db import models
 from django.db.models.query import QuerySet
 from django.utils.timezone import now as django_now
@@ -49,15 +51,22 @@ class ChannelManager(models.Manager):
     def fetch_channels_content(
         self, channels: QuerySet, force_fetch: bool = False
     ) -> tuple[AsyncTaskResult, ...]:
-        active_channels = channels.filter(active=True)
+        active_channels = channels.filter(active=True).order_by("pk")
 
         feed_channels = active_channels.filter(channel_type=ChannelTypesEnum.FEED)
 
-        fetch_feeds_task = self._request_feed_channels_content_fetch(
-            feed_channels, force_fetch
+        feed_channels_paged = Paginator(
+            feed_channels, settings.READORGANIZER_CHANNELS_CHUNK_SIZE
         )
 
-        return (fetch_feeds_task,)
+        fetch_feeds_tasks = []
+        for chunk_number in feed_channels_paged.page_range:
+            task = self._request_feed_channels_content_fetch(
+                feed_channels_paged.get_page(chunk_number), force_fetch
+            )
+            fetch_feeds_tasks.append(task)
+
+        return fetch_feeds_tasks
 
     def _request_feed_channels_content_fetch(
         self, channels: QuerySet, force_fetch: bool
