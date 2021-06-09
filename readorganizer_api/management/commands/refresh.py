@@ -4,6 +4,7 @@ import yaml
 from django.core.management.base import BaseCommand
 
 from readorganizer_api.enums import ChannelTypesEnum
+from readorganizer_api.exceptions import InvalidDataException
 from readorganizer_api.exceptions import NoNewChannelsAddedException
 from readorganizer_api.models import Channel
 from readorganizer_api.tasks import add_channels
@@ -21,10 +22,15 @@ class Command(BaseCommand):
         with open(FEEDS_FILE) as fh:
             feeds_conf = yaml.load(fh, Loader=yaml.FullLoader)
 
-        channels = [
-            ChannelDataInput(url=feed.get("url"), channel_type=ChannelTypesEnum.FEED)
-            for feed in feeds_conf
-        ]
+        channels = []
+        for feed in feeds_conf:
+            try:
+                channel = ChannelDataInput(
+                    url=feed.get("url"), channel_type=ChannelTypesEnum.FEED
+                )
+                channels.append(channel)
+            except InvalidDataException as e:
+                print(e.message)
 
         try:
             added_id, tasks = add_channels(channels_list=channels)

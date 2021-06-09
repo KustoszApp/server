@@ -4,7 +4,20 @@ from django.db import models
 
 from .enums import ChannelTypesEnum
 from .enums import EntryContentSourceTypesEnum
+from .forms.fields import ChannelURLFormField
 from .managers import ChannelManager
+from .validators import ChannelURLValidator
+
+
+class ChannelURLField(models.URLField):
+    default_validators = [ChannelURLValidator()]
+
+    def formfield(self, **kwargs):
+        return super().formfield(
+            **{
+                "form_class": ChannelURLFormField,
+            }
+        )
 
 
 class User(AbstractUser):
@@ -14,7 +27,7 @@ class User(AbstractUser):
 class Channel(models.Model):
     objects = ChannelManager()
 
-    url = models.URLField(max_length=2048, unique=True)
+    url = ChannelURLField(max_length=2048, unique=True)
     channel_type = models.CharField(max_length=20, choices=ChannelTypesEnum.choices)
     title = models.TextField(blank=True, help_text="Title (name) of channel")
     last_checked = models.DateTimeField(

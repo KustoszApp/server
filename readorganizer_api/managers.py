@@ -3,6 +3,7 @@ from sys import maxsize as time_always_update
 from typing import Iterable
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import models
 from django.db.models.query import QuerySet
@@ -20,6 +21,10 @@ class ChannelManager(models.Manager):
     def add_channels(
         self, channels_list: Iterable[ChannelDataInput], fetch_content: bool = True
     ) -> tuple[tuple[int, ...], tuple[AsyncTaskResult, ...]]:
+        # FIXME: this should return:
+        #        - list of id, url pairs of what was added
+        #        - list of AsyncTaskResult, so caller can wait
+        #        - list of url, exception pairs, so caller can report back invalid data
         queryset = self.get_queryset()
 
         all_urls = [channel.url for channel in channels_list]
@@ -29,11 +34,23 @@ class ChannelManager(models.Manager):
         if not new_urls:
             raise NoNewChannelsAddedException()
 
-        channels_to_insert = [
-            self.model(**asdict(channel_data))
-            for channel_data in channels_list
-            if channel_data.url in new_urls
-        ]
+        # FIXME: does that make sense? ChannelDataInput should validate params and
+        #        ensure they are OK for db insertion... I think
+        channels_to_insert = []
+        for channel_data in channels_list:
+            if channel_data.url not in new_urls:
+                continue
+
+            # shouldn't that be responsibility of caller?
+            if channel_data.url in [channel.url for channel in channels_to_insert]:
+                continue
+
+            channel = self.model(**asdict(channel_data))
+            try:
+                channel.full_clean()
+            except ValidationError:
+                continue
+            channels_to_insert.append(channel)
 
         inserted_channels = queryset.bulk_create(channels_to_insert)
 
