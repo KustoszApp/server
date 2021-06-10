@@ -5,7 +5,6 @@ from readorganizer_api import models
 
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Channel)
-admin.site.register(models.ChannelFeed)
 admin.site.register(models.Entry)
 admin.site.register(models.EntryContent)
 admin.site.register(models.EntryNote)
