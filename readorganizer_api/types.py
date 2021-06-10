@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional
 
 from celery.result import AsyncResult
@@ -56,3 +57,37 @@ class AddChannelResult:
 
     #: Tasks created when adding channels
     tasks: tuple[AsyncTaskResult, ...]
+
+
+@dataclass(frozen=True)
+class FetchedFeed:
+    url: str
+    fetch_succeeded: bool
+    #: this maps to model.title_upstream
+    title: Optional[str]
+    link: Optional[str]
+
+
+@dataclass(frozen=True)
+class FetchedFeedEntry:
+    feed_url: str
+    gid: str
+    link: Optional[str]
+    title: Optional[str]
+    author: Optional[str]
+    published_time: Optional[datetime]
+    #: this maps to model updated_time_upstream
+    updated_time: Optional[datetime]
+    content: tuple[str, ...]
+    # FIXME: add enclosures support
+
+
+@dataclass(frozen=True)
+class FeedFetcherResult:
+    #: List of fetched feed data;
+    #: some are the same as what we already have, some are changed
+    feeds: tuple[FetchedFeed, ...]
+
+    #: List of fetched entries data;
+    #: some are the same as what we already have, some are changed, some are new
+    entries: tuple[FetchedFeedEntry, ...]
