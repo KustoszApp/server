@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from celery.result import AsyncResult
 
@@ -34,3 +35,24 @@ class ChannelDataInput:
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.url == other.url
+
+
+@dataclass(frozen=True)
+class AddSingleChannelResult:
+    #: The URL of the feed
+    url: str
+
+    #: Was this channel added?
+    added: bool
+
+    #: Exception raised while trying to add channel
+    exception: Optional[InvalidDataException] = None
+
+
+@dataclass(frozen=True)
+class AddChannelResult:
+    #: Details of requested channels
+    channels: tuple[AddSingleChannelResult, ...]
+
+    #: Tasks created when adding channels
+    tasks: tuple[AsyncTaskResult, ...]

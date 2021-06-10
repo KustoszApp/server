@@ -12,6 +12,8 @@ from django.utils.timezone import now as django_now
 from .enums import ChannelTypesEnum
 from .enums import InternalTasksEnum
 from .exceptions import NoNewChannelsAddedException
+from .types import AddChannelResult
+from .types import AddSingleChannelResult
 from .types import AsyncTaskResult
 from .types import ChannelDataInput
 from .utils import dispatch_task_by_name
@@ -21,18 +23,20 @@ from .utils import make_unique
 class ChannelManager(models.Manager):
     def add_channels(
         self, channels_list: Iterable[ChannelDataInput], fetch_content: bool = True
-    ) -> tuple[tuple[int, ...], tuple[AsyncTaskResult, ...]]:
-        # FIXME: this should return:
-        #        - list of id, url pairs of what was added
-        #        - list of AsyncTaskResult, so caller can wait
-        #        - list of url, exception pairs, so caller can report back invalid data
+    ) -> AddChannelResult:
         queryset = self.get_queryset()
-
         channels_list = make_unique(channels_list)
 
-        all_urls = [channel.url for channel in channels_list]
-        existing_urls = queryset.filter(url__in=all_urls).values_list("url", flat=True)
-        new_urls = set(all_urls) - set(existing_urls)
+        channel_results_map = {
+            channel.url: {"url": channel.url, "added": False}
+            for channel in channels_list
+        }
+
+        requested_urls = channel_results_map.keys()
+        existing_urls = queryset.filter(url__in=requested_urls).values_list(
+            "url", flat=True
+        )
+        new_urls = set(requested_urls) - set(existing_urls)
 
         if not new_urls:
             raise NoNewChannelsAddedException()
@@ -42,11 +46,14 @@ class ChannelManager(models.Manager):
             if channel_data.url not in new_urls:
                 continue
 
+            map_obj = channel_results_map[channel_data.url]
             channel = self.model(**asdict(channel_data))
             try:
                 channel.full_clean()
-            except ValidationError:
+            except ValidationError as e:
+                map_obj["exception"] = e
                 continue
+            map_obj["added"] = True
             channels_to_insert.append(channel)
 
         inserted_channels = queryset.bulk_create(channels_to_insert)
@@ -58,9 +65,13 @@ class ChannelManager(models.Manager):
         if fetch_content:
             fetch_content_tasks = self.fetch_channels_content(inserted_channels)
 
-        inserted_channels_ids = [channel.id for channel in inserted_channels]
+        channel_results = [
+            AddSingleChannelResult(**channel_result)
+            for channel_result in channel_results_map.values()
+        ]
 
-        return (inserted_channels_ids, fetch_content_tasks)
+        rv = AddChannelResult(channel_results, fetch_content_tasks)
+        return rv
 
     def fetch_channels_content(
         self, channels: QuerySet, force_fetch: bool = False
@@ -97,7 +108,7 @@ class ChannelManager(models.Manager):
         channels = []
         for channel in queryset:
             try:
-                time_since_last_update = (now - channel.last_checked).total_seconds()
+                time_since_last_update = (now - channel.last_check_time).total_seconds()
             except TypeError:
                 time_since_last_update = time_always_update
 

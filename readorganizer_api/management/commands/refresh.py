@@ -8,6 +8,7 @@ from readorganizer_api.exceptions import InvalidDataException
 from readorganizer_api.exceptions import NoNewChannelsAddedException
 from readorganizer_api.models import Channel
 from readorganizer_api.tasks import add_channels
+from readorganizer_api.types import AddChannelResult
 from readorganizer_api.types import ChannelDataInput
 
 
@@ -32,14 +33,16 @@ class Command(BaseCommand):
             except InvalidDataException as e:
                 print(e.message)
 
+        add_channels_result: AddChannelResult
         try:
-            added_id, tasks = add_channels(channels_list=channels)
+            add_channels_result = add_channels(channels_list=channels)
         except NoNewChannelsAddedException:
             print("removing all channels to make debugging easier")
             Channel.objects.all().delete()
             return
 
-        print(f"Channels added: {len(added_id)}")
+        added_count = sum(item.added for item in add_channels_result.channels)
+        print(f"Channels added: {added_count}")
         if sync:
-            results = [t.get() for t in tasks]
+            results = [t.get() for t in add_channels_result.tasks]
             print(f"Tasks return values: {results}")

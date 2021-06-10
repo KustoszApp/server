@@ -8,8 +8,8 @@ from readorganizer_api.types import ChannelDataInput
 def test_channel_manager_add_channels(db):
     m = Channel.objects
     channels = [
-        ChannelDataInput("http://fake1/"),
-        ChannelDataInput("http://fake2/"),
+        ChannelDataInput("http://fake1.tld/", "feed"),
+        ChannelDataInput("http://fake2.tld/", "feed"),
     ]
 
     m.add_channels(channels, False)
@@ -20,8 +20,8 @@ def test_channel_manager_add_channels(db):
 def test_channel_manager_try_adding_existing_channels(db):
     m = Channel.objects
     channels = [
-        ChannelDataInput("http://fake1/"),
-        ChannelDataInput("http://fake2/"),
+        ChannelDataInput("http://fake1.tld/", "feed"),
+        ChannelDataInput("http://fake2.tld/", "feed"),
     ]
 
     m.add_channels(channels, False)
@@ -35,13 +35,13 @@ def test_channel_manager_try_adding_existing_channels(db):
 def test_channel_manager_add_mix_of_existing_and_new_channels(db):
     m = Channel.objects
     channels = [
-        ChannelDataInput("http://fake1/"),
-        ChannelDataInput("http://fake2/"),
+        ChannelDataInput("http://fake1.tld/", "feed"),
+        ChannelDataInput("http://fake2.tld/", "feed"),
     ]
 
     m.add_channels(channels, False)
 
-    channels.append(ChannelDataInput("http://fake3"))
+    channels.append(ChannelDataInput("http://fake3.tld", "feed"))
 
     m.add_channels(channels, False)
 
