@@ -9,6 +9,10 @@ from django.core.cache import cache
 dispatch_task_by_name = celery.current_app.send_task
 
 
+def make_unique(sequence):
+    return list(dict.fromkeys(sequence))
+
+
 @contextmanager
 def cache_lock(lock_id, our_id):
     timeout = settings.READORGANIZER_LOCK_EXPIRE

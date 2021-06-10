@@ -15,6 +15,7 @@ from .exceptions import NoNewChannelsAddedException
 from .types import AsyncTaskResult
 from .types import ChannelDataInput
 from .utils import dispatch_task_by_name
+from .utils import make_unique
 
 
 class ChannelManager(models.Manager):
@@ -27,6 +28,8 @@ class ChannelManager(models.Manager):
         #        - list of url, exception pairs, so caller can report back invalid data
         queryset = self.get_queryset()
 
+        channels_list = make_unique(channels_list)
+
         all_urls = [channel.url for channel in channels_list]
         existing_urls = queryset.filter(url__in=all_urls).values_list("url", flat=True)
         new_urls = set(all_urls) - set(existing_urls)
@@ -34,15 +37,9 @@ class ChannelManager(models.Manager):
         if not new_urls:
             raise NoNewChannelsAddedException()
 
-        # FIXME: does that make sense? ChannelDataInput should validate params and
-        #        ensure they are OK for db insertion... I think
         channels_to_insert = []
         for channel_data in channels_list:
             if channel_data.url not in new_urls:
-                continue
-
-            # shouldn't that be responsibility of caller?
-            if channel_data.url in [channel.url for channel in channels_to_insert]:
                 continue
 
             channel = self.model(**asdict(channel_data))
