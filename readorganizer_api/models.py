@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.timezone import now as django_now
 
+from .constants import DEFAULT_UPDATE_FREQUENCY
 from .enums import ChannelTypesEnum
 from .enums import EntryContentSourceTypesEnum
 from .forms.fields import ChannelURLFormField
@@ -55,7 +56,8 @@ class Channel(models.Model):
         default=True, help_text="Is this channel actively checked for new content?"
     )
     update_frequency = models.IntegerField(
-        default=3600, help_text="How often channel should be checked, in seconds"
+        default=DEFAULT_UPDATE_FREQUENCY,
+        help_text="How often channel should be checked, in seconds",
     )
 
     @property

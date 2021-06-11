@@ -26,16 +26,18 @@ class Command(BaseCommand):
         channels = []
         for feed in feeds_conf:
             try:
-                channel = ChannelDataInput(
-                    url=feed.get("url"), channel_type=ChannelTypesEnum.FEED
-                )
+                channel = ChannelDataInput(**feed, channel_type=ChannelTypesEnum.FEED)
                 channels.append(channel)
             except InvalidDataException as e:
                 print(e.message)
+            except TypeError as e:
+                print(e)
 
         add_channels_result: AddChannelResult
         try:
-            add_channels_result = add_channels(channels_list=channels)
+            add_channels_result = add_channels(
+                channels_list=channels, fetch_content=sync
+            )
         except NoNewChannelsAddedException:
             print("removing all channels to make debugging easier")
             Channel.objects.all().delete()

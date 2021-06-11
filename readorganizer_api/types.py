@@ -4,6 +4,7 @@ from typing import Optional
 
 from celery.result import AsyncResult
 
+from .constants import DEFAULT_UPDATE_FREQUENCY
 from .exceptions import InvalidDataException
 from .validators import ChannelURLValidator
 
@@ -20,8 +21,15 @@ class ChannelDataInput:
 
     #: Type of channel
     channel_type: str
-    #: The date the feed was last updated, according to the feed.
-    # updated: Optional[datetime] = None
+
+    #: Title of channel
+    title: Optional[str] = ""
+
+    #: Is this channel active?
+    active: Optional[bool] = True
+
+    #: How often should channel be checked for new content, in seconds
+    update_frequency: Optional[int] = DEFAULT_UPDATE_FREQUENCY
 
     def __post_init__(self):
         channel_url_validator = ChannelURLValidator()
