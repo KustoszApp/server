@@ -9,5 +9,5 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 import dynaconf  # noqa
 
 settings = dynaconf.DjangoDynaconf(
-    __name__, settings_files=["../settings.yaml", "../.secrets.yaml"]
+    __name__, settings_files=[BASE_DIR / "settings.yaml", BASE_DIR / ".secrets.yaml"]
 )  # noqa

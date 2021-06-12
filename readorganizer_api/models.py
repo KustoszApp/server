@@ -10,6 +10,7 @@ from .enums import ChannelTypesEnum
 from .enums import EntryContentSourceTypesEnum
 from .forms.fields import ChannelURLFormField
 from .managers import ChannelManager
+from .managers import EntryManager
 from .validators import ChannelURLValidator
 
 
@@ -85,6 +86,8 @@ class Channel(models.Model):
 
 
 class Entry(models.Model):
+    objects = EntryManager()
+
     channel = models.ForeignKey(
         Channel, on_delete=models.CASCADE, related_name="entries"
     )
@@ -123,6 +126,9 @@ class EntryContent(models.Model):
         help_text="Source of this content",
     )
     content = models.TextField(help_text="Content itself")
+    mimetype = models.TextField(blank=True, help_text="Type of content")
+    language = models.TextField(blank=True, help_text="Language of content")
+    updated_time = models.DateTimeField(help_text="When content was last updated")
 
 
 class EntryNote(models.Model):

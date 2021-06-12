@@ -19,6 +19,7 @@ class Command(BaseCommand):
         CONF_DIR = Path(".") / "conf"
         FEEDS_FILE = CONF_DIR / "feeds.yaml"
         sync = True
+        fetch_content = True
 
         with open(FEEDS_FILE) as fh:
             feeds_conf = yaml.load(fh, Loader=yaml.FullLoader)
@@ -36,7 +37,7 @@ class Command(BaseCommand):
         add_channels_result: AddChannelResult
         try:
             add_channels_result = add_channels(
-                channels_list=channels, fetch_content=sync
+                channels_list=channels, fetch_content=fetch_content
             )
         except NoNewChannelsAddedException:
             print("removing all channels to make debugging easier")

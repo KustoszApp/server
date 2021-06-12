@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
+from typing import Sequence
 
 from celery.result import AsyncResult
 
@@ -70,23 +71,31 @@ class AddChannelResult:
 @dataclass(frozen=True)
 class FetchedFeed:
     url: str
-    fetch_succeeded: bool
+    fetch_failed: bool
     #: this maps to model.title_upstream
-    title: Optional[str]
-    link: Optional[str]
+    title: Optional[str] = ""
+    link: Optional[str] = ""
+
+
+@dataclass(frozen=True)
+class FetchedFeedEntryContent:
+    content: str
+    mimetype: Optional[str] = ""
+    language: Optional[str] = ""
 
 
 @dataclass(frozen=True)
 class FetchedFeedEntry:
     feed_url: str
     gid: str
-    link: Optional[str]
-    title: Optional[str]
-    author: Optional[str]
-    published_time: Optional[datetime]
+    link: Optional[str] = ""
+    title: Optional[str] = ""
+    author: Optional[str] = ""
+    published_time: Optional[datetime] = None
     #: this maps to model updated_time_upstream
-    updated_time: Optional[datetime]
-    content: tuple[str, ...]
+    updated_time: Optional[datetime] = None
+    summary: Optional[str] = ""
+    content: Sequence["FetchedFeedEntryContent"] = ()
     # FIXME: add enclosures support
 
 
