@@ -32,6 +32,9 @@ class ChannelDataInput:
     #: How often should channel be checked for new content, in seconds
     update_frequency: Optional[int] = DEFAULT_UPDATE_FREQUENCY
 
+    #: Tags of channel
+    tags: Sequence[str] = ()
+
     def __post_init__(self):
         channel_url_validator = ChannelURLValidator()
         try:

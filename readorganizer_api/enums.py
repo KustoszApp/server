@@ -13,5 +13,11 @@ class EntryContentSourceTypesEnum(models.TextChoices):
     NODE_READABILITY = "nodereadability", "Readability (Node.js implementation)"
 
 
+class ImportChannelsActionsEnum(models.TextChoices):
+    AUTODISCOVER = "autodiscover"
+    OPML = "opml"
+    CONFIG = "config"
+
+
 class InternalTasksEnum(models.TextChoices):
     FETCH_FEED_CHANNEL_CONTENT = "readorganizer_api.internal.fetch_feed_channel_content"

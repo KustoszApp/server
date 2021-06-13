@@ -4,7 +4,7 @@ from readorganizer_api.models import Channel
 
 
 class Command(BaseCommand):
-    help = "Fetch new articles"
+    help = "Fetch new articles from active channels"
 
     def handle(self, *args, **options):
         channels = Channel.objects.filter(active=True)
@@ -12,3 +12,4 @@ class Command(BaseCommand):
         channels.first().entries.first().delete()
         # FIXME: end debugging only
         Channel.objects.fetch_channels_content(channels, True)
+        # FIXME do something with output?

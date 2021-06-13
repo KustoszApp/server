@@ -53,7 +53,10 @@ class ChannelManager(models.Manager):
                 continue
 
             map_obj = channel_results_map[channel_data.url]
-            channel = self.model(**asdict(channel_data))
+            # FIXME: add proper tags support
+            channel_data = asdict(channel_data)
+            channel_data.pop("tags")
+            channel = self.model(**channel_data)
             try:
                 channel.full_clean()
             except ValidationError as e:
