@@ -56,7 +56,7 @@ class FeedChannelsFetcher:
         return f"file://{without_prefix}"
 
     def _disable_updates_for_existing_feeds(self):
-        feeds = self._reader.get_feeds(updates_enabled=False)
+        feeds = self._reader.get_feeds(updates_enabled=True)
         for feed in feeds:
             self._reader.disable_feed_updates(feed)
 
