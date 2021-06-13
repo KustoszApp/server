@@ -159,10 +159,7 @@ class ChannelManager(models.Manager):
             grouped_by_feed[item.feed_url].append(item)
 
         for channel_model in feeds_queryset:
-            # FIXME: need some framework for path management
-            channel_entries_data = grouped_by_feed.get(
-                channel_model.url.removeprefix("file://")
-            )
+            channel_entries_data = grouped_by_feed.get(channel_model.url)
             channel_model.entries(
                 manager="objects"
             )._create_or_update_with_fetched_data(
@@ -182,13 +179,6 @@ class ChannelManager(models.Manager):
             requested_feed_urls = list(requested_feed_urls)
 
         print(f"Will ask {len(requested_feed_urls)} feeds for updates")
-
-        # FIXME: find better place for this
-        requested_feed_urls = [
-            _.removeprefix("file://")
-            for _ in requested_feed_urls
-            if _.startswith("file://")
-        ]
 
         fetched_data = FeedChannelsFetcher.fetch(feed_urls=requested_feed_urls)
         print(f"Fetched data of {len(fetched_data.feeds)} feeds")

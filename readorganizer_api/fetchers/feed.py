@@ -19,11 +19,40 @@ class FeedChannelsFetcher:
         self._reader = make_reader(
             url=str(self._db_file), feed_root=str(FEED_FETCHER_LOCAL_FEEDS_DIR)
         )
-        self._feed_urls = feed_urls
+        self._feed_urls = self._normalize_paths_for_reader(feed_urls)
 
     def _prepare_directories(self):
         for d in (FETCHERS_CACHE_DIR, FEED_FETCHER_LOCAL_FEEDS_DIR):
             d.mkdir(mode=0o700, exist_ok=True)
+
+    @classmethod
+    def _normalize_paths_for_reader(cls, paths):
+        new_paths = []
+        for path in paths:
+            if cls._is_local_url(path):
+                path = cls._local_url_to_reader_feed_url(path)
+            new_paths.append(path)
+        return new_paths
+
+    @staticmethod
+    def _is_local_url(path):
+        return path.startswith("file://")
+
+    @staticmethod
+    def _local_url_to_reader_feed_url(path):
+        without_prefix = path.removeprefix("file://")
+        return f"file:{without_prefix}"
+
+    @classmethod
+    def _normalize_output_path(cls, path):
+        if path.startswith("file:"):
+            return cls._reader_feed_url_to_local_url(path)
+        return path
+
+    @staticmethod
+    def _reader_feed_url_to_local_url(path):
+        without_prefix = path.removeprefix("file:")
+        return f"file://{without_prefix}"
 
     def _disable_updates_for_existing_feeds(self):
         feeds = self._reader.get_feeds(updates_enabled=False)
@@ -46,7 +75,10 @@ class FeedChannelsFetcher:
     def _get_new_feeds_data(self):
         fetched_feeds: tuple[FetchedFeed, ...] = []
         for feed in self._reader.get_feeds(updates_enabled=True):
-            obj_data = {"url": feed.url, "fetch_failed": bool(feed.last_exception)}
+            obj_data = {
+                "url": self._normalize_output_path(feed.url),
+                "fetch_failed": bool(feed.last_exception),
+            }
             if feed.title:
                 obj_data["title"] = feed.title
             if feed.link:
@@ -59,6 +91,7 @@ class FeedChannelsFetcher:
     def _get_new_entries_data(self):
         fetched_entries: tuple[FetchedFeedEntry, ...] = []
         data_mapping = (
+            # DTO key, reader key
             ("feed_url", "feed_url"),
             ("gid", "id"),
             ("link", "link"),
@@ -72,6 +105,8 @@ class FeedChannelsFetcher:
             obj_data = {}
             for key, reader_key in data_mapping:
                 value = getattr(entry, reader_key, None)
+                if key == "feed_url":
+                    value = self._normalize_output_path(value)
                 if value:
                     obj_data[key] = value
 
