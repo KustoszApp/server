@@ -6,6 +6,7 @@ from reader import make_reader
 
 from readorganizer_api.constants import FEED_FETCHER_LOCAL_FEEDS_DIR
 from readorganizer_api.constants import FETCHERS_CACHE_DIR
+from readorganizer_api.enums import EntryContentSourceTypesEnum
 from readorganizer_api.types import FeedFetcherResult
 from readorganizer_api.types import FetchedFeed
 from readorganizer_api.types import FetchedFeedEntry
@@ -99,7 +100,6 @@ class FeedChannelsFetcher:
             ("author", "author"),
             ("published_time", "published"),
             ("updated_time", "updated"),
-            ("summary", "summary"),
         )
         for entry in self._reader.get_entries(read=False):
             obj_data = {}
@@ -111,8 +111,17 @@ class FeedChannelsFetcher:
                     obj_data[key] = value
 
             contents = []
+            if entry.summary:
+                content_obj = FetchedFeedEntryContent(
+                    source=EntryContentSourceTypesEnum.FEED_SUMMARY,
+                    content=entry.summary,
+                )
+                contents.append(content_obj)
             for entry_content in entry.content:
-                content_data = {"content": entry_content.value}
+                content_data = {
+                    "source": EntryContentSourceTypesEnum.FEED_CONTENT,
+                    "content": entry_content.value,
+                }
                 if entry_content.type:
                     content_data["mimetype"] = entry_content.type
                 if entry_content.language:

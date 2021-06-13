@@ -79,6 +79,7 @@ class FetchedFeed:
 
 @dataclass(frozen=True)
 class FetchedFeedEntryContent:
+    source: str
     content: str
     mimetype: Optional[str] = ""
     language: Optional[str] = ""
@@ -94,7 +95,6 @@ class FetchedFeedEntry:
     published_time: Optional[datetime] = None
     #: this maps to model updated_time_upstream
     updated_time: Optional[datetime] = None
-    summary: Optional[str] = ""
     content: Sequence["FetchedFeedEntryContent"] = ()
     # FIXME: add enclosures support
 

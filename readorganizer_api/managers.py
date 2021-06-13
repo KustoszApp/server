@@ -12,7 +12,6 @@ from django.db.models.query import QuerySet
 from django.utils.timezone import now as django_now
 
 from .enums import ChannelTypesEnum
-from .enums import EntryContentSourceTypesEnum
 from .enums import InternalTasksEnum
 from .exceptions import NoNewChannelsAddedException
 from .fetchers.feed import FeedChannelsFetcher
@@ -295,20 +294,12 @@ class EntryManager(models.Manager):
                 continue
             EntryContent = entry.content_set.get_queryset().model
             entry_contents = []
-            if entry_data.summary:
-                content_obj = EntryContent(
-                    source=EntryContentSourceTypesEnum.FEED_SUMMARY,
-                    content=entry_data.summary,
-                    updated_time=right_now,
-                )
-                entry_contents.append(content_obj)
             for fetched_content in entry_data.content:
                 content_obj = EntryContent(
-                    source=EntryContentSourceTypesEnum.FEED_CONTENT,
                     updated_time=right_now,
                     **{
                         key: getattr(fetched_content, key)
-                        for key in ("content", "language", "mimetype")
+                        for key in ("source", "content", "language", "mimetype")
                     },
                 )
                 entry_contents.append(content_obj)
