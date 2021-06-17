@@ -91,9 +91,7 @@ class Entry(models.Model):
     channel = models.ForeignKey(
         Channel, on_delete=models.CASCADE, related_name="entries"
     )
-    gid = models.TextField(
-        max_length=2048, unique=True, help_text="Unique identifier of entry"
-    )
+    gid = models.TextField(max_length=2048, help_text="Unique identifier of entry")
     archived = models.BooleanField(
         default=False, help_text="Is this entry archived (read)?"
     )
@@ -114,6 +112,13 @@ class Entry(models.Model):
         null=True,
         help_text="When entry/channel claims entry was last updated",
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["channel", "gid"], name="unique_channel_gid"
+            )
+        ]
 
 
 class EntryContent(models.Model):
