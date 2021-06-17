@@ -27,6 +27,8 @@ class EntrySerializer(serializers.ModelSerializer):
 
 
 class ChannelSerializer(serializers.ModelSerializer):
+    unarchived_entries = serializers.IntegerField()
+
     class Meta:
         model = Channel
         # FIXME: include number of unread entries
@@ -43,6 +45,7 @@ class ChannelSerializer(serializers.ModelSerializer):
             "last_successful_check_time",
             "added_time",
             "is_stale",
+            "unarchived_entries",
         ]
         extra_kwargs = {
             "id": {"read_only": True},
@@ -53,11 +56,13 @@ class ChannelSerializer(serializers.ModelSerializer):
             "last_successful_check_time": {"read_only": True},
             "added": {"read_only": True},
             "is_stale": {"read_only": True},
+            "unarchived_entries": {"read_only": True},
         }
 
 
 class ChannelDetailSerializer(serializers.ModelSerializer):
     entries = EntrySerializer(many=True, read_only=True)
+    unarchived_entries = serializers.IntegerField()
 
     class Meta:
         model = Channel
@@ -75,6 +80,7 @@ class ChannelDetailSerializer(serializers.ModelSerializer):
             "update_frequency",
             "is_stale",
             "entries",
+            "unarchived_entries",
         ]
         extra_kwargs = {
             "id": {"read_only": True},
@@ -85,4 +91,5 @@ class ChannelDetailSerializer(serializers.ModelSerializer):
             "last_successful_check_time": {"read_only": True},
             "added": {"read_only": True},
             "is_stale": {"read_only": True},
+            "unarchived_entries": {"read_only": True},
         }
