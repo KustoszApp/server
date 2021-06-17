@@ -114,6 +114,7 @@ class Entry(models.Model):
     )
 
     class Meta:
+        verbose_name_plural = "entries"
         constraints = [
             models.UniqueConstraint(
                 fields=["channel", "gid"], name="unique_channel_gid"
