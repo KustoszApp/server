@@ -200,15 +200,29 @@ class ChannelManager(models.Manager):
             if not received_data.fetch_failed:
                 channel_model.last_successful_check_time = right_now
             if received_data.title != channel_model.title_upstream:
+                log.debug(
+                    "channel %s (%s) title_upstream changed from '%s' to '%s'",
+                    channel_model.pk,
+                    channel_model.url,
+                    channel_model.title_upstream,
+                    received_data.title,
+                )
                 channel_model.title_upstream = received_data.title
             if received_data.link != channel_model.link:
+                log.debug(
+                    "channel %s (%s) link changed from '%s' to '%s'",
+                    channel_model.pk,
+                    channel_model.url,
+                    channel_model.link,
+                    received_data.link,
+                )
                 channel_model.link = received_data.link
             updated_models.append(channel_model)
 
         log.debug("number of feeds updated: %s", len(updated_models))
         feeds_queryset.bulk_update(
             updated_models,
-            ("last_check_time", "last_successful_check_time", "title", "link"),
+            ("last_check_time", "last_successful_check_time", "title_upstream", "link"),
         )
 
     def __update_entries_with_fetched_data(
@@ -323,7 +337,7 @@ class EntryManager(models.Manager):
                 title=entry_data.title,
                 author=entry_data.author,
                 updated_time=django_now(),
-                published_time=optional_make_aware(entry_data.published_time),
+                published_time_upstream=optional_make_aware(entry_data.published_time),
                 updated_time_upstream=optional_make_aware(entry_data.updated_time),
             )
 
@@ -376,8 +390,8 @@ class EntryManager(models.Manager):
             if fetched_key in ("published_time", "updated_time"):
                 fetched_value = optional_make_aware(fetched_value)
             model_key = fetched_key
-            if fetched_key == "updated_time":
-                model_key = "updated_time_upstream"
+            if fetched_key in ("updated_time", "published_time"):
+                model_key = f"{fetched_key}_upstream"
             model_value = getattr(entry_model, model_key)
             if model_value != fetched_value:
                 log.debug(

@@ -101,17 +101,24 @@ class Entry(models.Model):
     added_time = models.DateTimeField(
         auto_now_add=True, help_text="When entry was added to database"
     )
-    published_time = models.DateTimeField(
-        blank=True, null=True, help_text="Publication date of entry"
-    )
     updated_time = models.DateTimeField(
         blank=True, null=True, help_text="When entry was last updated in database"
+    )
+    published_time_upstream = models.DateTimeField(
+        blank=True, null=True, help_text="Publication date of entry"
     )
     updated_time_upstream = models.DateTimeField(
         blank=True,
         null=True,
         help_text="When entry/channel claims entry was last updated",
     )
+
+    @property
+    def probable_published_time(self):
+        if self.published_time_upstream:
+            return self.published_time_upstream
+        if self.updated_time_upstream:
+            return self.updated_time_upstream
 
     class Meta:
         verbose_name_plural = "entries"
