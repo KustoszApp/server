@@ -162,6 +162,12 @@ class ChannelManager(models.Manager):
 
         for channel_model in feeds_queryset:
             channel_entries_data = grouped_by_feed.get(channel_model.url)
+            # FIXME: this happens sometimes, but I think it shouldn't
+            if not channel_entries_data:
+                print(
+                    f"don't have entry_data for {channel_model.pk}: {channel_model.url}"
+                )
+                continue
             channel_model.entries(
                 manager="objects"
             )._create_or_update_with_fetched_data(

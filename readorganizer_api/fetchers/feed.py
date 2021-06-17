@@ -101,39 +101,40 @@ class FeedChannelsFetcher:
             ("published_time", "published"),
             ("updated_time", "updated"),
         )
-        for entry in self._reader.get_entries(read=False):
-            obj_data = {}
-            for key, reader_key in data_mapping:
-                value = getattr(entry, reader_key, None)
-                if key == "feed_url":
-                    value = self._normalize_output_path(value)
-                if value:
-                    obj_data[key] = value
+        for feed_url in self._feed_urls:
+            for entry in self._reader.get_entries(feed=feed_url, read=False):
+                obj_data = {}
+                for key, reader_key in data_mapping:
+                    value = getattr(entry, reader_key, None)
+                    if key == "feed_url":
+                        value = self._normalize_output_path(value)
+                    if value:
+                        obj_data[key] = value
 
-            contents = []
-            if entry.summary:
-                content_obj = FetchedFeedEntryContent(
-                    source=EntryContentSourceTypesEnum.FEED_SUMMARY,
-                    content=entry.summary,
-                )
-                contents.append(content_obj)
-            for entry_content in entry.content:
-                content_data = {
-                    "source": EntryContentSourceTypesEnum.FEED_CONTENT,
-                    "content": entry_content.value,
-                }
-                if entry_content.type:
-                    content_data["mimetype"] = entry_content.type
-                if entry_content.language:
-                    content_data["language"] = entry_content.language
+                contents = []
+                if entry.summary:
+                    content_obj = FetchedFeedEntryContent(
+                        source=EntryContentSourceTypesEnum.FEED_SUMMARY,
+                        content=entry.summary,
+                    )
+                    contents.append(content_obj)
+                for entry_content in entry.content:
+                    content_data = {
+                        "source": EntryContentSourceTypesEnum.FEED_CONTENT,
+                        "content": entry_content.value,
+                    }
+                    if entry_content.type:
+                        content_data["mimetype"] = entry_content.type
+                    if entry_content.language:
+                        content_data["language"] = entry_content.language
 
-                content_obj = FetchedFeedEntryContent(**content_data)
-                contents.append(content_obj)
-            if contents:
-                obj_data["content"] = tuple(contents)
+                    content_obj = FetchedFeedEntryContent(**content_data)
+                    contents.append(content_obj)
+                if contents:
+                    obj_data["content"] = tuple(contents)
 
-            obj = FetchedFeedEntry(**obj_data)
-            fetched_entries.append(obj)
+                obj = FetchedFeedEntry(**obj_data)
+                fetched_entries.append(obj)
         return fetched_entries
 
     def update(self):
