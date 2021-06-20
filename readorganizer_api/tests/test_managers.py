@@ -1,16 +1,13 @@
 import pytest
 
+from .framework.factories.types import ChannelDataInputFactory
 from readorganizer_api.exceptions import NoNewChannelsAddedException
 from readorganizer_api.models import Channel
-from readorganizer_api.types import ChannelDataInput
 
 
 def test_channel_manager_add_channels(db):
     m = Channel.objects
-    channels = [
-        ChannelDataInput("http://fake1.tld/", "feed"),
-        ChannelDataInput("http://fake2.tld/", "feed"),
-    ]
+    channels = ChannelDataInputFactory.build_batch(2)
 
     m.add_channels(channels, False)
 
@@ -19,10 +16,7 @@ def test_channel_manager_add_channels(db):
 
 def test_channel_manager_try_adding_existing_channels(db):
     m = Channel.objects
-    channels = [
-        ChannelDataInput("http://fake1.tld/", "feed"),
-        ChannelDataInput("http://fake2.tld/", "feed"),
-    ]
+    channels = ChannelDataInputFactory.build_batch(2)
 
     m.add_channels(channels, False)
 
@@ -34,14 +28,11 @@ def test_channel_manager_try_adding_existing_channels(db):
 
 def test_channel_manager_add_mix_of_existing_and_new_channels(db):
     m = Channel.objects
-    channels = [
-        ChannelDataInput("http://fake1.tld/", "feed"),
-        ChannelDataInput("http://fake2.tld/", "feed"),
-    ]
+    channels = ChannelDataInputFactory.build_batch(2)
 
     m.add_channels(channels, False)
 
-    channels.append(ChannelDataInput("http://fake3.tld", "feed"))
+    channels.append(ChannelDataInputFactory())
 
     m.add_channels(channels, False)
 
