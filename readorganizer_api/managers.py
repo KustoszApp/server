@@ -54,28 +54,27 @@ class ChannelManager(models.Manager):
         if not new_urls:
             raise NoNewChannelsAddedException()
 
-        channels_to_insert = []
         for channel_data in channels_list:
             if channel_data.url not in new_urls:
                 continue
 
             map_obj = channel_results_map[channel_data.url]
-            # FIXME: add proper tags support
             channel_data = asdict(channel_data)
-            channel_data.pop("tags")
+            channel_tags = channel_data.pop("tags")
             channel = self.model(**channel_data)
             try:
                 channel.full_clean()
             except ValidationError as e:
                 map_obj["exception"] = e
                 continue
-            map_obj["added"] = True
-            channels_to_insert.append(channel)
 
-        inserted_channels = queryset.bulk_create(channels_to_insert)
+            with transaction.atomic():
+                channel.save()
+                if channel_tags:
+                    channel.tags.set(*channel_tags)
+                map_obj["added"] = True
 
-        if not inserted_channels[0].id:
-            inserted_channels = queryset.filter(url__in=new_urls)
+        inserted_channels = queryset.filter(url__in=new_urls)
 
         fetch_content_tasks = []
         if fetch_content:

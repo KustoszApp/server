@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from taggit_serializer.serializers import TaggitSerializer
+from taggit_serializer.serializers import TagListSerializerField
 
 from .models import Channel
 from .models import Entry
@@ -26,12 +28,12 @@ class EntrySerializer(serializers.ModelSerializer):
         }
 
 
-class ChannelSerializer(serializers.ModelSerializer):
+class ChannelSerializer(TaggitSerializer, serializers.ModelSerializer):
     unarchived_entries = serializers.IntegerField()
+    tags = TagListSerializerField()
 
     class Meta:
         model = Channel
-        # FIXME: include number of unread entries
         fields = [
             "id",
             "url",
@@ -46,6 +48,7 @@ class ChannelSerializer(serializers.ModelSerializer):
             "added_time",
             "is_stale",
             "unarchived_entries",
+            "tags",
         ]
         extra_kwargs = {
             "id": {"read_only": True},

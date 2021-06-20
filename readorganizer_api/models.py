@@ -1,9 +1,9 @@
 from datetime import timedelta
 
-from autoslug import AutoSlugField
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.timezone import now as django_now
+from taggit.managers import TaggableManager
 
 from .constants import DEFAULT_UPDATE_FREQUENCY
 from .enums import ChannelTypesEnum
@@ -31,6 +31,8 @@ class User(AbstractUser):
 
 class Channel(models.Model):
     objects = ChannelManager()
+
+    tags = TaggableManager()
 
     url = ChannelURLField(max_length=2048, unique=True)
     channel_type = models.CharField(max_length=20, choices=ChannelTypesEnum.choices)
@@ -87,6 +89,8 @@ class Channel(models.Model):
 
 class Entry(models.Model):
     objects = EntryManager()
+
+    tags = TaggableManager()
 
     channel = models.ForeignKey(
         Channel, on_delete=models.CASCADE, related_name="entries"
@@ -147,15 +151,3 @@ class EntryContent(models.Model):
 class EntryNote(models.Model):
     entry = models.ForeignKey(Entry, on_delete=models.CASCADE, related_name="note")
     content = models.TextField()
-
-
-class ChannelTag(models.Model):
-    channels = models.ManyToManyField(Channel, related_name="tags")
-    name = models.CharField(max_length=255, unique=True)
-    slug = AutoSlugField(populate_from="name", unique=True)
-
-
-class EntryTag(models.Model):
-    entries = models.ManyToManyField(Entry, related_name="tags")
-    name = models.CharField(max_length=255, unique=True)
-    slug = AutoSlugField(populate_from="name", unique=True)
