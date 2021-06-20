@@ -37,3 +37,12 @@ def test_channel_manager_add_mix_of_existing_and_new_channels(db):
     m.add_channels(channels, False)
 
     assert m.count() == 3
+
+
+def test_channel_manager_add_channel_with_tags(db):
+    m = Channel.objects
+    channel = ChannelDataInputFactory()
+
+    m.add_channels([channel], False)
+
+    assert set(channel.tags) == set(m.get().tags.names())
