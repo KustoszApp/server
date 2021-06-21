@@ -1,6 +1,5 @@
-from datetime import datetime
-
 import factory
+from django.utils.timezone import now
 from factory.django import DjangoModelFactory
 
 from readorganizer_api import models as ro_models
@@ -17,8 +16,8 @@ class ChannelFactory(DjangoModelFactory):
     title = factory.Faker("text")
     title_upstream = factory.Faker("text")
     link = factory.Faker("uri")
-    last_check_time = factory.LazyFunction(datetime.now)
-    last_successful_check_time = factory.LazyFunction(datetime.now)
-    added_time = factory.LazyFunction(datetime.now)
+    last_check_time = factory.LazyFunction(now)
+    last_successful_check_time = factory.LazyFunction(now)
+    added_time = factory.LazyFunction(now)
     active = True
     update_frequency = DEFAULT_UPDATE_FREQUENCY

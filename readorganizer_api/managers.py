@@ -3,6 +3,7 @@ from collections import defaultdict
 from dataclasses import asdict
 from sys import maxsize as time_always_update
 from typing import Iterable
+from typing import Optional
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -107,13 +108,16 @@ class ChannelManager(models.Manager):
             task = self._request_feed_channels_content_fetch(
                 feed_channels_paged.get_page(chunk_number), force_fetch
             )
-            fetch_feeds_tasks.append(task)
+            if task:
+                fetch_feeds_tasks.append(task)
 
         return fetch_feeds_tasks
 
     def _request_feed_channels_content_fetch(
         self, channels: QuerySet, force_fetch: bool
-    ) -> AsyncTaskResult:
+    ) -> Optional[AsyncTaskResult]:
+        if not channels:
+            return None
         channel_ids = [channel.id for channel in channels if channel.id]
         task = dispatch_task_by_name(
             InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT,
