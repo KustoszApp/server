@@ -92,3 +92,15 @@ def test_fetch_channels_content_mix_active_inactive(db, mocker):
         kwargs={"channel_ids": [1], "force_fetch": False},
     )
     assert len(tasks) == 1
+
+
+def test_fetch_channels_content_paging(db, mocker):
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
+    ChannelFactory.create_batch(51)
+    m = Channel.objects
+    qs = m.all()
+
+    tasks = m.fetch_channels_content(qs, force_fetch=False)
+
+    assert readorganizer_api.managers.dispatch_task_by_name.call_count == 2
+    assert len(tasks) == 2
