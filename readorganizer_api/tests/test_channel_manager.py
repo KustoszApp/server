@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 import pytest
+from django.utils.timezone import now as django_now
 
 import readorganizer_api
 from .framework.factories.models import ChannelFactory
@@ -104,3 +107,73 @@ def test_fetch_channels_content_paging(db, mocker):
 
     assert readorganizer_api.managers.dispatch_task_by_name.call_count == 2
     assert len(tasks) == 2
+
+
+def test_fetch_feed_channels_content(db, mocker):
+    mocker.patch("readorganizer_api.managers.FeedChannelsFetcher.fetch")
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+    )
+    channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
+
+    readorganizer_api.managers.FeedChannelsFetcher.fetch.assert_called_once_with(
+        feed_urls=[channel.url]
+    )
+    assert (
+        readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data.called  # noqa
+    )
+    assert (
+        readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data.called  # noqa
+    )
+
+
+def test_fetch_feed_channels_content_updated_recently(db, mocker):
+    mocker.patch("readorganizer_api.managers.FeedChannelsFetcher.fetch")
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+    )
+    channel = ChannelFactory.create()
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
+
+    assert not readorganizer_api.managers.FeedChannelsFetcher.fetch.called
+    assert (
+        not readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data.called  # noqa
+    )
+    assert (
+        not readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data.called  # noqa
+    )
+
+
+def test_fetch_feed_channels_content_updated_recently_force_true(db, mocker):
+    mocker.patch("readorganizer_api.managers.FeedChannelsFetcher.fetch")
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+    )
+    channel = ChannelFactory.create()
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=True)
+
+    readorganizer_api.managers.FeedChannelsFetcher.fetch.assert_called_once_with(
+        feed_urls=[channel.url]
+    )
+    assert (
+        readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data.called  # noqa
+    )
+    assert (
+        readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data.called  # noqa
+    )
