@@ -6,9 +6,13 @@ from django.utils.timezone import now as django_now
 import readorganizer_api
 from .framework.factories.models import ChannelFactory
 from .framework.factories.types import ChannelDataInputFactory
+from .framework.factories.types import FetchedFeedEntryFactory
+from .framework.factories.types import FetchedFeedFactory
 from readorganizer_api.enums import InternalTasksEnum
 from readorganizer_api.exceptions import NoNewChannelsAddedException
 from readorganizer_api.models import Channel
+from readorganizer_api.types import FeedFetcherResult
+from readorganizer_api.types import FetchedFeed
 
 
 def test_add_channels(db):
@@ -177,3 +181,164 @@ def test_fetch_feed_channels_content_updated_recently_force_true(db, mocker):
     assert (
         readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data.called  # noqa
     )
+
+
+def test_fetch_channels_content_channel_updated(db, mocker):
+    channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
+    fetched_feed_data = FetchedFeedFactory(url=channel.url)
+    fetcher_rv = FeedFetcherResult(feeds=[fetched_feed_data], entries=[])
+    mocker.patch(
+        "readorganizer_api.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+    )
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
+
+    updated_channel = m.get(pk=channel.id)
+    assert updated_channel.title_upstream != channel.title_upstream
+    assert updated_channel.title_upstream == fetched_feed_data.title
+    assert updated_channel.link != channel.link
+    assert updated_channel.link == fetched_feed_data.link
+    assert updated_channel.last_check_time > channel.last_check_time
+    assert (
+        updated_channel.last_successful_check_time > channel.last_successful_check_time
+    )
+
+
+def test_fetch_channels_content_channel_not_updated_no_new_data(db, mocker):
+    channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
+    fetched_feed_data = FetchedFeed(
+        url=channel.url,
+        fetch_failed=False,
+        link=channel.link,
+        title=channel.title_upstream,
+    )
+    fetcher_rv = FeedFetcherResult(feeds=[fetched_feed_data], entries=[])
+    mocker.patch(
+        "readorganizer_api.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+    )
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
+
+    updated_channel = m.get(pk=channel.id)
+    assert updated_channel.title_upstream == channel.title_upstream
+    assert updated_channel.title_upstream == fetched_feed_data.title
+    assert updated_channel.link == channel.link
+    assert updated_channel.link == fetched_feed_data.link
+    assert updated_channel.last_check_time > channel.last_check_time
+    assert (
+        updated_channel.last_successful_check_time > channel.last_successful_check_time
+    )
+
+
+def test_fetch_channels_content_channel_not_updated_fetch_failure(db, mocker):
+    channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
+    fetched_feed_data = FetchedFeed(
+        url=channel.url,
+        fetch_failed=True,
+    )
+    fetcher_rv = FeedFetcherResult(feeds=[fetched_feed_data], entries=[])
+    mocker.patch(
+        "readorganizer_api.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+    )
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
+
+    updated_channel = m.get(pk=channel.id)
+    assert updated_channel.title_upstream == channel.title_upstream
+    assert updated_channel.title_upstream != fetched_feed_data.title
+    assert updated_channel.link == channel.link
+    assert updated_channel.link != fetched_feed_data.link
+    assert updated_channel.last_check_time > channel.last_check_time
+    assert (
+        updated_channel.last_successful_check_time == channel.last_successful_check_time
+    )
+    assert updated_channel.last_check_time > updated_channel.last_successful_check_time
+
+
+def test_fetch_channels_content_channel_mix_updated_fetch_failure(db, mocker):
+    channel1 = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
+    channel2 = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
+    fetched_feed_data1 = FetchedFeedFactory(url=channel1.url)
+    fetched_feed_data2 = FetchedFeed(
+        url=channel2.url,
+        fetch_failed=True,
+    )
+    fetcher_rv = FeedFetcherResult(
+        feeds=[fetched_feed_data1, fetched_feed_data2], entries=[]
+    )
+    mocker.patch(
+        "readorganizer_api.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+    )
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(
+        channel_ids=[channel1.id, channel2.id], force_fetch=False
+    )
+
+    updated_channel1 = m.get(pk=channel1.id)
+    updated_channel2 = m.get(pk=channel2.id)
+    assert updated_channel1.title_upstream != channel1.title_upstream
+    assert updated_channel1.title_upstream == fetched_feed_data1.title
+    assert updated_channel1.link != channel1.link
+    assert updated_channel1.link == fetched_feed_data1.link
+    assert updated_channel1.last_check_time > channel1.last_check_time
+    assert (
+        updated_channel1.last_successful_check_time
+        > channel1.last_successful_check_time
+    )
+    assert updated_channel2.title_upstream == channel2.title_upstream
+    assert updated_channel2.title_upstream != fetched_feed_data2.title
+    assert updated_channel2.link == channel2.link
+    assert updated_channel2.link != fetched_feed_data2.link
+    assert updated_channel2.last_check_time > channel2.last_check_time
+    assert (
+        updated_channel2.last_successful_check_time
+        == channel2.last_successful_check_time
+    )
+    assert (
+        updated_channel2.last_check_time > updated_channel2.last_successful_check_time
+    )
+
+
+def test_fetch_feed_channels_entry_added(db, mocker):
+    channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
+    fetched_entry_data = FetchedFeedEntryFactory(feed_url=channel.url)
+    fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
+    mocker.patch(
+        "readorganizer_api.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
+    )
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
+
+    new_entry = channel.entries.get()
+    assert new_entry.gid == fetched_entry_data.gid
+    assert new_entry.link == fetched_entry_data.link
+    assert new_entry.title == fetched_entry_data.title
+    assert new_entry.author == fetched_entry_data.author
+    assert new_entry.published_time_upstream == fetched_entry_data.published_time
+    assert new_entry.updated_time_upstream == fetched_entry_data.updated_time
+    assert new_entry.added_time > fetched_entry_data.published_time
+    new_entry_content = new_entry.content_set.get()
+    assert new_entry_content.source == fetched_entry_data.content[0].source
+    assert new_entry_content.content == fetched_entry_data.content[0].content
+    assert new_entry_content.language == fetched_entry_data.content[0].language
+    assert new_entry_content.mimetype == fetched_entry_data.content[0].mimetype

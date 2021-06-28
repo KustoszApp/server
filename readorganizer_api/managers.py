@@ -202,24 +202,24 @@ class ChannelManager(models.Manager):
             channel_model.last_check_time = right_now
             if not received_data.fetch_failed:
                 channel_model.last_successful_check_time = right_now
-            if received_data.title != channel_model.title_upstream:
-                log.debug(
-                    "channel %s (%s) title_upstream changed from '%s' to '%s'",
-                    channel_model.pk,
-                    channel_model.url,
-                    channel_model.title_upstream,
-                    received_data.title,
-                )
-                channel_model.title_upstream = received_data.title
-            if received_data.link != channel_model.link:
-                log.debug(
-                    "channel %s (%s) link changed from '%s' to '%s'",
-                    channel_model.pk,
-                    channel_model.url,
-                    channel_model.link,
-                    received_data.link,
-                )
-                channel_model.link = received_data.link
+                if received_data.title != channel_model.title_upstream:
+                    log.debug(
+                        "channel %s (%s) title_upstream changed from '%s' to '%s'",
+                        channel_model.pk,
+                        channel_model.url,
+                        channel_model.title_upstream,
+                        received_data.title,
+                    )
+                    channel_model.title_upstream = received_data.title
+                if received_data.link != channel_model.link:
+                    log.debug(
+                        "channel %s (%s) link changed from '%s' to '%s'",
+                        channel_model.pk,
+                        channel_model.url,
+                        channel_model.link,
+                        received_data.link,
+                    )
+                    channel_model.link = received_data.link
             updated_models.append(channel_model)
 
         log.debug("number of feeds updated: %s", len(updated_models))

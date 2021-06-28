@@ -31,3 +31,5 @@ def optional_make_aware(*args, **kwargs):
         return make_aware(*args, **kwargs)
     except AttributeError:
         return None
+    except ValueError:
+        return next(iter(args))
