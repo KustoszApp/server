@@ -21,3 +21,18 @@ class ChannelFactory(DjangoModelFactory):
     added_time = factory.LazyFunction(now)
     active = True
     update_frequency = DEFAULT_UPDATE_FREQUENCY
+
+
+class EntryFactory(DjangoModelFactory):
+    class Meta:
+        model = ro_models.Entry
+
+    channel = factory.SubFactory(ChannelFactory)
+    gid = factory.Faker("uri")
+    archived = False
+    link = factory.Faker("uri")
+    title = factory.Faker("text")
+    author = factory.Faker("name")
+    updated_time = factory.LazyFunction(now)
+    published_time_upstream = factory.LazyFunction(now)
+    updated_time_upstream = factory.LazyFunction(now)
