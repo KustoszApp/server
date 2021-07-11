@@ -7,4 +7,5 @@ urlpatterns = [
     path("users/login", rest_framework.authtoken.views.obtain_auth_token),
     path("channels/", views.ChannelList.as_view()),
     path("channels/<int:pk>/", views.ChannelDetail.as_view()),
+    path("entries/", views.EntriesList.as_view()),
 ]

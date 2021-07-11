@@ -7,6 +7,8 @@ from .models import Entry
 
 
 class EntrySerializer(serializers.ModelSerializer):
+    published_time = serializers.DateTimeField()
+
     class Meta:
         model = Entry
         fields = [
@@ -21,7 +23,7 @@ class EntrySerializer(serializers.ModelSerializer):
             "updated_time",
             "published_time_upstream",
             "updated_time_upstream",
-            "probable_published_time",
+            "published_time",
         ]
         extra_kwargs = {
             "id": {"read_only": True},

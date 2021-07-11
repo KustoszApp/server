@@ -118,7 +118,7 @@ class Entry(models.Model):
     )
 
     @property
-    def probable_published_time(self):
+    def _published_time(self):
         if self.published_time_upstream:
             return self.published_time_upstream
         if self.updated_time_upstream:
