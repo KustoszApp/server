@@ -4,9 +4,16 @@ from taggit_serializer.serializers import TagListSerializerField
 
 from .models import Channel
 from .models import Entry
+from .models import EntryContent
 
 
-class EntrySerializer(serializers.ModelSerializer):
+class EntryContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EntryContent
+        fields = ["source", "content", "mimetype", "language", "updated_time"]
+
+
+class ListEntrySerializer(serializers.ModelSerializer):
     published_time = serializers.DateTimeField()
 
     class Meta:
@@ -27,6 +34,44 @@ class EntrySerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             "id": {"read_only": True},
+        }
+
+
+class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
+    published_time = serializers.DateTimeField()
+    contents = EntryContentSerializer(source="content_set", required=False, many=True)
+    tags = TagListSerializerField()
+
+    class Meta:
+        model = Entry
+        fields = [
+            "id",
+            "channel",
+            "gid",
+            "archived",
+            "link",
+            "title",
+            "author",
+            "added_time",
+            "updated_time",
+            "published_time_upstream",
+            "updated_time_upstream",
+            "published_time",
+            "contents",
+            "tags",
+        ]
+        extra_kwargs = {
+            "id": {"read_only": True},
+            "channel": {"read_only": True},
+            "gid": {"read_only": True},
+            "link": {"read_only": True},
+            "title": {"read_only": True},
+            "author": {"read_only": True},
+            "added_time": {"read_only": True},
+            "updated_time": {"read_only": True},
+            "published_time_upstream": {"read_only": True},
+            "updated_time_upstream": {"read_only": True},
+            "published_time": {"read_only": True},
         }
 
 

@@ -30,5 +30,12 @@ class EntriesList(generics.ListAPIView):
     queryset = models.Entry.objects.annotate(
         published_time=Coalesce("published_time_upstream", "updated_time_upstream")
     )
-    serializer_class = serializers.EntrySerializer
+    serializer_class = serializers.ListEntrySerializer
     filterset_class = filters.EntryFilter
+
+
+class EntryDetail(generics.RetrieveUpdateAPIView):
+    queryset = models.Entry.objects.annotate(
+        published_time=Coalesce("published_time_upstream", "updated_time_upstream")
+    )
+    serializer_class = serializers.EntrySerializer
