@@ -19,6 +19,9 @@ class TagFilter(drf_filters.CharFilter):
 class EntryFilter(drf_filters.FilterSet):
     tags = TagFilter(field_name="tags__slug")
     tags__not = TagFilter(field_name="tags__slug", exclude=True)
+    has_tags = drf_filters.BooleanFilter(
+        field_name="tags", lookup_expr="isnull", exclude=True
+    )
     published_time = drf_filters.IsoDateTimeFilter(
         field_name="published_time", lookup_expr="exact"
     )
@@ -36,8 +39,17 @@ class EntryFilter(drf_filters.FilterSet):
     )
     channel = drf_filters.NumberFilter(field_name="channel_id", lookup_expr="exact")
     channel__in = NumberInFilter(field_name="channel_id", lookup_expr="in")
+    channel__not = drf_filters.NumberFilter(
+        field_name="channel_id", lookup_expr="exact", exclude=True
+    )
+    channel__not__in = NumberInFilter(
+        field_name="channel_id", lookup_expr="in", exclude=True
+    )
     channel_tags = TagFilter(field_name="channel__tags__slug")
     channel_tags__not = TagFilter(field_name="channel__tags__slug", exclude=True)
+    channel_has_tags = drf_filters.BooleanFilter(
+        field_name="channel__tags", lookup_expr="isnull", exclude=True
+    )
 
     class Meta:
         model = models.Entry
