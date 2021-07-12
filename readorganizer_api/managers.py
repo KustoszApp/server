@@ -253,9 +253,7 @@ class ChannelManager(models.Manager):
 
 class EntryManager(models.Manager):
     def mark_as_archived(self, queryset):
-        archived_count = queryset.update(
-            archived=True, updated_time=django_now()
-        )
+        archived_count = queryset.update(archived=True, updated_time=django_now())
         return archived_count
 
     def _create_or_update_with_fetched_data(

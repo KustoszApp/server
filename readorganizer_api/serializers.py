@@ -1,3 +1,4 @@
+from django.utils.timezone import now as django_now
 from rest_framework import serializers
 from taggit_serializer.serializers import TaggitSerializer
 from taggit_serializer.serializers import TagListSerializerField
@@ -74,9 +75,15 @@ class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
             "published_time": {"read_only": True},
         }
 
+    def update(self, instance, validated_data):
+        instance.updated_time = django_now()
+        return super().update(instance, validated_data)
+
 
 class EntriesArchiveSerializer(serializers.Serializer):
-    archived_entries = serializers.ListField(child=serializers.IntegerField(), required=True)
+    archived_entries = serializers.ListField(
+        child=serializers.IntegerField(), required=True
+    )
     archived_count = serializers.IntegerField(required=True)
 
 

@@ -52,10 +52,13 @@ class EntriesArchive(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         filtered_entries = self.filter_queryset(self.get_queryset())
-        archived_entries = list(filtered_entries.values_list('pk', flat=True))
+        archived_entries = list(filtered_entries.values_list("pk", flat=True))
         archived_count = models.Entry.objects.mark_as_archived(filtered_entries)
         serializer = self.get_serializer(
-            data={'archived_count': archived_count, 'archived_entries': archived_entries}
+            data={
+                "archived_count": archived_count,
+                "archived_entries": archived_entries,
+            }
         )
         serializer.is_valid(raise_exception=True)
         headers = self.get_success_headers(serializer.data)
