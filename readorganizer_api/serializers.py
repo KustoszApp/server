@@ -75,6 +75,11 @@ class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
         }
 
 
+class EntriesArchiveSerializer(serializers.Serializer):
+    archived_entries = serializers.ListField(child=serializers.IntegerField(), required=True)
+    archived_count = serializers.IntegerField(required=True)
+
+
 class ChannelSerializer(TaggitSerializer, serializers.ModelSerializer):
     unarchived_entries = serializers.IntegerField()
     tags = TagListSerializerField()

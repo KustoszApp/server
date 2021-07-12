@@ -9,4 +9,5 @@ urlpatterns = [
     path("channels/<int:pk>/", views.ChannelDetail.as_view(), name="channel_detail"),
     path("entries/", views.EntriesList.as_view(), name="entries_list"),
     path("entries/<int:pk>/", views.EntryDetail.as_view(), name="entry_detail"),
+    path("entries/archive", views.EntriesArchive.as_view(), name="entries_archive"),
 ]

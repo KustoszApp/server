@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from .framework.factories.models import EntryFactory
+from readorganizer_api.models import Entry
 
 
 def test_archive_entry(db):
@@ -31,3 +32,35 @@ def test_unarchive_entry(db):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["archived"] is False
     assert entry.archived is False
+
+
+def test_mass_archive_entries(db):
+    entries = EntryFactory.create_batch(5)
+    client = APIClient()
+    url = reverse("entries_archive") + '?archived=0'
+
+    response = client.post(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['archived_count'] == 5
+    assert response.data['archived_entries'] == list(range(1, 6))
+    assert not Entry.objects.filter(archived=False)
+    assert Entry.objects.filter(archived=True).count() == 5
+    assert Entry.objects.first().updated_time > entries[0].updated_time
+
+
+def test_mass_archive_entries_subset(db):
+    entries = EntryFactory.create_batch(5)
+    entry_to_update = entries[2]
+    client = APIClient()
+    url = reverse("entries_archive") + f'?channel={entry_to_update.channel.pk}'
+
+    response = client.post(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['archived_count'] == 1
+    assert response.data['archived_entries'] == [entry_to_update.pk]
+    assert Entry.objects.filter(archived=False).count() == 4
+    assert Entry.objects.filter(archived=True).count() == 1
+    assert Entry.objects.first().updated_time == entries[0].updated_time
+    assert Entry.objects.filter(pk=entry_to_update.pk).first().updated_time > entry_to_update.updated_time  # noqa
