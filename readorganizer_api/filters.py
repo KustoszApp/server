@@ -37,12 +37,8 @@ class EntryFilter(drf_filters.FilterSet):
     published_time__gte = drf_filters.IsoDateTimeFilter(
         field_name="published_time", lookup_expr="gte"
     )
-    channel = drf_filters.NumberFilter(field_name="channel_id", lookup_expr="exact")
-    channel__in = NumberInFilter(field_name="channel_id", lookup_expr="in")
-    channel__not = drf_filters.NumberFilter(
-        field_name="channel_id", lookup_expr="exact", exclude=True
-    )
-    channel__not__in = NumberInFilter(
+    channel = NumberInFilter(field_name="channel_id", lookup_expr="in")
+    channel__not = NumberInFilter(
         field_name="channel_id", lookup_expr="in", exclude=True
     )
     channel_tags = TagFilter(field_name="channel__tags__slug")
