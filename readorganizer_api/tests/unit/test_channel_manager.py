@@ -4,11 +4,11 @@ import pytest
 from django.utils.timezone import now as django_now
 
 import readorganizer_api
-from .framework.factories.models import ChannelFactory
-from .framework.factories.models import EntryFactory
-from .framework.factories.types import ChannelDataInputFactory
-from .framework.factories.types import FetchedFeedEntryFactory
-from .framework.factories.types import FetchedFeedFactory
+from ..framework.factories.models import ChannelFactory
+from ..framework.factories.models import EntryFactory
+from ..framework.factories.types import ChannelDataInputFactory
+from ..framework.factories.types import FetchedFeedEntryFactory
+from ..framework.factories.types import FetchedFeedFactory
 from readorganizer_api.enums import InternalTasksEnum
 from readorganizer_api.exceptions import NoNewChannelsAddedException
 from readorganizer_api.models import Channel

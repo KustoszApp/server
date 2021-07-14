@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from .framework.factories.models import EntryFactory
+from ..framework.factories.models import EntryFactory
 from readorganizer_api.models import Entry
 from readorganizer_api.utils import optional_make_aware
 
