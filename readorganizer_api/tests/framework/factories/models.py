@@ -22,6 +22,12 @@ class ChannelFactory(DjangoModelFactory):
     active = True
     update_frequency = DEFAULT_UPDATE_FREQUENCY
 
+    @factory.post_generation
+    def tags(self, create, extracted, **kwargs):
+        if not create or not extracted:
+            return
+        self.tags.add(*extracted)
+
 
 class EntryFactory(DjangoModelFactory):
     class Meta:
@@ -36,3 +42,9 @@ class EntryFactory(DjangoModelFactory):
     updated_time = factory.LazyFunction(now)
     published_time_upstream = factory.LazyFunction(now)
     updated_time_upstream = factory.LazyFunction(now)
+
+    @factory.post_generation
+    def tags(self, create, extracted, **kwargs):
+        if not create or not extracted:
+            return
+        self.tags.add(*extracted)

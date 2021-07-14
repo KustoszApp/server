@@ -78,3 +78,47 @@ def test_mass_archive_entries_subset(db):
         Entry.objects.filter(pk=entry_to_update.pk).first().updated_time
         > entry_to_update.updated_time
     )  # noqa
+
+
+def test_add_tags(db, faker):
+    entry = EntryFactory.create()
+    client = APIClient()
+    url = reverse("entry_detail", args=[entry.id])
+    new_tags = faker.words(unique=True)
+    data = {"tags": new_tags}
+
+    response = client.patch(url, data)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert set(response.data["tags"]) == set(entry.tags.names())
+    assert set(response.data["tags"]) == set(new_tags)
+
+
+def test_remove_tags(db, faker):
+    old_tags = faker.words(unique=True)
+    entry = EntryFactory.create(tags=old_tags)
+    client = APIClient()
+    url = reverse("entry_detail", args=[entry.id])
+    data = {"tags": []}
+
+    response = client.patch(url, data)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["tags"] == []
+    assert set(response.data["tags"]) != set(old_tags)
+
+
+def test_set_tags(db, faker):
+    old_tags = faker.words(unique=True)
+    entry = EntryFactory.create(tags=old_tags)
+    client = APIClient()
+    url = reverse("entry_detail", args=[entry.id])
+    new_tags = faker.words(unique=True)
+    data = {"tags": new_tags}
+
+    response = client.patch(url, data)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert set(response.data["tags"]) == set(entry.tags.names())
+    assert set(response.data["tags"]) == set(new_tags)
+    assert set(response.data["tags"]) != set(old_tags)
