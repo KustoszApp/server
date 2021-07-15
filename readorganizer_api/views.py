@@ -12,7 +12,7 @@ from readorganizer_api import serializers
 # from rest_framework import permissions
 
 
-class ChannelList(generics.ListAPIView):
+class ChannelsList(generics.ListAPIView):
     queryset = models.Channel.objects.annotate(
         unarchived_entries=Count("entries", filter=Q(entries__archived=False))
     )
@@ -63,3 +63,13 @@ class EntriesArchive(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+
+class ChannelTagsList(generics.ListAPIView):
+    queryset = models.Channel.tags.all()
+    serializer_class = serializers.TagsListSerializer
+
+
+class EntryTagsList(generics.ListAPIView):
+    queryset = models.Entry.tags.all()
+    serializer_class = serializers.TagsListSerializer

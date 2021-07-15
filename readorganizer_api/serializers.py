@@ -1,5 +1,6 @@
 from django.utils.timezone import now as django_now
 from rest_framework import serializers
+from taggit.models import Tag
 from taggit_serializer.serializers import TaggitSerializer
 from taggit_serializer.serializers import TagListSerializerField
 
@@ -157,3 +158,12 @@ class ChannelDetailSerializer(TaggitSerializer, serializers.ModelSerializer):
             "is_stale": {"read_only": True},
             "unarchived_entries": {"read_only": True},
         }
+
+
+class TagsListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = [
+            "name",
+            "slug",
+        ]
