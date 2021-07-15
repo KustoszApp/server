@@ -20,7 +20,7 @@ class ChannelList(generics.ListAPIView):
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class ChannelDetail(generics.RetrieveAPIView):
+class ChannelDetail(generics.RetrieveUpdateAPIView):
     queryset = models.Channel.objects.annotate(
         unarchived_entries=Count("entries", filter=Q(entries__archived=False))
     )
