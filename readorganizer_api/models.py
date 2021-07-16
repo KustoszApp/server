@@ -132,6 +132,10 @@ class Entry(models.Model):
             )
         ]
 
+    @property
+    def preferred_content(self):
+        return self.content_set.last()
+
 
 class EntryContent(models.Model):
     entry = models.ForeignKey(

@@ -15,8 +15,15 @@ class EntryContentSerializer(serializers.ModelSerializer):
         fields = ["source", "content", "mimetype", "language", "updated_time"]
 
 
+class EntryContentMetadataSerializer(EntryContentSerializer):
+    class Meta(EntryContentSerializer.Meta):
+        fields = ["source", "mimetype", "language", "updated_time"]
+
+
 class ListEntrySerializer(serializers.ModelSerializer):
     published_time = serializers.DateTimeField()
+    preferred_content = EntryContentSerializer()
+    available_contents = EntryContentMetadataSerializer(source="content_set", many=True)
 
     class Meta:
         model = Entry
@@ -33,6 +40,8 @@ class ListEntrySerializer(serializers.ModelSerializer):
             "published_time_upstream",
             "updated_time_upstream",
             "published_time",
+            "preferred_content",
+            "available_contents",
         ]
         extra_kwargs = {
             "id": {"read_only": True},

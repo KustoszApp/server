@@ -9,6 +9,36 @@ from readorganizer_api.models import Entry
 from readorganizer_api.utils import optional_make_aware
 
 
+def test_list_content(db):
+    EntryFactory.create(content_set=3)
+    client = APIClient()
+    url = reverse("entries_list")
+
+    response = client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    response_entry = response.data["results"][0]
+    assert len(response_entry["available_contents"]) == 3
+    for key in ("source", "mimetype", "language", "updated_time"):
+        assert key in response_entry["available_contents"][0]
+        assert key in response_entry["preferred_content"]
+    assert "content" not in response_entry["available_contents"][0]
+    assert "content" in response_entry["preferred_content"]
+
+
+def test_detail_content(db):
+    entry = EntryFactory.create(content_set=3)
+    client = APIClient()
+    url = reverse("entry_detail", args=[entry.id])
+
+    response = client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["contents"]) == 3
+    for key in ("source", "content", "mimetype", "language", "updated_time"):
+        assert key in response.data["contents"][0]
+
+
 def test_archive_entry(db):
     entry = EntryFactory.create()
     client = APIClient()
