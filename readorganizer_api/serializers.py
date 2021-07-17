@@ -133,7 +133,6 @@ class ChannelSerializer(serializers.ModelSerializer):
 
 
 class ChannelDetailSerializer(TaggitSerializer, serializers.ModelSerializer):
-    entries = EntrySerializer(many=True, read_only=True)
     unarchived_entries = serializers.IntegerField()
     tags = TagListSerializerField()
 
@@ -152,7 +151,6 @@ class ChannelDetailSerializer(TaggitSerializer, serializers.ModelSerializer):
             "active",
             "update_frequency",
             "is_stale",
-            "entries",
             "unarchived_entries",
             "tags",
         ]
