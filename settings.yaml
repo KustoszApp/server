@@ -77,7 +77,11 @@ default:
     - 'http://127.0.0.1:8080'
     - 'http://localhost:8080'
     - 'http://testserver:8000'
-  CELERY_BROKER_URL: 'memory://localhost'
+  CELERY_BROKER_URL: "filesystem://"
+  CELERY_BROKER_TRANSPORT_OPTIONS:
+    data_folder_out: '.celery/queue'
+    data_folder_in: '.celery/queue'
+    store_processed: False
   CELERY_BEAT_SCHEDULER: 'django_celery_beat.schedulers:DatabaseScheduler'
   CELERY_RESULT_BACKEND: 'django-db'
   READORGANIZER_LOCK_EXPIRE: 180
