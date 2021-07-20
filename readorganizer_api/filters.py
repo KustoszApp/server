@@ -39,6 +39,9 @@ class ChannelFilter(drf_filters.FilterSet):
     last_entry_published_time__gte = drf_filters.IsoDateTimeFilter(
         field_name="last_entry_published_time", lookup_expr="gte"
     )
+    is_stale = drf_filters.BooleanFilter(
+        field_name="is_stale", method="get_stale_channels"
+    )
 
     class Meta:
         model = models.Channel
@@ -89,6 +92,13 @@ class ChannelFilter(drf_filters.FilterSet):
             "active": ["exact"],
             "update_frequency": ["exact", "lt", "gt", "lte", "gte"],
         }
+
+    def get_stale_channels(self, queryset, field_name, value):
+        selected_channels = []
+        for channel in queryset:
+            if channel.is_stale is value:
+                selected_channels.append(channel.pk)
+        return queryset.filter(pk__in=selected_channels)
 
 
 class EntryFilter(drf_filters.FilterSet):
