@@ -10,6 +10,10 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import models
 from django.db import transaction
+from django.db.models import Count
+from django.db.models import Max
+from django.db.models import Q
+from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils.timezone import now as django_now
 
@@ -32,6 +36,21 @@ log = logging.getLogger(__name__)
 
 
 class ChannelManager(models.Manager):
+    def get_annotated_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                unarchived_entries=Count("entries", filter=Q(entries__archived=False)),
+                last_entry_published_time=Max(
+                    Coalesce(
+                        "entries__published_time_upstream",
+                        "entries__updated_time_upstream",
+                    )
+                ),
+            )
+        )
+
     def add_channels(
         self, channels_list: Iterable[ChannelDataInput], fetch_content: bool = True
     ) -> AddChannelResult:
@@ -252,6 +271,17 @@ class ChannelManager(models.Manager):
 
 
 class EntryManager(models.Manager):
+    def get_annotated_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                published_time=Coalesce(
+                    "published_time_upstream", "updated_time_upstream"
+                )
+            )
+        )
+
     def mark_as_archived(self, queryset):
         archived_count = queryset.update(archived=True, updated_time=django_now())
         return archived_count

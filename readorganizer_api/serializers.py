@@ -99,6 +99,7 @@ class EntriesArchiveSerializer(serializers.Serializer):
 
 class ChannelSerializer(serializers.ModelSerializer):
     unarchived_entries = serializers.IntegerField()
+    last_entry_published_time = serializers.DateTimeField()
     tags = TagListSerializerField()
 
     class Meta:
@@ -117,6 +118,7 @@ class ChannelSerializer(serializers.ModelSerializer):
             "added_time",
             "is_stale",
             "unarchived_entries",
+            "last_entry_published_time",
             "tags",
         ]
         extra_kwargs = {
@@ -129,11 +131,13 @@ class ChannelSerializer(serializers.ModelSerializer):
             "added_time": {"read_only": True},
             "is_stale": {"read_only": True},
             "unarchived_entries": {"read_only": True},
+            "last_entry_published_time": {"read_only": True},
         }
 
 
 class ChannelDetailSerializer(TaggitSerializer, serializers.ModelSerializer):
     unarchived_entries = serializers.IntegerField()
+    last_entry_published_time = serializers.DateTimeField()
     tags = TagListSerializerField()
 
     class Meta:
@@ -152,6 +156,7 @@ class ChannelDetailSerializer(TaggitSerializer, serializers.ModelSerializer):
             "update_frequency",
             "is_stale",
             "unarchived_entries",
+            "last_entry_published_time",
             "tags",
         ]
         extra_kwargs = {
@@ -164,6 +169,7 @@ class ChannelDetailSerializer(TaggitSerializer, serializers.ModelSerializer):
             "added_time": {"read_only": True},
             "is_stale": {"read_only": True},
             "unarchived_entries": {"read_only": True},
+            "last_entry_published_time": {"read_only": True},
         }
 
 

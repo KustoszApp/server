@@ -1,6 +1,3 @@
-from django.db.models import Count
-from django.db.models import Q
-from django.db.models.functions import Coalesce
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
@@ -13,40 +10,30 @@ from readorganizer_api import serializers
 
 
 class ChannelsList(generics.ListAPIView):
-    queryset = models.Channel.objects.annotate(
-        unarchived_entries=Count("entries", filter=Q(entries__archived=False))
-    )
+    queryset = models.Channel.objects.get_annotated_queryset()
     serializer_class = serializers.ChannelSerializer
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class ChannelDetail(generics.RetrieveUpdateAPIView):
-    queryset = models.Channel.objects.annotate(
-        unarchived_entries=Count("entries", filter=Q(entries__archived=False))
-    )
+    queryset = models.Channel.objects.get_annotated_queryset()
     serializer_class = serializers.ChannelDetailSerializer
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class EntriesList(generics.ListAPIView):
-    queryset = models.Entry.objects.annotate(
-        published_time=Coalesce("published_time_upstream", "updated_time_upstream")
-    )
+    queryset = models.Entry.objects.get_annotated_queryset()
     serializer_class = serializers.ListEntrySerializer
     filterset_class = filters.EntryFilter
 
 
 class EntryDetail(generics.RetrieveUpdateAPIView):
-    queryset = models.Entry.objects.annotate(
-        published_time=Coalesce("published_time_upstream", "updated_time_upstream")
-    )
+    queryset = models.Entry.objects.get_annotated_queryset()
     serializer_class = serializers.EntrySerializer
 
 
 class EntriesArchive(generics.CreateAPIView):
-    queryset = models.Entry.objects.annotate(
-        published_time=Coalesce("published_time_upstream", "updated_time_upstream")
-    )
+    queryset = models.Entry.objects.get_annotated_queryset()
     serializer_class = serializers.EntriesArchiveSerializer
     filterset_class = filters.EntryFilter
 
