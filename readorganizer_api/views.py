@@ -12,6 +12,7 @@ from readorganizer_api import serializers
 class ChannelsList(generics.ListAPIView):
     queryset = models.Channel.objects.get_annotated_queryset()
     serializer_class = serializers.ChannelSerializer
+    filterset_class = filters.ChannelFilter
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 

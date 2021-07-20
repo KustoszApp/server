@@ -16,6 +16,81 @@ class TagFilter(drf_filters.CharFilter):
         super().__init__(*args, **kwargs)
 
 
+class ChannelFilter(drf_filters.FilterSet):
+    tags = TagFilter(field_name="tags__slug")
+    tags__not = TagFilter(field_name="tags__slug", exclude=True)
+    has_tags = drf_filters.BooleanFilter(
+        field_name="tags", lookup_expr="isnull", exclude=True
+    )
+    id = NumberInFilter(field_name="pk", lookup_expr="in")
+    id__not = NumberInFilter(field_name="pk", lookup_expr="in", exclude=True)
+    last_entry_published_time = drf_filters.IsoDateTimeFilter(
+        field_name="last_entry_published_time", lookup_expr="exact"
+    )
+    last_entry_published_time__lt = drf_filters.IsoDateTimeFilter(
+        field_name="last_entry_published_time", lookup_expr="lt"
+    )
+    last_entry_published_time__gt = drf_filters.IsoDateTimeFilter(
+        field_name="last_entry_published_time", lookup_expr="gt"
+    )
+    last_entry_published_time__lte = drf_filters.IsoDateTimeFilter(
+        field_name="last_entry_published_time", lookup_expr="lte"
+    )
+    last_entry_published_time__gte = drf_filters.IsoDateTimeFilter(
+        field_name="last_entry_published_time", lookup_expr="gte"
+    )
+
+    class Meta:
+        model = models.Channel
+        fields = {
+            "url": [
+                "exact",
+                "iexact",
+                "contains",
+                "icontains",
+                "startswith",
+                "istartswith",
+                "endswith",
+                "iendswith",
+            ],
+            "title": [
+                "exact",
+                "iexact",
+                "contains",
+                "icontains",
+                "startswith",
+                "istartswith",
+                "endswith",
+                "iendswith",
+            ],
+            "title_upstream": [
+                "exact",
+                "iexact",
+                "contains",
+                "icontains",
+                "startswith",
+                "istartswith",
+                "endswith",
+                "iendswith",
+            ],
+            "link": [
+                "exact",
+                "iexact",
+                "contains",
+                "icontains",
+                "startswith",
+                "istartswith",
+                "endswith",
+                "iendswith",
+            ],
+            "last_check_time": ["exact", "lt", "gt", "lte", "gte"],
+            "last_successful_check_time": ["exact", "lt", "gt", "lte", "gte"],
+            "added_time": ["exact", "lt", "gt", "lte", "gte"],
+            "active": ["exact"],
+            "update_frequency": ["exact", "lt", "gt", "lte", "gte"],
+        }
+
+
 class EntryFilter(drf_filters.FilterSet):
     tags = TagFilter(field_name="tags__slug")
     tags__not = TagFilter(field_name="tags__slug", exclude=True)
