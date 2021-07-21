@@ -53,6 +53,26 @@ class EntriesArchive(generics.CreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
 
+class ChannelsInactivate(generics.CreateAPIView):
+    queryset = models.Channel.objects.get_annotated_queryset()
+    serializer_class = serializers.ChannelsInactivateSerializer
+    filterset_class = filters.ChannelFilter
+
+    def create(self, request, *args, **kwargs):
+        filtered_channels = self.filter_queryset(self.get_queryset())
+        inactivated_channels = list(filtered_channels.values_list("pk", flat=True))
+        inactivated_count = models.Channel.objects.mark_as_inactive(filtered_channels)
+        serializer = self.get_serializer(
+            data={
+                "inactivated_count": inactivated_count,
+                "inactivated_channels": inactivated_channels,
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+
 class ChannelTagsList(generics.ListAPIView):
     queryset = models.Channel.tags.all()
     serializer_class = serializers.TagsListSerializer

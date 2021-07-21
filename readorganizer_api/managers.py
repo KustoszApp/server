@@ -51,6 +51,10 @@ class ChannelManager(models.Manager):
             )
         )
 
+    def mark_as_inactive(self, queryset):
+        archived_count = queryset.update(active=False)
+        return archived_count
+
     def add_channels(
         self, channels_list: Iterable[ChannelDataInput], fetch_content: bool = True
     ) -> AddChannelResult:

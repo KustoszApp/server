@@ -117,13 +117,6 @@ class Entry(models.Model):
         help_text="When entry/channel claims entry was last updated",
     )
 
-    @property
-    def _published_time(self):
-        if self.published_time_upstream:
-            return self.published_time_upstream
-        if self.updated_time_upstream:
-            return self.updated_time_upstream
-
     class Meta:
         verbose_name_plural = "entries"
         constraints = [
@@ -131,6 +124,13 @@ class Entry(models.Model):
                 fields=["channel", "gid"], name="unique_channel_gid"
             )
         ]
+
+    @property
+    def _published_time(self):
+        if self.published_time_upstream:
+            return self.published_time_upstream
+        if self.updated_time_upstream:
+            return self.updated_time_upstream
 
     @property
     def preferred_content(self):
