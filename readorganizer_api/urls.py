@@ -12,6 +12,11 @@ urlpatterns = [
         views.ChannelsInactivate.as_view(),
         name="channels_inactivate",
     ),
+    path(
+        "channels/activate",
+        views.ChannelsActivate.as_view(),
+        name="channels_activate",
+    ),
     path("entries/", views.EntriesList.as_view(), name="entries_list"),
     path("entries/<int:pk>/", views.EntryDetail.as_view(), name="entry_detail"),
     path("entries/archive", views.EntriesArchive.as_view(), name="entries_archive"),

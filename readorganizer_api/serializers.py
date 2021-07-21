@@ -180,6 +180,13 @@ class ChannelsInactivateSerializer(serializers.Serializer):
     inactivated_count = serializers.IntegerField(required=True)
 
 
+class ChannelsActivateSerializer(serializers.Serializer):
+    activated_channels = serializers.ListField(
+        child=serializers.IntegerField(), required=True
+    )
+    activated_count = serializers.IntegerField(required=True)
+
+
 class TagsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag

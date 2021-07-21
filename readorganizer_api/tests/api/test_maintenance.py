@@ -82,3 +82,42 @@ def test_deactivate_no_new_entries(db):
     assert old_channel.active is False
     new_channel.refresh_from_db()
     assert new_channel.active is True
+
+
+def test_activate_id(db):
+    channels = ChannelFactory.create_batch(5, active=False)
+    channels_to_update = channels[1:3]
+    updated_channels_id = [ch.pk for ch in channels_to_update]
+    client = APIClient()
+    url = (
+        reverse("channels_activate")
+        + f"?id={','.join(str(_) for _ in updated_channels_id)}"
+    )
+
+    response = client.post(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["activated_count"] == len(channels_to_update)
+    assert response.data["activated_channels"] == updated_channels_id
+    assert Channel.objects.filter(active=True).count() == len(channels_to_update)
+    assert Channel.objects.filter(active=False).count() == (5 - len(channels_to_update))
+    for channel in channels_to_update:
+        channel.refresh_from_db()
+        assert channel.active is True
+
+
+def test_activate_all(db):
+    channels = ChannelFactory.create_batch(5, active=False)
+    client = APIClient()
+    url = reverse("channels_activate") + "?active=False"
+
+    response = client.post(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["activated_count"] == len(channels)
+    assert response.data["activated_channels"] == [ch.pk for ch in channels]
+    assert Channel.objects.filter(active=True).count() == len(channels)
+    assert Channel.objects.filter(active=False).count() == 0
+    for channel in channels:
+        channel.refresh_from_db()
+        assert channel.active is True
