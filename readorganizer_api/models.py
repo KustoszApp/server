@@ -149,6 +149,9 @@ class EntryContent(models.Model):
     content = models.TextField(help_text="Content itself")
     mimetype = models.TextField(blank=True, help_text="Type of content")
     language = models.TextField(blank=True, help_text="Language of content")
+    estimated_reading_time = models.FloatField(
+        blank=True, help_text="Estimated read time, in minutes"
+    )
     updated_time = models.DateTimeField(help_text="When content was last updated")
 
 

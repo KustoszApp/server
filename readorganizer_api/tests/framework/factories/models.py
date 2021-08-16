@@ -38,6 +38,7 @@ class EntryContentFactory(DjangoModelFactory):
     content = factory.Faker("text")
     mimetype = factory.Faker("mime_type", category="text")
     language = factory.Faker("locale")
+    estimated_reading_time = factory.Faker("pyfloat", positive=True)
     updated_time = factory.LazyFunction(now)
 
 

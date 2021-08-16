@@ -12,12 +12,25 @@ from .models import EntryContent
 class EntryContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = EntryContent
-        fields = ["source", "content", "mimetype", "language", "updated_time"]
+        fields = [
+            "source",
+            "content",
+            "mimetype",
+            "language",
+            "estimated_reading_time",
+            "updated_time",
+        ]
 
 
 class EntryContentMetadataSerializer(EntryContentSerializer):
     class Meta(EntryContentSerializer.Meta):
-        fields = ["source", "mimetype", "language", "updated_time"]
+        fields = [
+            "source",
+            "mimetype",
+            "language",
+            "estimated_reading_time",
+            "updated_time",
+        ]
 
 
 class ListEntrySerializer(serializers.ModelSerializer):

@@ -1,9 +1,11 @@
 import time
 from contextlib import contextmanager
+from functools import lru_cache
 
 import celery
 from django.conf import settings
 from django.core.cache import cache
+from django.utils.html import strip_tags
 from django.utils.timezone import make_aware
 
 
@@ -20,6 +22,14 @@ def cache_lock(lock_id, our_id):
     finally:
         if time.monotonic() < timeout_at and status:
             cache.delete(lock_id)
+
+
+@lru_cache
+def estimate_reading_time(text: str) -> float:
+    text = strip_tags(text)
+    num_words = len(text.split())
+    minutes = num_words / settings.READORGANIZER_READING_SPEED_WPM
+    return minutes
 
 
 def make_unique(sequence):

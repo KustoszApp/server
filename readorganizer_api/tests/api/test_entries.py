@@ -19,7 +19,13 @@ def test_list_content(db):
     assert response.status_code == status.HTTP_200_OK
     response_entry = response.data["results"][0]
     assert len(response_entry["available_contents"]) == 3
-    for key in ("source", "mimetype", "language", "updated_time"):
+    for key in (
+        "source",
+        "mimetype",
+        "language",
+        "estimated_reading_time",
+        "updated_time",
+    ):
         assert key in response_entry["available_contents"][0]
         assert key in response_entry["preferred_content"]
     assert "content" not in response_entry["available_contents"][0]
@@ -35,7 +41,14 @@ def test_detail_content(db):
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data["contents"]) == 3
-    for key in ("source", "content", "mimetype", "language", "updated_time"):
+    for key in (
+        "source",
+        "content",
+        "mimetype",
+        "language",
+        "estimated_reading_time",
+        "updated_time",
+    ):
         assert key in response.data["contents"][0]
 
 

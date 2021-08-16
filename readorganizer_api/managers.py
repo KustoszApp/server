@@ -28,6 +28,7 @@ from .types import ChannelDataInput
 from .types import FetchedFeed
 from .types import FetchedFeedEntry
 from .utils import dispatch_task_by_name
+from .utils import estimate_reading_time
 from .utils import make_unique
 from .utils import optional_make_aware
 
@@ -400,8 +401,10 @@ class EntryManager(models.Manager):
             EntryContent = entry.content_set.get_queryset().model
             entry_contents = []
             for fetched_content in entry_data.content:
+                reading_time = estimate_reading_time(fetched_content.content)
                 content_obj = EntryContent(
                     updated_time=django_now(),
+                    estimated_reading_time=reading_time,
                     **{
                         key: getattr(fetched_content, key)
                         for key in ("source", "content", "language", "mimetype")
