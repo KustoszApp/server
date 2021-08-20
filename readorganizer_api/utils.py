@@ -1,8 +1,11 @@
 import time
 from contextlib import contextmanager
 from functools import lru_cache
+from operator import itemgetter
 
 import celery
+import hyperlink
+import unalix
 from django.conf import settings
 from django.core.cache import cache
 from django.utils.html import strip_tags
@@ -30,6 +33,16 @@ def estimate_reading_time(text: str) -> float:
     num_words = len(text.split())
     minutes = num_words / settings.READORGANIZER_READING_SPEED_WPM
     return minutes
+
+
+@lru_cache
+def normalize_url(url: str, sort_query: bool = True) -> str:
+    cleared_url = unalix.clear_url(url)
+    parsed_url = hyperlink.parse(cleared_url).normalize()
+    if sort_query:
+        query = sorted(parsed_url.query, key=itemgetter(0))
+        parsed_url = parsed_url.replace(query=query)
+    return parsed_url.to_text()
 
 
 def make_unique(sequence):

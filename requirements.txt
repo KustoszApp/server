@@ -9,5 +9,7 @@ django-taggit==1.4.0
 django-taggit-serializer==0.1.7
 djangorestframework==3.12.4
 dynaconf[yaml]==3.1.4
+hyperlink==21.0.0
 listparser==0.18
 reader==1.18
+Unalix==0.7
