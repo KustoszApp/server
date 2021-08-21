@@ -11,7 +11,6 @@ from django.core.cache import cache
 from django.utils.html import strip_tags
 from django.utils.timezone import make_aware
 
-
 dispatch_task_by_name = celery.current_app.send_task
 
 
