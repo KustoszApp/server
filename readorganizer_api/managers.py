@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict
 from dataclasses import asdict
+from datetime import timedelta
 from sys import maxsize as time_always_update
 from typing import Iterable
 from typing import Optional
@@ -31,6 +32,7 @@ from .utils import dispatch_task_by_name
 from .utils import estimate_reading_time
 from .utils import make_unique
 from .utils import optional_make_aware
+from .utils.duplicate_finder import DuplicateFinder
 
 
 log = logging.getLogger(__name__)
@@ -290,6 +292,30 @@ class EntryManager(models.Manager):
                 )
             )
         )
+
+    def deduplicate_entries(self, days=None) -> tuple[int, ...]:
+        if not days:
+            log.info(
+                (
+                    "deduplicate_entries called, but deduplication is disabled. "
+                    "To enable it, set READORGANIZER_DEDUPLICATE_DAYS to value "
+                    "larger than 0."
+                )
+            )
+            return
+        duplicate_finder = DuplicateFinder()
+        threshold_time = django_now() - timedelta(days=days)
+        queryset = self.get_queryset()
+        recent_entries = queryset.filter(added_time__gte=threshold_time)
+        duplicate_ids = duplicate_finder.find_in(recent_entries)
+        duplicates = recent_entries.filter(pk__in=duplicate_ids)
+        log.info(
+            "Marking %s entries as duplicates (ids: %s)",
+            len(duplicate_ids),
+            ", ".join(map(str, duplicate_ids)),
+        )
+        duplicates.update(archived=True, updated_time=django_now())
+        return duplicate_ids
 
     def mark_as_archived(self, queryset):
         archived_count = queryset.update(archived=True, updated_time=django_now())
