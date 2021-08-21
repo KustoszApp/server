@@ -189,6 +189,7 @@ class ChannelManager(models.Manager):
             self.__update_entries_with_fetched_data(
                 feeds_queryset=queryset, entries_data=fetched_data.entries
             )
+            dispatch_task_by_name(InternalTasksEnum.DEDUPLICATE_ENTRIES)
 
     def __discard_channels_updated_recently(self, queryset: QuerySet):
         now = django_now()
@@ -308,6 +309,8 @@ class EntryManager(models.Manager):
         queryset = self.get_queryset()
         recent_entries = queryset.filter(added_time__gte=threshold_time)
         duplicate_ids = duplicate_finder.find_in(recent_entries)
+        if not duplicate_ids:
+            return duplicate_ids
         duplicates = recent_entries.filter(pk__in=duplicate_ids)
         log.info(
             "Marking %s entries as duplicates (ids: %s)",

@@ -36,6 +36,8 @@ class DuplicateFinder:
                 if result not in function_results:
                     function_results.add(result)
                     continue
+                if entry.archived is True:
+                    continue
                 log.info(
                     "Entry %s (%s) is considered a duplicate based on %s call result",
                     entry.pk,
@@ -43,4 +45,5 @@ class DuplicateFinder:
                     function_name,
                 )
                 found_duplicates.append(entry.pk)
+                break
         return tuple(found_duplicates)
