@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 class DuplicateFinder:
     def __init__(self):
-        self.results = defaultdict(set)
+        self.results = defaultdict(lambda: defaultdict(set))
         self.processors = (
             self.get_gid,
             self.get_normalized_link,
@@ -26,17 +26,32 @@ class DuplicateFinder:
     def get_author_title(self, entry) -> str:
         return f"{entry.author} {entry.title}"
 
+    def seen_values_except_channel(self, function_name, channel_id):
+        all_values = set()
+        for channel, results_store in self.results.items():
+            if channel == channel_id:
+                continue
+            for fn_name, values in results_store.items():
+                if fn_name == function_name:
+                    all_values.update(values)
+        return all_values
+
+    def is_duplicate(self, entry, function):
+        function_name = function.__qualname__
+        channel_id = entry.channel.pk
+        seen_values = self.seen_values_except_channel(function_name, channel_id)
+        function_result = function(entry)
+        duplicate = function_result in seen_values
+        self.results[channel_id][function_name].add(function_result)
+        return duplicate
+
     def find_in(self, entries: QuerySet) -> tuple[int, ...]:
         found_duplicates = []
-        for entry in entries.order_by("added_time"):
+        for entry in entries.select_related("channel").order_by("added_time"):
             for function in self.processors:
                 function_name = function.__qualname__
-                function_results = self.results[function_name]
-                result = function(entry)
-                if result not in function_results:
-                    function_results.add(result)
-                    continue
-                if entry.archived is True:
+                is_duplicate = self.is_duplicate(entry, function)
+                if entry.archived is True or not is_duplicate:
                     continue
                 log.info(
                     "Entry %s (%s) is considered a duplicate based on %s call result",

@@ -56,6 +56,22 @@ def test_deduplication_same_author_title(db):
     assert duplicate.archived is True
 
 
+def test_deduplication_works_only_across_channels(db):
+    one = EntryFactory.create()
+    another = EntryFactory.create()
+    duplicate = EntryFactory.create(channel=one.channel, link=one.link)
+    m = Entry.objects
+
+    m.deduplicate_entries(1)
+
+    for model in (one, another, duplicate):
+        model.refresh_from_db()
+
+    assert one.archived is False
+    assert another.archived is False
+    assert duplicate.archived is False
+
+
 def test_deduplication_first_match_marks_as_duplicated(db, mocker):
     get_gid_spy = mocker.spy(DuplicateFinder, "get_gid")
     get_normalized_link_spy = mocker.spy(DuplicateFinder, "get_normalized_link")
