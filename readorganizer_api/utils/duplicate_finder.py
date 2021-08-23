@@ -48,6 +48,8 @@ class DuplicateFinder:
     def find_in(self, entries: QuerySet) -> tuple[int, ...]:
         found_duplicates = []
         for entry in entries.select_related("channel").order_by("added_time"):
+            if not entry.channel.deduplication_enabled:
+                continue
             for function in self.processors:
                 function_name = function.__qualname__
                 is_duplicate = self.is_duplicate(entry, function)

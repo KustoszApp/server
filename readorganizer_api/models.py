@@ -62,6 +62,10 @@ class Channel(models.Model):
         default=DEFAULT_UPDATE_FREQUENCY,
         help_text="How often channel should be checked, in seconds",
     )
+    deduplication_enabled = models.BooleanField(
+        default=True,
+        help_text="Is new content from this channel subject to deduplication?",
+    )
 
     @property
     def displayed_title(self):

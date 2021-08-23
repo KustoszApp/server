@@ -22,6 +22,7 @@ class ChannelFactory(DjangoModelFactory):
     added_time = factory.LazyFunction(now)
     active = True
     update_frequency = DEFAULT_UPDATE_FREQUENCY
+    deduplication_enabled = True
 
     @factory.post_generation
     def tags(self, create, extracted, **kwargs):

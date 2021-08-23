@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.utils.timezone import now as django_now
 from freezegun import freeze_time
 
+from ..framework.factories.models import ChannelFactory
 from ..framework.factories.models import EntryFactory
 from readorganizer_api.managers import DuplicateFinder
 from readorganizer_api.models import Entry
@@ -134,3 +135,21 @@ def test_deduplication_ignores_already_deduplicated(db):
         model.refresh_from_db()
     assert duplicate.archived is True
     assert duplicate.updated_time == duplicate_updated_time
+
+
+def test_deduplication_ignores_deduplication_disabled(db):
+    duplicate_channel = ChannelFactory.create(deduplication_enabled=False)
+    one = EntryFactory.create()
+    another = EntryFactory.create()
+    duplicate = EntryFactory.create(channel=duplicate_channel, gid=one.gid)
+
+    m = Entry.objects
+
+    m.deduplicate_entries(1)
+
+    for model in (one, another, duplicate):
+        model.refresh_from_db()
+
+    assert one.archived is False
+    assert another.archived is False
+    assert duplicate.archived is False
