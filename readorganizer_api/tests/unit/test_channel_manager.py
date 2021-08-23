@@ -122,6 +122,7 @@ def test_fetch_feed_channels_content(db, mocker):
     mocker.patch(
         "readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
     )
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
     channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
     m = Channel.objects
 
@@ -168,6 +169,7 @@ def test_fetch_feed_channels_content_updated_recently_force_true(db, mocker):
     mocker.patch(
         "readorganizer_api.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
     )
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
     channel = ChannelFactory.create()
     m = Channel.objects
 
@@ -326,6 +328,7 @@ def test_fetch_feed_channels_entry_added(db, mocker):
     mocker.patch(
         "readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
@@ -356,6 +359,7 @@ def test_fetch_feed_channels_entry_updated(db, mocker):
     mocker.patch(
         "readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
@@ -393,6 +397,7 @@ def test_fetch_feed_channels_entry_not_updated_no_new_data(db, mocker):
     mocker.patch(
         "readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
