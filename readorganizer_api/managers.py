@@ -375,31 +375,33 @@ class EntryManager(models.Manager):
             channel_model.url,
             len(entries_data_map),
         )
-        # FIXME: support content and enclosures
+        # FIXME: support enclosures
         updated_entries = []
         updated_fields = set()
 
-        for entry_model in queryset:
-            fetched_data = entries_data_map.get(entry_model.gid)
-            (
-                updated_model,
-                model_updated_fields,
-            ) = self.__update_single_model_with_fetched_data(entry_model, fetched_data)
-            if model_updated_fields:
-                updated_entries.append(updated_model)
-                updated_fields.update(model_updated_fields)
+        with transaction.atomic():
+            for entry_model in queryset.prefetch_related("content_set"):
+                fetched_data = entries_data_map.get(entry_model.gid)
+                (
+                    updated_model,
+                    model_updated_fields,
+                ) = self.__update_single_model_with_fetched_data(
+                    entry_model, fetched_data
+                )
+                if model_updated_fields:
+                    updated_entries.append(updated_model)
+                    updated_fields.update(model_updated_fields)
 
-        log.debug(
-            "channel %s (%s) number of updated entries: %s",
-            channel_model.pk,
-            channel_model.url,
-            len(updated_entries),
-        )
-        if not updated_entries:
-            return
+            log.debug(
+                "channel %s (%s) number of updated entries: %s",
+                channel_model.pk,
+                channel_model.url,
+                len(updated_entries),
+            )
+            if not updated_entries:
+                return
 
-        updated_fields.add("updated_time")
-        queryset.bulk_update(updated_entries, updated_fields)
+            queryset.bulk_update(updated_entries, updated_fields)
 
     def __create_new_from_fetched_data(self, channel_model, entries_data_map):
         log.debug("out of which are new: %s", len(entries_data_map))
@@ -481,7 +483,53 @@ class EntryManager(models.Manager):
                 setattr(entry_model, model_key, fetched_value)
                 model_updated_fields.add(model_key)
 
-        if model_updated_fields:
+        content_set_changed = self.__update_single_model_content_set_with_fetched_data(
+            entry_model, fetched_data
+        )
+
+        if model_updated_fields or content_set_changed:
             entry_model.updated_time = django_now()
+            model_updated_fields.add("updated_time")
 
         return entry_model, model_updated_fields
+
+    def __update_single_model_content_set_with_fetched_data(
+        self, entry_model, fetched_data
+    ):
+        if not fetched_data.content:
+            return False
+        contents_data_map = {
+            (content.source, content.mimetype, content.language): content
+            for content in entry_model.content_set.all()
+        }
+        entry_contents_changed = False
+        for fetched_entry_content in fetched_data.content:
+            key = (
+                fetched_entry_content.source,
+                fetched_entry_content.mimetype,
+                fetched_entry_content.language,
+            )
+            if key not in contents_data_map:
+                reading_time = estimate_reading_time(fetched_entry_content.content)
+                entry_model.content_set.create(
+                    updated_time=django_now(),
+                    estimated_reading_time=reading_time,
+                    **{
+                        key: getattr(fetched_entry_content, key)
+                        for key in ("source", "content", "language", "mimetype")
+                    },
+                )
+                entry_contents_changed = True
+                continue
+            existing_entry_content = contents_data_map.get(key)
+            if existing_entry_content.content == fetched_entry_content.content:
+                continue
+            existing_entry_content.content = fetched_entry_content.content
+            existing_entry_content.estimated_reading_time = estimate_reading_time(
+                fetched_entry_content.content
+            )
+            existing_entry_content.updated_time = django_now()
+            existing_entry_content.save()
+            entry_contents_changed = True
+        # FIXME: should we remove contents that disappeared from feed?
+        return entry_contents_changed

@@ -7,6 +7,7 @@ import readorganizer_api
 from ..framework.factories.models import ChannelFactory
 from ..framework.factories.models import EntryFactory
 from ..framework.factories.types import ChannelDataInputFactory
+from ..framework.factories.types import FetchedFeedEntryContentFactory
 from ..framework.factories.types import FetchedFeedEntryFactory
 from ..framework.factories.types import FetchedFeedFactory
 from readorganizer_api.enums import InternalTasksEnum
@@ -14,6 +15,7 @@ from readorganizer_api.exceptions import NoNewChannelsAddedException
 from readorganizer_api.models import Channel
 from readorganizer_api.types import FeedFetcherResult
 from readorganizer_api.types import FetchedFeed
+from readorganizer_api.utils import estimate_reading_time
 
 
 def test_add_channels(db):
@@ -389,6 +391,7 @@ def test_fetch_feed_channels_entry_not_updated_no_new_data(db, mocker):
         author=entry.author,
         published_time=entry.published_time_upstream,
         updated_time=entry.updated_time_upstream,
+        content=[],
     )
     fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
     mocker.patch(
@@ -414,3 +417,122 @@ def test_fetch_feed_channels_entry_not_updated_no_new_data(db, mocker):
     assert updated_entry.updated_time_upstream == entry.updated_time_upstream
     assert updated_entry.updated_time_upstream == fetched_entry_data.updated_time
     assert updated_entry.updated_time == entry.updated_time
+
+
+def test_fetch_feed_channels_entry_content_updated(db, mocker):
+    channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
+    entry = EntryFactory.create(channel=channel, content_set=1)
+    entry_content = entry.content_set.first()
+    fetched_entry_content = FetchedFeedEntryContentFactory(
+        source=entry_content.source,
+        mimetype=entry_content.mimetype,
+        language=entry_content.language,
+    )
+    fetched_entry_data = FetchedFeedEntryFactory(
+        feed_url=channel.url, gid=entry.gid, content=[fetched_entry_content]
+    )
+    fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
+    mocker.patch(
+        "readorganizer_api.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
+    )
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
+
+    updated_entry = channel.entries.get(pk=entry.pk)
+    assert updated_entry.content_set.count() == 1
+    updated_entry_content = updated_entry.content_set.first()
+    assert updated_entry_content.source == entry_content.source
+    assert updated_entry_content.source == fetched_entry_content.source
+    assert updated_entry_content.mimetype == entry_content.mimetype
+    assert updated_entry_content.mimetype == fetched_entry_content.mimetype
+    assert updated_entry_content.language == entry_content.language
+    assert updated_entry_content.language == fetched_entry_content.language
+    assert updated_entry_content.content != entry_content.content
+    assert updated_entry_content.content == fetched_entry_content.content
+    assert updated_entry_content.estimated_reading_time == estimate_reading_time(
+        fetched_entry_content.content
+    )
+
+
+def test_fetch_feed_channels_entry_content_added(db, mocker):
+    channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
+    entry = EntryFactory.create(channel=channel, content_set=1)
+    entry_content = entry.content_set.first()
+    fetched_entry_content = FetchedFeedEntryContentFactory()
+    fetched_entry_data = FetchedFeedEntryFactory(
+        feed_url=channel.url, gid=entry.gid, content=[fetched_entry_content]
+    )
+    fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
+    mocker.patch(
+        "readorganizer_api.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
+    )
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
+
+    updated_entry = channel.entries.get(pk=entry.pk)
+    assert updated_entry.content_set.count() == 2
+    new_entry_content = updated_entry.content_set.last()
+    assert new_entry_content.source == fetched_entry_content.source
+    assert new_entry_content.mimetype == fetched_entry_content.mimetype
+    assert new_entry_content.language == fetched_entry_content.language
+    assert new_entry_content.content != entry_content.content
+    assert new_entry_content.content == fetched_entry_content.content
+    assert new_entry_content.estimated_reading_time == estimate_reading_time(
+        fetched_entry_content.content
+    )
+    assert (
+        updated_entry.content_set.first().estimated_reading_time
+        == entry_content.estimated_reading_time
+    )
+
+
+def test_fetch_feed_channels_entry_content_not_updated_no_changes(db, mocker):
+    channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
+    entry = EntryFactory.create(channel=channel, content_set=1)
+    entry_content = entry.content_set.first()
+    fetched_entry_content = FetchedFeedEntryContentFactory(
+        content=entry_content.content,
+        source=entry_content.source,
+        mimetype=entry_content.mimetype,
+        language=entry_content.language,
+    )
+    fetched_entry_data = FetchedFeedEntryFactory(
+        feed_url=channel.url, gid=entry.gid, content=[fetched_entry_content]
+    )
+    fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
+    mocker.patch(
+        "readorganizer_api.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+    )
+    mocker.patch(
+        "readorganizer_api.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
+    )
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
+    m = Channel.objects
+
+    m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
+
+    updated_entry = channel.entries.get(pk=entry.pk)
+    assert updated_entry.content_set.count() == 1
+    updated_entry_content = updated_entry.content_set.first()
+    assert updated_entry_content.source == entry_content.source
+    assert updated_entry_content.source == fetched_entry_content.source
+    assert updated_entry_content.mimetype == entry_content.mimetype
+    assert updated_entry_content.mimetype == fetched_entry_content.mimetype
+    assert updated_entry_content.language == entry_content.language
+    assert updated_entry_content.language == fetched_entry_content.language
+    assert updated_entry_content.content == entry_content.content
+    assert updated_entry_content.content == fetched_entry_content.content
+    assert (
+        updated_entry_content.estimated_reading_time
+        == entry_content.estimated_reading_time
+    )
