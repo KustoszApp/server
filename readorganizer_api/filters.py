@@ -43,6 +43,18 @@ class ChannelFilter(drf_filters.FilterSet):
         field_name="is_stale", method="get_stale_channels"
     )
 
+    order = drf_filters.OrderingFilter(
+        fields=(
+            "id",
+            "url",
+            "title",
+            "link",
+            "last_check_time",
+            "last_successful_check_time",
+            "added_time",
+        )
+    )
+
     class Meta:
         model = models.Channel
         fields = {
@@ -130,6 +142,18 @@ class EntryFilter(drf_filters.FilterSet):
     channel_tags__not = TagFilter(field_name="channel__tags__slug", exclude=True)
     channel_has_tags = drf_filters.BooleanFilter(
         field_name="channel__tags", lookup_expr="isnull", exclude=True
+    )
+
+    order = drf_filters.OrderingFilter(
+        fields=(
+            "id",
+            "link",
+            "added_time",
+            "updated_time",
+            "published_time_upstream",
+            "updated_time_upstream",
+            "published_time",
+        )
     )
 
     class Meta:
