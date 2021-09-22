@@ -93,6 +93,7 @@ class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
             "link",
             "title",
             "author",
+            "note",
             "reader_position",
             "added_time",
             "updated_time",

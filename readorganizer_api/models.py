@@ -108,6 +108,7 @@ class Entry(models.Model):
     link = models.URLField(max_length=2048, blank=True, help_text="URL of entry")
     title = models.TextField(blank=True, help_text="Title (subject) of entry")
     author = models.TextField(blank=True, help_text="Author of entry")
+    note = models.TextField(blank=True, help_text="Note associated with entry")
     reader_position = models.FloatField(
         blank=True,
         default=0,
@@ -185,11 +186,6 @@ class EntryContent(models.Model):
         blank=True, help_text="Estimated read time, in minutes"
     )
     updated_time = models.DateTimeField(help_text="When content was last updated")
-
-
-class EntryNote(models.Model):
-    entry = models.ForeignKey(Entry, on_delete=models.CASCADE, related_name="note")
-    content = models.TextField()
 
 
 class EntryFilter(models.Model):

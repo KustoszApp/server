@@ -1,7 +1,19 @@
+from django.core.validators import EMPTY_VALUES
 from django_filters import rest_framework as drf_filters
 from taggit.forms import TagField
 
 from readorganizer_api import models
+
+
+class EmptyStringFilter(drf_filters.BooleanFilter):
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+
+        exclude = self.exclude ^ (value is False)
+        method = qs.exclude if exclude else qs.filter
+
+        return method(**{self.field_name: ""})
 
 
 class NumberInFilter(drf_filters.BaseInFilter, drf_filters.NumberFilter):
@@ -143,6 +155,7 @@ class EntryFilter(drf_filters.FilterSet):
     channel_has_tags = drf_filters.BooleanFilter(
         field_name="channel__tags", lookup_expr="isnull", exclude=True
     )
+    has_note = EmptyStringFilter(field_name="note", exclude=True)
 
     order = drf_filters.OrderingFilter(
         fields=(
