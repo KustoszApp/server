@@ -268,6 +268,7 @@ class ChannelManager(models.Manager):
         for item in entries_data:
             grouped_by_feed[item.feed_url].append(item)
 
+        entries_ids = set()
         for channel_model in feeds_queryset:
             channel_entries_data = grouped_by_feed.get(channel_model.url)
             if not channel_entries_data:
@@ -277,10 +278,17 @@ class ChannelManager(models.Manager):
                     channel_model.url,
                 )
                 continue
-            channel_model.entries(
+            new_or_updated_ids = channel_model.entries(
                 manager="objects"
             )._create_or_update_with_fetched_data(
                 channel_model=channel_model, entries_data=channel_entries_data
+            )
+            entries_ids.update(new_or_updated_ids)
+
+        if entries_ids:
+            dispatch_task_by_name(
+                InternalTasksEnum.RUN_FILTERS_ON_ENTRIES,
+                kwargs={"entries_ids": list(entries_ids)},
             )
 
 
@@ -357,6 +365,8 @@ class EntryManager(models.Manager):
             entry_data = entries_data_map.pop(existing_entry.gid)
             existing_entries_map[entry_data.gid] = entry_data
 
+        new_or_updated_ids = set()
+
         if existing_entries_map:
             self.__update_existing_with_fetched_data(
                 channel_model=channel_model,
@@ -364,9 +374,11 @@ class EntryManager(models.Manager):
                 entries_data_map=existing_entries_map,
             )
         if entries_data_map:
-            self.__create_new_from_fetched_data(
+            new_entries_ids = self.__create_new_from_fetched_data(
                 channel_model=channel_model, entries_data_map=entries_data_map
             )
+            new_or_updated_ids.update(new_entries_ids)
+        return new_or_updated_ids
 
     def _run_filters_on_entries(
         self, entries_ids: Iterable[int], entry_filters: QuerySet
@@ -490,10 +502,7 @@ class EntryManager(models.Manager):
                     content.entry = entry
                     content.save()
                 entries_ids.append(entry.pk)
-        dispatch_task_by_name(
-            InternalTasksEnum.RUN_FILTERS_ON_ENTRIES,
-            kwargs={"entries_ids": entries_ids},
-        )
+        return entries_ids
 
     def __update_single_model_with_fetched_data(self, entry_model, fetched_data):
         keys_to_check = ("link", "title", "author", "published_time", "updated_time")
