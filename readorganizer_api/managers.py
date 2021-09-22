@@ -16,6 +16,7 @@ from django.db.models import Max
 from django.db.models import Q
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
+from django.http import QueryDict
 from django.utils.timezone import now as django_now
 
 from .enums import ChannelTypesEnum
@@ -33,6 +34,7 @@ from .utils import estimate_reading_time
 from .utils import make_unique
 from .utils import optional_make_aware
 from .utils.duplicate_finder import DuplicateFinder
+from .utils.filter_actions import get_filter_action
 
 
 log = logging.getLogger(__name__)
@@ -366,6 +368,35 @@ class EntryManager(models.Manager):
                 channel_model=channel_model, entries_data_map=entries_data_map
             )
 
+    def _run_filters_on_entries(
+        self, entries_ids: Iterable[int], entry_filters: QuerySet
+    ):
+        queryset = self.get_queryset().filter(pk__in=entries_ids)
+        entry_filters = entry_filters.filter(enabled=True)
+        if not entry_filters:
+            return
+
+        for filtering_rule in entry_filters:
+            filtered_entries = self.__get_filtered_entries(filtering_rule, queryset)
+            if not filtered_entries:
+                continue
+            log.info(
+                "Filter '%s' (calls '%s' with argument '%s') matched for entries: %s",
+                filtering_rule.name,
+                filtering_rule.action_name,
+                filtering_rule.action_argument,
+                ", ".join([str(e.pk) for e in filtered_entries]),
+            )
+            action = get_filter_action(filtering_rule.action_name)
+            action(filtered_entries, filtering_rule.action_argument)
+
+    def __get_filtered_entries(self, filtering_rule, queryset):
+        from .filters import EntryFilter
+
+        filtering_data = QueryDict(filtering_rule.condition)
+        filter_ = EntryFilter(filtering_data, queryset)
+        return filter_.qs
+
     def __update_existing_with_fetched_data(
         self, channel_model, queryset, entries_data_map
     ):
@@ -444,6 +475,7 @@ class EntryManager(models.Manager):
                 entry_contents.append(content_obj)
             new_entries.append({"entry": entry, "contents": entry_contents})
 
+        entries_ids = []
         with transaction.atomic():
             for entry_dict in new_entries:
                 entry, contents = entry_dict.values()
@@ -454,11 +486,14 @@ class EntryManager(models.Manager):
                     entry.gid,
                     len(contents),
                 )
-                if not entry_contents:
-                    continue
                 for content in contents:
                     content.entry = entry
                     content.save()
+                entries_ids.append(entry.pk)
+        dispatch_task_by_name(
+            InternalTasksEnum.RUN_FILTERS_ON_ENTRIES,
+            kwargs={"entries_ids": entries_ids},
+        )
 
     def __update_single_model_with_fetched_data(self, entry_model, fetched_data):
         keys_to_check = ("link", "title", "author", "published_time", "updated_time")

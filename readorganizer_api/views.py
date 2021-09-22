@@ -5,26 +5,28 @@ from rest_framework.response import Response
 from readorganizer_api import filters
 from readorganizer_api import models
 from readorganizer_api import serializers
+from readorganizer_api.enums import InternalTasksEnum
+from readorganizer_api.utils import dispatch_task_by_name
 
 # from rest_framework import permissions
 
 
 class ChannelsList(generics.ListAPIView):
     queryset = models.Channel.objects.get_annotated_queryset()
-    serializer_class = serializers.ChannelSerializer
+    serializer_class = serializers.ChannelsListSerializer
     filterset_class = filters.ChannelFilter
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class ChannelDetail(generics.RetrieveUpdateAPIView):
     queryset = models.Channel.objects.get_annotated_queryset()
-    serializer_class = serializers.ChannelDetailSerializer
+    serializer_class = serializers.ChannelSerializer
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class EntriesList(generics.ListAPIView):
     queryset = models.Entry.objects.get_annotated_queryset()
-    serializer_class = serializers.ListEntrySerializer
+    serializer_class = serializers.EntriesListSerializer
     filterset_class = filters.EntryFilter
 
 
@@ -51,6 +53,37 @@ class EntriesArchive(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+
+class EntryFiltersList(generics.ListCreateAPIView):
+    queryset = models.EntryFilter.objects.all()
+    serializer_class = serializers.EntryFilterSerializer
+
+
+class EntryFilterDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.EntryFilter.objects.all()
+    serializer_class = serializers.EntryFilterSerializer
+
+
+class EntryFiltersRun(generics.CreateAPIView):
+    queryset = models.EntryFilter.objects.all()
+    filterset_class = filters.EntryFilter
+
+    def create(self, request, *args, **kwargs):
+        filtered_entries = self.filter_queryset(self.get_queryset())
+        filtered_entries_ids = list(filtered_entries.values_list("pk", flat=True))
+        entry_filter_ids = self.request.query_params.get("filter_ids", [])
+        if entry_filter_ids:
+            entry_filter_ids = map(int, entry_filter_ids.split(","))
+        dispatch_task_by_name(
+            InternalTasksEnum.RUN_FILTERS_ON_ENTRIES,
+            kwargs={
+                "entries_ids": filtered_entries_ids,
+                "entry_filter_ids": entry_filter_ids,
+            },
+        )
+        headers = self.get_success_headers([])
+        return Response([], status=status.HTTP_200_OK, headers=headers)
 
 
 class ChannelsInactivate(generics.CreateAPIView):

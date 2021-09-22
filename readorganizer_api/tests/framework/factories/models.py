@@ -6,6 +6,7 @@ from readorganizer_api import models as ro_models
 from readorganizer_api.constants import DEFAULT_UPDATE_FREQUENCY
 from readorganizer_api.enums import ChannelTypesEnum
 from readorganizer_api.enums import EntryContentSourceTypesEnum
+from readorganizer_api.enums import EntryFilterActionsEnum
 
 
 class ChannelFactory(DjangoModelFactory):
@@ -71,3 +72,14 @@ class EntryFactory(DjangoModelFactory):
         if extracted:
             assert isinstance(extracted, int)
             EntryContentFactory.create_batch(size=extracted, entry=self, **kwargs)
+
+
+class EntryFilterFactory(DjangoModelFactory):
+    class Meta:
+        model = ro_models.EntryFilter
+
+    enabled = True
+    name = factory.Faker("text")
+    condition = "archived=False"
+    action_name = EntryFilterActionsEnum.MARK_AS_READ
+    action_argument = ""

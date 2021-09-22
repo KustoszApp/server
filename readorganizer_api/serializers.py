@@ -7,6 +7,7 @@ from taggit_serializer.serializers import TagListSerializerField
 from .models import Channel
 from .models import Entry
 from .models import EntryContent
+from .models import EntryFilter
 
 
 class EntryContentSerializer(serializers.ModelSerializer):
@@ -33,7 +34,7 @@ class EntryContentMetadataSerializer(EntryContentSerializer):
         ]
 
 
-class ListEntrySerializer(serializers.ModelSerializer):
+class EntriesListSerializer(serializers.ModelSerializer):
     published_time = serializers.DateTimeField()
     preferred_content = EntryContentSerializer()
     available_contents = EntryContentMetadataSerializer(source="content_set", many=True)
@@ -110,7 +111,23 @@ class EntriesArchiveSerializer(serializers.Serializer):
     archived_count = serializers.IntegerField(required=True)
 
 
-class ChannelSerializer(serializers.ModelSerializer):
+class EntryFilterSerializer(serializers.Serializer):
+    class Meta:
+        model = EntryFilter
+        fields = [
+            "id",
+            "enabled",
+            "name",
+            "condition",
+            "action_name",
+            "action_argument",
+        ]
+        extra_kwargs = {
+            "id": {"read_only": True},
+        }
+
+
+class ChannelsListSerializer(serializers.ModelSerializer):
     unarchived_entries = serializers.IntegerField()
     last_entry_published_time = serializers.DateTimeField()
     tags = TagListSerializerField()
@@ -149,7 +166,7 @@ class ChannelSerializer(serializers.ModelSerializer):
         }
 
 
-class ChannelDetailSerializer(TaggitSerializer, serializers.ModelSerializer):
+class ChannelSerializer(TaggitSerializer, serializers.ModelSerializer):
     unarchived_entries = serializers.IntegerField()
     last_entry_published_time = serializers.DateTimeField()
     tags = TagListSerializerField()

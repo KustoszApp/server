@@ -34,6 +34,10 @@ def estimate_reading_time(text: str) -> float:
     return minutes
 
 
+def make_unique(sequence):
+    return list(dict.fromkeys(sequence))
+
+
 @lru_cache
 def normalize_url(url: str, sort_query: bool = True) -> str:
     cleared_url = unalix.clear_url(url)
@@ -42,10 +46,6 @@ def normalize_url(url: str, sort_query: bool = True) -> str:
         query = sorted(parsed_url.query, key=itemgetter(0))
         parsed_url = parsed_url.replace(query=query)
     return parsed_url.to_text()
-
-
-def make_unique(sequence):
-    return list(dict.fromkeys(sequence))
 
 
 def optional_make_aware(*args, **kwargs):

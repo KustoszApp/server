@@ -3,10 +3,14 @@ from datetime import timedelta
 from django.utils.timezone import now as django_now
 from freezegun import freeze_time
 
+import readorganizer_api
 from ..framework.factories.models import ChannelFactory
 from ..framework.factories.models import EntryFactory
+from ..framework.factories.models import EntryFilterFactory
+from readorganizer_api.enums import EntryFilterActionsEnum
 from readorganizer_api.managers import DuplicateFinder
 from readorganizer_api.models import Entry
+from readorganizer_api.models import EntryFilter
 
 
 def test_deduplication_same_gid(db):
@@ -153,3 +157,87 @@ def test_deduplication_ignores_deduplication_disabled(db):
     assert one.archived is False
     assert another.archived is False
     assert duplicate.archived is False
+
+
+def test_filter_mark_as_read(db):
+    one = EntryFactory.create()
+    another = EntryFactory.create()
+    EntryFilterFactory.create(condition=f"link={one.link}")
+    m = Entry.objects
+
+    m._run_filters_on_entries([one.pk, another.pk], EntryFilter.objects.all())
+
+    for model in (one, another):
+        model.refresh_from_db()
+
+    assert one.archived is True
+    assert another.archived is False
+
+
+def test_filter_mark_assign_tag(db):
+    one = EntryFactory.create()
+    another = EntryFactory.create()
+    EntryFilterFactory.create(
+        condition=f"link={one.link}",
+        action_name=EntryFilterActionsEnum.ASSIGN_TAG,
+        action_argument="Whatever",
+    )
+    m = Entry.objects
+
+    m._run_filters_on_entries([one.pk, another.pk], EntryFilter.objects.all())
+
+    for model in (one, another):
+        model.refresh_from_db()
+
+    assert "Whatever" in one.tags.names()
+    assert "Whatever" not in another.tags.names()
+
+
+def test_filter_no_matches(db):
+    one = EntryFactory.create()
+    another = EntryFactory.create()
+    EntryFilterFactory.create(condition="archived=True")
+    m = Entry.objects
+
+    m._run_filters_on_entries([one.pk, another.pk], EntryFilter.objects.all())
+
+    for model in (one, another):
+        model.refresh_from_db()
+
+    assert one.archived is False
+    assert another.archived is False
+
+
+def test_filter_none_defined(db, mocker):
+    mocker.patch(
+        "readorganizer_api.managers.EntryManager._EntryManager__get_filtered_entries"
+    )
+    one = EntryFactory.create()
+    another = EntryFactory.create()
+    m = Entry.objects
+
+    m._run_filters_on_entries([one.pk, another.pk], EntryFilter.objects.all())
+
+    for model in (one, another):
+        model.refresh_from_db()
+
+    assert one.archived is False
+    assert another.archived is False
+    assert (
+        not readorganizer_api.managers.EntryManager._EntryManager__get_filtered_entries.called  # noqa
+    )
+
+
+def test_filter_none_enabled(db):
+    one = EntryFactory.create()
+    another = EntryFactory.create()
+    EntryFilterFactory.create(enabled=False, condition=f"link={one.link}")
+    m = Entry.objects
+
+    m._run_filters_on_entries([one.pk, another.pk], EntryFilter.objects.all())
+
+    for model in (one, another):
+        model.refresh_from_db()
+
+    assert one.archived is False
+    assert another.archived is False

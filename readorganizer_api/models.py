@@ -8,6 +8,7 @@ from taggit.managers import TaggableManager
 from .constants import DEFAULT_UPDATE_FREQUENCY
 from .enums import ChannelTypesEnum
 from .enums import EntryContentSourceTypesEnum
+from .enums import EntryFilterActionsEnum
 from .forms.fields import ChannelURLFormField
 from .managers import ChannelManager
 from .managers import EntryManager
@@ -162,3 +163,19 @@ class EntryContent(models.Model):
 class EntryNote(models.Model):
     entry = models.ForeignKey(Entry, on_delete=models.CASCADE, related_name="note")
     content = models.TextField()
+
+
+class EntryFilter(models.Model):
+    enabled = models.BooleanField(
+        default=True, help_text="Is this filtering rule enabled?"
+    )
+    name = models.TextField(blank=False, help_text="Name of the filtering rule")
+    condition = models.TextField(
+        blank=False, help_text="Condition to match entries (as filterset definition)"
+    )
+    action_name = models.CharField(
+        max_length=20, blank=False, choices=EntryFilterActionsEnum.choices
+    )
+    action_argument = models.TextField(
+        blank=True, help_text="Argument to action (name of tag, path to script etc.)"
+    )
