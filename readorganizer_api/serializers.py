@@ -1,9 +1,12 @@
 from django.utils.timezone import now as django_now
+from rest_framework import exceptions
+from rest_framework import fields as drf_fields
 from rest_framework import serializers
 from taggit.models import Tag
 from taggit_serializer.serializers import TaggitSerializer
 from taggit_serializer.serializers import TagListSerializerField
 
+from .exceptions import InvalidDataException
 from .models import Channel
 from .models import Entry
 from .models import EntryContent
@@ -34,6 +37,17 @@ class EntryContentMetadataSerializer(EntryContentSerializer):
         ]
 
 
+class EntryContentNestedWritableSerializer(EntryContentSerializer):
+    def run_validation(self, data):
+        method = self.parent.context.get("request").method
+        if data is not drf_fields.empty and method == "PATCH":
+            for key in ("source", "mimetype", "language"):
+                if key not in data:
+                    msg = f'"{key}" is mandatory'
+                    raise exceptions.ValidationError(msg)
+        return super().run_validation(data=data)
+
+
 class EntriesListSerializer(serializers.ModelSerializer):
     published_time = serializers.DateTimeField()
     preferred_content = EntryContentSerializer()
@@ -49,6 +63,7 @@ class EntriesListSerializer(serializers.ModelSerializer):
             "link",
             "title",
             "author",
+            "reader_position",
             "added_time",
             "updated_time",
             "published_time_upstream",
@@ -64,6 +79,7 @@ class EntriesListSerializer(serializers.ModelSerializer):
 
 class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
     published_time = serializers.DateTimeField()
+    preferred_content = EntryContentNestedWritableSerializer()
     contents = EntryContentSerializer(source="content_set", required=False, many=True)
     tags = TagListSerializerField()
 
@@ -77,11 +93,13 @@ class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
             "link",
             "title",
             "author",
+            "reader_position",
             "added_time",
             "updated_time",
             "published_time_upstream",
             "updated_time_upstream",
             "published_time",
+            "preferred_content",
             "contents",
             "tags",
         ]
@@ -100,6 +118,12 @@ class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
         }
 
     def update(self, instance, validated_data):
+        new_preferred_content = validated_data.pop("preferred_content", None)
+        if new_preferred_content:
+            try:
+                instance.set_new_preferred_content(new_preferred_content)
+            except InvalidDataException as e:
+                raise exceptions.ValidationError(e.message)
         instance.updated_time = django_now()
         return super().update(instance, validated_data)
 

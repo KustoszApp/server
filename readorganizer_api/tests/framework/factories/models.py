@@ -54,6 +54,8 @@ class EntryFactory(DjangoModelFactory):
     link = factory.Faker("uri")
     title = factory.Faker("text")
     author = factory.Faker("name")
+    reader_position = 0
+    selected_preferred_content = None
     updated_time = factory.LazyFunction(now)
     published_time_upstream = factory.LazyFunction(now)
     updated_time_upstream = factory.LazyFunction(now)

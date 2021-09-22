@@ -9,6 +9,7 @@ from .constants import DEFAULT_UPDATE_FREQUENCY
 from .enums import ChannelTypesEnum
 from .enums import EntryContentSourceTypesEnum
 from .enums import EntryFilterActionsEnum
+from .exceptions import InvalidDataException
 from .forms.fields import ChannelURLFormField
 from .managers import ChannelManager
 from .managers import EntryManager
@@ -107,6 +108,23 @@ class Entry(models.Model):
     link = models.URLField(max_length=2048, blank=True, help_text="URL of entry")
     title = models.TextField(blank=True, help_text="Title (subject) of entry")
     author = models.TextField(blank=True, help_text="Author of entry")
+    reader_position = models.FloatField(
+        blank=True,
+        default=0,
+        help_text=(
+            "Last position of reader viewport, as percentage; "
+            "enables clients to implement 'continue reading' functionality"
+        ),
+    )
+    selected_preferred_content = models.ForeignKey(
+        "EntryContent",
+        on_delete=models.SET_NULL,
+        related_name="preferred_content_for",
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Last entry content selected by user",
+    )
     added_time = models.DateTimeField(
         auto_now_add=True, help_text="When entry was added to database"
     )
@@ -130,6 +148,13 @@ class Entry(models.Model):
             )
         ]
 
+    def set_new_preferred_content(self, new_preferred_content):
+        found_content = self.content_set.filter(**new_preferred_content).first()
+        if not found_content:
+            msg = "Could not find content matching provided criteria"
+            raise InvalidDataException(msg)
+        self.selected_preferred_content = found_content
+
     @property
     def _published_time(self):
         if self.published_time_upstream:
@@ -139,6 +164,8 @@ class Entry(models.Model):
 
     @property
     def preferred_content(self):
+        if self.selected_preferred_content:
+            return self.selected_preferred_content
         return self.content_set.last()
 
 
