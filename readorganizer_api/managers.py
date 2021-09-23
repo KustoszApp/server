@@ -45,6 +45,7 @@ class ChannelManager(models.Manager):
         return (
             super()
             .get_queryset()
+            .exclude(channel_type=ChannelTypesEnum.MANUAL)
             .annotate(
                 unarchived_entries=Count("entries", filter=Q(entries__archived=False)),
                 last_entry_published_time=Max(
@@ -126,7 +127,11 @@ class ChannelManager(models.Manager):
     ) -> tuple[AsyncTaskResult, ...]:
         log.debug("number of channels in queryset: %s", channels.count())
 
-        active_channels = channels.filter(active=True).order_by("pk")
+        active_channels = (
+            channels.exclude(channel_type=ChannelTypesEnum.MANUAL)
+            .filter(active=True)
+            .order_by("pk")
+        )
         log.debug("number of active channels in queryset: %s", active_channels.count())
 
         feed_channels = active_channels.filter(channel_type=ChannelTypesEnum.FEED)

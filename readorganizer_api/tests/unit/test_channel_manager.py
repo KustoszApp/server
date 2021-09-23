@@ -10,6 +10,7 @@ from ..framework.factories.types import ChannelDataInputFactory
 from ..framework.factories.types import FetchedFeedEntryContentFactory
 from ..framework.factories.types import FetchedFeedEntryFactory
 from ..framework.factories.types import FetchedFeedFactory
+from readorganizer_api.enums import ChannelTypesEnum
 from readorganizer_api.enums import InternalTasksEnum
 from readorganizer_api.exceptions import NoNewChannelsAddedException
 from readorganizer_api.models import Channel
@@ -24,7 +25,7 @@ def test_add_channels(db):
 
     m.add_channels(channels, False)
 
-    assert m.count() == 2
+    assert m.exclude(channel_type=ChannelTypesEnum.MANUAL).count() == 2
 
 
 def test_try_adding_existing_channels(db):
@@ -36,7 +37,7 @@ def test_try_adding_existing_channels(db):
     with pytest.raises(NoNewChannelsAddedException):
         m.add_channels(channels, False)
 
-    assert m.count() == 2
+    assert m.exclude(channel_type=ChannelTypesEnum.MANUAL).count() == 2
 
 
 def test_add_mix_of_existing_and_new_channels(db):
@@ -49,7 +50,7 @@ def test_add_mix_of_existing_and_new_channels(db):
 
     m.add_channels(channels, False)
 
-    assert m.count() == 3
+    assert m.exclude(channel_type=ChannelTypesEnum.MANUAL).count() == 3
 
 
 def test_add_channel_with_tags(db):
@@ -58,12 +59,12 @@ def test_add_channel_with_tags(db):
 
     m.add_channels([channel], False)
 
-    assert set(channel.tags) == set(m.get().tags.names())
+    assert set(channel.tags) == set(m.last().tags.names())
 
 
 def test_fetch_channels_content(db, mocker):
     mocker.patch("readorganizer_api.managers.dispatch_task_by_name", return_value="1")
-    ChannelFactory.create()
+    channel = ChannelFactory.create()
     m = Channel.objects
     qs = m.all()
 
@@ -71,7 +72,7 @@ def test_fetch_channels_content(db, mocker):
 
     readorganizer_api.managers.dispatch_task_by_name.assert_called_once_with(
         InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT,
-        kwargs={"channel_ids": [1], "force_fetch": False},
+        kwargs={"channel_ids": [channel.pk], "force_fetch": False},
     )
     assert len(tasks) == 1
 
@@ -90,7 +91,7 @@ def test_fetch_channels_content_only_inactive(db, mocker):
 
 def test_fetch_channels_content_mix_active_inactive(db, mocker):
     mocker.patch("readorganizer_api.managers.dispatch_task_by_name", return_value="1")
-    ChannelFactory.create()
+    channel = ChannelFactory.create()
     ChannelFactory.create(active=False)
     m = Channel.objects
     qs = m.all()
@@ -99,7 +100,7 @@ def test_fetch_channels_content_mix_active_inactive(db, mocker):
 
     readorganizer_api.managers.dispatch_task_by_name.assert_called_once_with(
         InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT,
-        kwargs={"channel_ids": [1], "force_fetch": False},
+        kwargs={"channel_ids": [channel.pk], "force_fetch": False},
     )
     assert len(tasks) == 1
 

@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 
 from ..framework.factories.models import ChannelFactory
 from ..framework.factories.models import EntryFactory
+from readorganizer_api.enums import ChannelTypesEnum
 from readorganizer_api.models import Channel
 
 
@@ -26,8 +27,9 @@ def test_deactivate_id(db):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["inactivated_count"] == len(channels_to_update)
     assert response.data["inactivated_channels"] == updated_channels_id
-    assert Channel.objects.filter(active=False).count() == len(channels_to_update)
-    assert Channel.objects.filter(active=True).count() == (5 - len(channels_to_update))
+    channel_objects = Channel.objects.exclude(channel_type=ChannelTypesEnum.MANUAL)
+    assert channel_objects.filter(active=False).count() == len(channels_to_update)
+    assert channel_objects.filter(active=True).count() == (5 - len(channels_to_update))
     for channel in channels_to_update:
         channel.refresh_from_db()
         assert channel.active is False
@@ -46,8 +48,9 @@ def test_deactivate_stale(db):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["inactivated_count"] == 1
     assert response.data["inactivated_channels"] == [stale_channel.pk]
-    assert Channel.objects.filter(active=False).count() == 1
-    assert Channel.objects.filter(active=True).count() == 1
+    channel_objects = Channel.objects.exclude(channel_type=ChannelTypesEnum.MANUAL)
+    assert channel_objects.filter(active=False).count() == 1
+    assert channel_objects.filter(active=True).count() == 1
     stale_channel.refresh_from_db()
     assert stale_channel.active is False
     fresh_channel.refresh_from_db()
@@ -76,8 +79,9 @@ def test_deactivate_no_new_entries(db):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["inactivated_count"] == 1
     assert response.data["inactivated_channels"] == [old_channel.pk]
-    assert Channel.objects.filter(active=False).count() == 1
-    assert Channel.objects.filter(active=True).count() == 1
+    channel_objects = Channel.objects.exclude(channel_type=ChannelTypesEnum.MANUAL)
+    assert channel_objects.filter(active=False).count() == 1
+    assert channel_objects.filter(active=True).count() == 1
     old_channel.refresh_from_db()
     assert old_channel.active is False
     new_channel.refresh_from_db()
@@ -99,8 +103,9 @@ def test_activate_id(db):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["activated_count"] == len(channels_to_update)
     assert response.data["activated_channels"] == updated_channels_id
-    assert Channel.objects.filter(active=True).count() == len(channels_to_update)
-    assert Channel.objects.filter(active=False).count() == (5 - len(channels_to_update))
+    channel_objects = Channel.objects.exclude(channel_type=ChannelTypesEnum.MANUAL)
+    assert channel_objects.filter(active=True).count() == len(channels_to_update)
+    assert channel_objects.filter(active=False).count() == (5 - len(channels_to_update))
     for channel in channels_to_update:
         channel.refresh_from_db()
         assert channel.active is True
@@ -116,8 +121,9 @@ def test_activate_all(db):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["activated_count"] == len(channels)
     assert response.data["activated_channels"] == [ch.pk for ch in channels]
-    assert Channel.objects.filter(active=True).count() == len(channels)
-    assert Channel.objects.filter(active=False).count() == 0
+    channel_objects = Channel.objects.exclude(channel_type=ChannelTypesEnum.MANUAL)
+    assert channel_objects.filter(active=True).count() == len(channels)
+    assert channel_objects.filter(active=False).count() == 0
     for channel in channels:
         channel.refresh_from_db()
         assert channel.active is True
