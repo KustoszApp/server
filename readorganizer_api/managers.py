@@ -21,12 +21,14 @@ from django.utils.timezone import now as django_now
 
 from .enums import ChannelTypesEnum
 from .enums import InternalTasksEnum
+from .exceptions import InvalidDataException
 from .exceptions import NoNewChannelsAddedException
 from .fetchers.feed import FeedChannelsFetcher
 from .types import AddChannelResult
 from .types import AddSingleChannelResult
 from .types import AsyncTaskResult
 from .types import ChannelDataInput
+from .types import EntryDataInput
 from .types import FetchedFeed
 from .types import FetchedFeedEntry
 from .utils import dispatch_task_by_name
@@ -308,6 +310,28 @@ class EntryManager(models.Manager):
                 )
             )
         )
+
+    def add_entry_from_manual_channel(self, entry_data: EntryDataInput):
+        entry = self.model(
+            channel_id=entry_data.channel,
+            gid=entry_data.gid,
+            link=entry_data.link,
+            title=entry_data.title,
+            author=entry_data.author,
+            updated_time=django_now(),
+            published_time_upstream=optional_make_aware(entry_data.published_time),
+            updated_time_upstream=optional_make_aware(entry_data.updated_time),
+        )
+        try:
+            entry.full_clean()
+        except ValidationError as e:
+            raise InvalidDataException(e)
+        entry.save()
+        dispatch_task_by_name(
+            InternalTasksEnum.FETCH_MANUAL_ENTRY_DATA,
+            kwargs={"entry_id": entry.pk},
+        )
+        return entry
 
     def deduplicate_entries(self, days=None) -> tuple[int, ...]:
         if not days:

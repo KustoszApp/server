@@ -7,7 +7,9 @@ from celery.result import AsyncResult
 
 from .constants import DEFAULT_UPDATE_FREQUENCY
 from .exceptions import InvalidDataException
+from .utils import normalize_url
 from .validators import ChannelURLValidator
+from .validators import EntryURLValidator
 
 
 # Public API
@@ -48,6 +50,49 @@ class ChannelDataInput:
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.url == other.url
+
+
+@dataclass(frozen=True)
+class EntryDataInput:
+    #: Internal id of channel this entry originates from
+    channel: int
+
+    #: URL of entry
+    link: str
+
+    #: Unique identifier of entry
+    gid: Optional[str] = ""
+
+    #: Title (subject) of entry
+    title: Optional[str] = ""
+
+    #: Author of entry
+    author: Optional[str] = ""
+
+    #: Publication date of entry
+    published_time: Optional[datetime] = None
+
+    #: When entry/channel claims entry was last updated
+    updated_time: Optional[datetime] = None
+
+    #: Tags of channel
+    tags: Sequence[str] = ()
+
+    def __post_init__(self):
+        entry_url_validator = EntryURLValidator()
+        try:
+            entry_url_validator(self.link)
+        except Exception as e:
+            msg = f"Following URL is not valid: {self.link}"
+            raise InvalidDataException(msg) from e
+        if not self.gid:
+            object.__setattr__(self, "gid", normalize_url(self.link))
+
+    def __hash__(self):
+        return hash(self.gid)
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.gid == other.gid
 
 
 @dataclass(frozen=True)

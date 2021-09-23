@@ -20,6 +20,7 @@ urlpatterns = [
     path("entries/", views.EntriesList.as_view(), name="entries_list"),
     path("entries/<int:pk>/", views.EntryDetail.as_view(), name="entry_detail"),
     path("entries/archive", views.EntriesArchive.as_view(), name="entries_archive"),
+    path("entries/manual_add", views.EntryManualAdd.as_view(), name="entry_manual_add"),
     path("filters/", views.EntryFiltersList.as_view(), name="entry_filters_list"),
     path(
         "filters/<int:pk>/",

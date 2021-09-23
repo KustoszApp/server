@@ -2,6 +2,9 @@ from django.core.validators import URLValidator
 from django.utils.deconstruct import deconstructible
 
 
+EntryURLValidator = URLValidator
+
+
 @deconstructible
 class ChannelURLValidator:
     django_url_validator_schemes = ("http", "https")

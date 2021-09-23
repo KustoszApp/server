@@ -1,11 +1,13 @@
 from rest_framework import generics
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from readorganizer_api import filters
 from readorganizer_api import models
 from readorganizer_api import serializers
 from readorganizer_api.enums import InternalTasksEnum
+from readorganizer_api.exceptions import InvalidDataException
 from readorganizer_api.utils import dispatch_task_by_name
 
 # from rest_framework import permissions
@@ -84,6 +86,28 @@ class EntryFiltersRun(generics.CreateAPIView):
         )
         headers = self.get_success_headers([])
         return Response([], status=status.HTTP_200_OK, headers=headers)
+
+
+class EntryManualAdd(generics.CreateAPIView):
+    queryset = models.Entry.objects.get_annotated_queryset()
+    serializer_class = serializers.EntrySerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = serializers.EntryManualAddSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            new_entry = models.Entry.objects.add_entry_from_manual_channel(
+                serializer.validated_data
+            )
+        except InvalidDataException as e:
+            raise ValidationError(e.messages)
+        setattr(new_entry, "published_time", new_entry._published_time)
+        serializer = self.get_serializer(new_entry)
+        serializer.data
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 class ChannelsInactivate(generics.CreateAPIView):

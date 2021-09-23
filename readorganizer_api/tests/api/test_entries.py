@@ -4,9 +4,12 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+import readorganizer_api
 from ..framework.factories.models import EntryContentFactory
 from ..framework.factories.models import EntryFactory
 from ..framework.utils import get_content_identifier
+from readorganizer_api.enums import ChannelTypesEnum
+from readorganizer_api.models import Channel
 from readorganizer_api.models import Entry
 from readorganizer_api.utils import optional_make_aware
 
@@ -237,3 +240,48 @@ def test_set_tags(db, faker):
     assert set(response.data["tags"]) == set(entry.tags.names())
     assert set(response.data["tags"]) == set(new_tags)
     assert set(response.data["tags"]) != set(old_tags)
+
+
+def test_entry_add_manually(db, mocker, faker):
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
+    entry_url = faker.url()
+    client = APIClient()
+    url = reverse("entry_manual_add")
+    data = {"link": entry_url}
+
+    response = client.post(url, data)
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["link"] == entry_url
+    assert readorganizer_api.managers.dispatch_task_by_name.called
+
+
+def test_entry_try_add_manually_invalid_url(db, mocker, faker):
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
+    entry_url = faker.text()
+    client = APIClient()
+    url = reverse("entry_manual_add")
+    data = {"link": entry_url}
+
+    response = client.post(url, data)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["link"] != entry_url
+    assert not readorganizer_api.managers.dispatch_task_by_name.called
+
+
+def test_entry_try_add_manually_already_exists(db, mocker, faker):
+    mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
+    manual_channel = Channel.objects.filter(
+        channel_type=ChannelTypesEnum.MANUAL
+    ).first()
+    gid = faker.url()
+    entry = EntryFactory.create(channel=manual_channel, gid=gid, link=gid)
+    client = APIClient()
+    url = reverse("entry_manual_add")
+    data = {"link": entry.link}
+
+    response = client.post(url, data)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert not readorganizer_api.managers.dispatch_task_by_name.called

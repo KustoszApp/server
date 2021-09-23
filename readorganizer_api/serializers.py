@@ -6,11 +6,13 @@ from taggit.models import Tag
 from taggit_serializer.serializers import TaggitSerializer
 from taggit_serializer.serializers import TagListSerializerField
 
+from .constants import MANUAL_CHANNEL_ID
 from .exceptions import InvalidDataException
 from .models import Channel
 from .models import Entry
 from .models import EntryContent
 from .models import EntryFilter
+from .types import EntryDataInput
 
 
 class EntryContentSerializer(serializers.ModelSerializer):
@@ -78,7 +80,7 @@ class EntriesListSerializer(serializers.ModelSerializer):
 
 
 class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
-    published_time = serializers.DateTimeField()
+    published_time = serializers.DateTimeField(read_only=True)
     preferred_content = EntryContentNestedWritableSerializer()
     contents = EntryContentSerializer(source="content_set", required=False, many=True)
     tags = TagListSerializerField()
@@ -115,7 +117,6 @@ class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
             "updated_time": {"read_only": True},
             "published_time_upstream": {"read_only": True},
             "updated_time_upstream": {"read_only": True},
-            "published_time": {"read_only": True},
         }
 
     def update(self, instance, validated_data):
@@ -242,6 +243,19 @@ class ChannelsActivateSerializer(serializers.Serializer):
         child=serializers.IntegerField(), required=True
     )
     activated_count = serializers.IntegerField(required=True)
+
+
+class EntryManualAddSerializer(TaggitSerializer, serializers.Serializer):
+    link = serializers.URLField()
+    title = serializers.CharField(required=False)
+    author = serializers.CharField(required=False)
+    published_time = serializers.DateTimeField(required=False)
+    updated_time = serializers.DateTimeField(required=False)
+    tags = TagListSerializerField(required=False)
+
+    def to_internal_value(self, data):
+        internal_value = super().to_internal_value(data)
+        return EntryDataInput(channel=MANUAL_CHANNEL_ID, **internal_value)
 
 
 class TagsListSerializer(serializers.ModelSerializer):
