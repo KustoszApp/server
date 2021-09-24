@@ -7,6 +7,7 @@ import readorganizer_api
 from ..framework.factories.models import ChannelFactory
 from ..framework.factories.models import EntryFactory
 from ..framework.factories.models import EntryFilterFactory
+from ..framework.factories.types import SingleEntryExtractedMetadataFactory
 from readorganizer_api.enums import EntryFilterActionsEnum
 from readorganizer_api.managers import DuplicateFinder
 from readorganizer_api.models import Entry
@@ -241,3 +242,105 @@ def test_filter_none_enabled(db):
 
     assert one.archived is False
     assert another.archived is False
+
+
+def test_manual_entry_update_metadata(db, mocker):
+    extracted_data = SingleEntryExtractedMetadataFactory()
+    mocker.patch("readorganizer_api.managers.SingleURLFetcher.fetch")
+    mocker.patch(
+        "readorganizer_api.managers.MetadataExtractor.from_response",
+        return_value=extracted_data,
+    )
+    entry = EntryFactory.create(
+        title="", author="", published_time_upstream=None, updated_time_upstream=None
+    )
+    m = Entry.objects
+
+    m._ensure_manual_entry_metadata(entry.pk)
+
+    entry.refresh_from_db()
+    assert entry.title == extracted_data.title
+    assert entry.author == extracted_data.author
+    assert entry.published_time_upstream == extracted_data.published_time_upstream
+    assert entry.updated_time_upstream == extracted_data.updated_time_upstream
+
+
+def test_manual_entry_skip_update_metadata_when_filled(db, mocker):
+    mocker.patch("readorganizer_api.managers.SingleURLFetcher.fetch")
+    mocker.patch("readorganizer_api.managers.MetadataExtractor.from_response")
+    entry = EntryFactory.create()
+    m = Entry.objects
+
+    m._ensure_manual_entry_metadata(entry.pk)
+
+    assert not readorganizer_api.managers.SingleURLFetcher.fetch.called
+    assert not readorganizer_api.managers.MetadataExtractor.from_response.called
+
+
+def test_manual_entry_update_metadata_only_author(db, mocker):
+    extracted_data = SingleEntryExtractedMetadataFactory()
+    mocker.patch("readorganizer_api.managers.SingleURLFetcher.fetch")
+    mocker.patch(
+        "readorganizer_api.managers.MetadataExtractor.from_response",
+        return_value=extracted_data,
+    )
+    entry = EntryFactory.create(
+        author="", published_time_upstream=None, updated_time_upstream=None
+    )
+    m = Entry.objects
+
+    m._ensure_manual_entry_metadata(entry.pk)
+
+    old_title = entry.title
+    entry.refresh_from_db()
+    assert entry.title == old_title
+    assert entry.title != extracted_data.title
+    assert entry.author == extracted_data.author
+    assert entry.published_time_upstream == extracted_data.published_time_upstream
+    assert entry.updated_time_upstream == extracted_data.updated_time_upstream
+
+
+def test_manual_entry_update_metadata_only_title(db, mocker):
+    extracted_data = SingleEntryExtractedMetadataFactory()
+    mocker.patch("readorganizer_api.managers.SingleURLFetcher.fetch")
+    mocker.patch(
+        "readorganizer_api.managers.MetadataExtractor.from_response",
+        return_value=extracted_data,
+    )
+    entry = EntryFactory.create(
+        title="", published_time_upstream=None, updated_time_upstream=None
+    )
+    m = Entry.objects
+
+    m._ensure_manual_entry_metadata(entry.pk)
+
+    old_author = entry.author
+    entry.refresh_from_db()
+    assert entry.title == extracted_data.title
+    assert entry.author == old_author
+    assert entry.author != extracted_data.author
+    assert entry.published_time_upstream == extracted_data.published_time_upstream
+    assert entry.updated_time_upstream == extracted_data.updated_time_upstream
+
+
+def test_manual_entry_update_metadata_no_upstream_times(db, mocker):
+    extracted_data = SingleEntryExtractedMetadataFactory(
+        published_time_upstream=None, updated_time_upstream=None
+    )
+    mocker.patch("readorganizer_api.managers.SingleURLFetcher.fetch")
+    mocker.patch(
+        "readorganizer_api.managers.MetadataExtractor.from_response",
+        return_value=extracted_data,
+    )
+    entry = EntryFactory.create(
+        title="", author="", published_time_upstream=None, updated_time_upstream=None
+    )
+    m = Entry.objects
+
+    m._ensure_manual_entry_metadata(entry.pk)
+
+    entry.refresh_from_db()
+    assert entry.title == extracted_data.title
+    assert entry.author == extracted_data.author
+    assert not entry.published_time_upstream
+    assert not entry.updated_time_upstream

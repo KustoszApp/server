@@ -51,3 +51,13 @@ class FetchedFeedFactory(factory.Factory):
     fetch_failed = False
     title = factory.Faker("text")
     link = factory.Faker("uri")
+
+
+class SingleEntryExtractedMetadataFactory(factory.Factory):
+    class Meta:
+        model = ro_types.SingleEntryExtractedMetadata
+
+    title = factory.Faker("text")
+    author = factory.Faker("name")
+    published_time_upstream = factory.LazyFunction(now)
+    updated_time_upstream = factory.LazyFunction(now)

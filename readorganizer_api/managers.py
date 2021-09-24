@@ -24,6 +24,7 @@ from .enums import InternalTasksEnum
 from .exceptions import InvalidDataException
 from .exceptions import NoNewChannelsAddedException
 from .fetchers.feed import FeedChannelsFetcher
+from .fetchers.url import SingleURLFetcher
 from .types import AddChannelResult
 from .types import AddSingleChannelResult
 from .types import AsyncTaskResult
@@ -36,6 +37,7 @@ from .utils import estimate_reading_time
 from .utils import make_unique
 from .utils import optional_make_aware
 from .utils.duplicate_finder import DuplicateFinder
+from .utils.extract_metadata import MetadataExtractor
 from .utils.filter_actions import get_filter_action
 
 
@@ -408,6 +410,27 @@ class EntryManager(models.Manager):
             )
             new_or_updated_ids.update(new_entries_ids)
         return new_or_updated_ids
+
+    def _ensure_manual_entry_metadata(self, entry_id):
+        entry = self.get_queryset().get(pk=entry_id)
+        if entry.title and entry.author:
+            log.debug(
+                "Entry %s already has all metadata we can reasonably expect", entry.pk
+            )
+            return
+        response = SingleURLFetcher.fetch(entry.link)
+        new_metadata = MetadataExtractor.from_response(response)
+        for key, value in asdict(new_metadata).items():
+            if not getattr(entry, key):
+                log.debug(
+                    "entry %s: setting %s to '%s' based on extracted metadata",
+                    entry.pk,
+                    key,
+                    value,
+                )
+                setattr(entry, key, value)
+        entry.updated_time = django_now()
+        entry.save()
 
     def _run_filters_on_entries(
         self, entries_ids: Iterable[int], entry_filters: QuerySet

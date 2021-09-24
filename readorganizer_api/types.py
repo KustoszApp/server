@@ -156,3 +156,18 @@ class FeedFetcherResult:
     #: List of fetched entries data;
     #: some are the same as what we already have, some are changed, some are new
     entries: tuple[FetchedFeedEntry, ...]
+
+
+@dataclass(frozen=True)
+class SingleEntryExtractedMetadata:
+    #: Title (subject) of entry
+    title: str
+
+    #: Author of entry
+    author: str
+
+    #: Publication date of entry
+    published_time_upstream: Optional[datetime] = None
+
+    #: When entry/channel claims entry was last updated
+    updated_time_upstream: Optional[datetime] = None

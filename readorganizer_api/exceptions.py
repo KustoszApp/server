@@ -5,9 +5,17 @@ class InvalidDataException(ValidationError):
     pass
 
 
+class NoNewChannelsAddedException(Exception):
+    pass
+
+
+class PermanentFetcherError(Exception):
+    pass
+
+
 class SerialTaskAlreadyInProgress(Exception):
     pass
 
 
-class NoNewChannelsAddedException(Exception):
+class TransientFetcherError(Exception):
     pass
