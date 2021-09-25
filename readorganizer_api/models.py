@@ -172,7 +172,7 @@ class Entry(models.Model):
     def preferred_content(self):
         if self.selected_preferred_content:
             return self.selected_preferred_content
-        return self.content_set.last()
+        return self.content_set.order_by("-estimated_reading_time").first()
 
 
 class EntryContent(models.Model):

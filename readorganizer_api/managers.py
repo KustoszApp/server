@@ -23,6 +23,7 @@ from .enums import ChannelTypesEnum
 from .enums import InternalTasksEnum
 from .exceptions import InvalidDataException
 from .exceptions import NoNewChannelsAddedException
+from .exceptions import PermanentFetcherError
 from .fetchers.feed import FeedChannelsFetcher
 from .fetchers.url import SingleURLFetcher
 from .types import AddChannelResult
@@ -32,6 +33,7 @@ from .types import ChannelDataInput
 from .types import EntryDataInput
 from .types import FetchedFeed
 from .types import FetchedFeedEntry
+from .types import ReadabilityContentList
 from .utils import dispatch_task_by_name
 from .utils import estimate_reading_time
 from .utils import make_unique
@@ -368,8 +370,11 @@ class EntryManager(models.Manager):
 
     def _add_readability_contents(self, entry_id: int):
         entry = self.get_queryset().get(pk=entry_id)
-        response = SingleURLFetcher.fetch(entry.link)
-        extracted_content = ReadabilityContentExtractor.from_response(response)
+        try:
+            response = SingleURLFetcher.fetch(entry.link)
+            extracted_content = ReadabilityContentExtractor.from_response(response)
+        except PermanentFetcherError:
+            extracted_content = ReadabilityContentList(content=())
         EntryContent = entry.content_set.get_queryset().model
 
         new_contents = []
@@ -450,8 +455,12 @@ class EntryManager(models.Manager):
                 "Entry %s already has all metadata we can reasonably expect", entry.pk
             )
             return
-        response = SingleURLFetcher.fetch(entry.link)
-        new_metadata = MetadataExtractor.from_response(response)
+        try:
+            response = SingleURLFetcher.fetch(entry.link)
+            new_metadata = MetadataExtractor.from_response(response)
+        except PermanentFetcherError:
+            new_metadata = MetadataExtractor.from_url(entry.link)
+
         for key, value in asdict(new_metadata).items():
             if not getattr(entry, key):
                 log.debug(
