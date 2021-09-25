@@ -53,6 +53,13 @@ class FetchedFeedFactory(factory.Factory):
     link = factory.Faker("uri")
 
 
+class ReadabilityContentListFactory(factory.Factory):
+    class Meta:
+        model = ro_types.ReadabilityContentList
+
+    content = factory.List([FetchedFeedEntryContentFactory()])
+
+
 class SingleEntryExtractedMetadataFactory(factory.Factory):
     class Meta:
         model = ro_types.SingleEntryExtractedMetadata

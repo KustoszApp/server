@@ -140,6 +140,11 @@ class Entry(models.Model):
         null=True,
         help_text="When entry/channel claims entry was last updated",
     )
+    readability_fetch_time = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="When did we fetch readability content for entry",
+    )
 
     class Meta:
         verbose_name_plural = "entries"

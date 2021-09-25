@@ -1,4 +1,5 @@
 # flake8: noqa
+from .internal.task_add_readability_contents import add_readability_contents
 from .internal.task_deduplicate_entries import deduplicate_entries
 from .internal.task_fetch_feed_channel_content import fetch_feed_channel_content
 from .internal.task_fetch_manual_entry_data import fetch_manual_entry_data

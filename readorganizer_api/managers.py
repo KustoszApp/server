@@ -38,6 +38,7 @@ from .utils import make_unique
 from .utils import optional_make_aware
 from .utils.duplicate_finder import DuplicateFinder
 from .utils.extract_metadata import MetadataExtractor
+from .utils.extract_readability import ReadabilityContentExtractor
 from .utils.filter_actions import get_filter_action
 
 
@@ -365,6 +366,36 @@ class EntryManager(models.Manager):
         archived_count = queryset.update(archived=True, updated_time=django_now())
         return archived_count
 
+    def _add_readability_contents(self, entry_id: int):
+        entry = self.get_queryset().get(pk=entry_id)
+        response = SingleURLFetcher.fetch(entry.link)
+        extracted_content = ReadabilityContentExtractor.from_response(response)
+        EntryContent = entry.content_set.get_queryset().model
+
+        new_contents = []
+        for fetched_content in extracted_content.content:
+            reading_time = estimate_reading_time(fetched_content.content)
+            content_obj = EntryContent(
+                entry=entry,
+                updated_time=django_now(),
+                estimated_reading_time=reading_time,
+                **asdict(fetched_content),
+            )
+            new_contents.append(content_obj)
+
+        log.debug(
+            "entry %s (%s) has %s new content objects",
+            entry.pk,
+            entry.gid,
+            len(new_contents),
+        )
+
+        with transaction.atomic():
+            for content in new_contents:
+                content.save()
+            entry.readability_fetch_time = entry.updated_time = django_now()
+            entry.save()
+
     def _create_or_update_with_fetched_data(
         self, channel_model, entries_data: Iterable[FetchedFeedEntry]
     ):
@@ -409,9 +440,10 @@ class EntryManager(models.Manager):
                 channel_model=channel_model, entries_data_map=entries_data_map
             )
             new_or_updated_ids.update(new_entries_ids)
+            self._request_readability_contents(new_entries_ids)
         return new_or_updated_ids
 
-    def _ensure_manual_entry_metadata(self, entry_id):
+    def _ensure_manual_entry_metadata(self, entry_id: int):
         entry = self.get_queryset().get(pk=entry_id)
         if entry.title and entry.author:
             log.debug(
@@ -431,6 +463,19 @@ class EntryManager(models.Manager):
                 setattr(entry, key, value)
         entry.updated_time = django_now()
         entry.save()
+
+    def _request_readability_contents(self, entries_ids: Iterable[int]):
+        if (
+            not settings.READORGANIZER_READABILITY_PYTHON_ENABLED
+            and not settings.READORGANIZER_READABILITY_NODE_ENABLED
+        ):
+            return
+
+        for entry_id in entries_ids:
+            dispatch_task_by_name(
+                InternalTasksEnum.ADD_READABILITY_CONTENTS,
+                kwargs={"entry_id": entry_id},
+            )
 
     def _run_filters_on_entries(
         self, entries_ids: Iterable[int], entry_filters: QuerySet

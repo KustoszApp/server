@@ -60,6 +60,7 @@ class EntryFactory(DjangoModelFactory):
     updated_time = factory.LazyFunction(now)
     published_time_upstream = factory.LazyFunction(now)
     updated_time_upstream = factory.LazyFunction(now)
+    readability_fetch_time = factory.LazyFunction(now)
 
     @factory.post_generation
     def tags(self, create, extracted, **kwargs):

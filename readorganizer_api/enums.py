@@ -26,6 +26,7 @@ class ImportChannelsActionsEnum(models.TextChoices):
 
 
 class InternalTasksEnum(models.TextChoices):
+    ADD_READABILITY_CONTENTS = "readorganizer_api.internal.add_readability_contents"
     DEDUPLICATE_ENTRIES = "readorganizer_api.internal.deduplicate_entries"
     FETCH_FEED_CHANNEL_CONTENT = "readorganizer_api.internal.fetch_feed_channel_content"
     FETCH_MANUAL_ENTRY_DATA = "readorganizer_api.internal.fetch_manual_entry_data"

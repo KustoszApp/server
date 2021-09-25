@@ -7,6 +7,7 @@ import readorganizer_api
 from ..framework.factories.models import ChannelFactory
 from ..framework.factories.models import EntryFactory
 from ..framework.factories.models import EntryFilterFactory
+from ..framework.factories.types import ReadabilityContentListFactory
 from ..framework.factories.types import SingleEntryExtractedMetadataFactory
 from readorganizer_api.enums import EntryFilterActionsEnum
 from readorganizer_api.managers import DuplicateFinder
@@ -344,3 +345,24 @@ def test_manual_entry_update_metadata_no_upstream_times(db, mocker):
     assert entry.author == extracted_data.author
     assert not entry.published_time_upstream
     assert not entry.updated_time_upstream
+
+
+def test_add_readability(db, mocker):
+    extracted_data = ReadabilityContentListFactory()
+    mocker.patch("readorganizer_api.managers.SingleURLFetcher.fetch")
+    mocker.patch(
+        "readorganizer_api.managers.ReadabilityContentExtractor.from_response",
+        return_value=extracted_data,
+    )
+    entry = EntryFactory.create()
+    m = Entry.objects
+
+    m._add_readability_contents(entry.pk)
+
+    entry.refresh_from_db()
+    assert entry.readability_fetch_time is not None
+    assert entry.readability_fetch_time == entry.updated_time
+    entry_content = entry.content_set.first()
+    assert entry_content.source == extracted_data.content[0].source
+    assert entry_content.content == extracted_data.content[0].content
+    assert entry_content.mimetype == extracted_data.content[0].mimetype

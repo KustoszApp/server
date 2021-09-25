@@ -159,6 +159,11 @@ class FeedFetcherResult:
 
 
 @dataclass(frozen=True)
+class ReadabilityContentList:
+    content: Sequence["FetchedFeedEntryContent"] = ()
+
+
+@dataclass(frozen=True)
 class SingleEntryExtractedMetadata:
     #: Title (subject) of entry
     title: str
