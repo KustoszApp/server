@@ -34,7 +34,7 @@ class ReadabilityContentExtractor:
     def _from_response(self, response: Response) -> ReadabilityContentList:
         obtained_content = []
         content_type = response.headers.get("Content-Type", "")
-        if "text/html" not in content_type:
+        if "text/html" not in content_type or not response.text.strip():
             return ReadabilityContentList(content=tuple(obtained_content))
 
         if settings.READORGANIZER_READABILITY_PYTHON_ENABLED:

@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from requests import exceptions as requests_exceptions
 from requests_cache import CachedSession
@@ -6,6 +8,9 @@ from readorganizer_api.constants import FETCHERS_CACHE_DIR
 from readorganizer_api.constants import SINGLE_URL_FETCHER_REQUEST_TIMEOUT
 from readorganizer_api.exceptions import PermanentFetcherError
 from readorganizer_api.exceptions import TransientFetcherError
+
+
+log = logging.getLogger(__name__)
 
 
 class SingleURLFetcher:
@@ -27,7 +32,8 @@ class SingleURLFetcher:
             requests_exceptions.TooManyRedirects,
             requests_exceptions.ChunkedEncodingError,
         ) as e:
-            raise TransientFetcherError(e)
+            log.debug("url %s raised %s:", url, e.__class__.__name__, exc_info=True)
+            raise TransientFetcherError().with_traceback(e.__traceback__)
         except (
             requests_exceptions.MissingSchema,
             requests_exceptions.InvalidURL,
@@ -35,7 +41,10 @@ class SingleURLFetcher:
             requests_exceptions.InvalidProxyURL,
             requests_exceptions.ContentDecodingError,
         ) as e:
-            raise PermanentFetcherError(e)
+            log.debug("url %s raised %s:", url, e.__class__.__name__, exc_info=True)
+            raise PermanentFetcherError().with_traceback(e.__traceback__)
+
+        log.debug("url %s returned HTTP code %s", url, response.status_code)
 
         if not response.ok:
             msg = f"Error code {response.status_code}"
