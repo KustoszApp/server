@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Mapping
+
 import factory.fuzzy
 from django.utils.timezone import now
 
@@ -5,6 +8,13 @@ from readorganizer_api import types as ro_types
 from readorganizer_api.constants import DEFAULT_UPDATE_FREQUENCY
 from readorganizer_api.enums import ChannelTypesEnum
 from readorganizer_api.enums import EntryContentSourceTypesEnum
+
+
+@dataclass(frozen=True)
+class FakeRequestType:
+    url: str
+    headers: Mapping[str, str]
+    text: str
 
 
 class ChannelDataInputFactory(factory.Factory):
@@ -17,6 +27,15 @@ class ChannelDataInputFactory(factory.Factory):
     active = True
     update_frequency = DEFAULT_UPDATE_FREQUENCY
     tags = factory.Faker("words", unique=True)
+
+
+class FakeRequestFactory(factory.Factory):
+    class Meta:
+        model = FakeRequestType
+
+    url = factory.Faker("uri")
+    headers = factory.LazyFunction(lambda: {})
+    text = ""
 
 
 class FetchedFeedEntryContentFactory(factory.Factory):
