@@ -19,13 +19,13 @@ SUPPORTED_METADATA = (
     "updated_time_upstream",
 )
 SUPPORTED_SOURCES = ("opengraph", "html", "headers", "url")
-DEFAULT_SOURCES = ("url",)
 
 
 class MetadataExtractor:
     def __init__(self, metadata=None, sources=None):
         self._metadata_keys = metadata or SUPPORTED_METADATA
-        self._sources = sources or DEFAULT_SOURCES
+        self._sources = sources or SUPPORTED_SOURCES
+        self._applicable_sources = ("url",)
         self._url = None
         self._parsed_url = None
         self._headers = None
@@ -36,14 +36,14 @@ class MetadataExtractor:
         self._parsed_url = urllib.parse.urlparse(self._url)
         if response.headers:
             self._headers = response.headers
-            self._sources = ("headers", "url")
+            self._applicable_sources = ("headers", "url")
         content = response.text
         if content.strip():
             try:
                 doc = Document(content)
                 doc.title()  # this forces Document to create lxml tree under html
                 self._parsed_content = doc.html
-                self._sources = SUPPORTED_SOURCES
+                self._applicable_sources = SUPPORTED_SOURCES
             except Unparseable:
                 pass
 
@@ -58,8 +58,11 @@ class MetadataExtractor:
 
     def _get_all_metadata(self):
         metadata = {}
+        sources = tuple(
+            source for source in self._applicable_sources if source in self._sources
+        )
         for meta_key in self._metadata_keys:
-            for source_name in self._sources:
+            for source_name in sources:
                 function_name = f"_get_{source_name}_{meta_key}"
                 function = getattr(self, function_name, None)
                 if not function:
