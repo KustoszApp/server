@@ -134,7 +134,7 @@ def test_set_preferred_content(db):
     client = APIClient()
     url = reverse("entry_detail", args=[entry.id])
     old_preferred_content = entry.preferred_content
-    new_preferred_content = entry.content_set.first()
+    new_preferred_content = entry.content_set.order_by("estimated_reading_time").first()
     data = {
         "preferred_content": get_content_identifier(new_preferred_content, as_dict=True)
     }
