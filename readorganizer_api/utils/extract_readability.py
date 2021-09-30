@@ -1,3 +1,6 @@
+import json
+import logging
+import subprocess
 from typing import Optional
 
 from django.conf import settings
@@ -8,6 +11,9 @@ from requests import Response
 from readorganizer_api.enums import EntryContentSourceTypesEnum
 from readorganizer_api.types import FetchedFeedEntryContent
 from readorganizer_api.types import ReadabilityContentList
+
+
+log = logging.getLogger(__name__)
 
 
 class ReadabilityContentExtractor:
@@ -28,8 +34,59 @@ class ReadabilityContentExtractor:
     def _get_node_readability(
         self, response: Response
     ) -> Optional[FetchedFeedEntryContent]:
-        msg = "extracting readability using node library is not supported yet"
-        raise NotImplementedError(msg)
+        node_readability_input = {
+            "html": response.text,
+            "url": response.url,
+        }
+        try:
+            cp = subprocess.run(
+                settings.READORGANIZER_READABILITY_NODE_EXECUTABLE,
+                input=json.dumps(node_readability_input),
+                encoding="UTF-8",
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        except FileNotFoundError:
+            log.warning("node readability script could not be run", exc_info=True)
+            return None
+        except subprocess.TimeoutExpired:
+            log.warning(
+                "node readability script did not complete within specified time",
+                exc_info=True,
+            )
+            return None
+
+        if cp.stderr:
+            log.warning("node readability script failed:\n%s", cp.stderr)
+            return None
+
+        if cp.returncode:
+            log.warning(
+                "node readability script returned error code: %s", cp.returncode
+            )
+
+        try:
+            readability_data = json.loads(cp.stdout)
+        except json.JSONDecoder:
+            log.warning("could not parse node readability script output", exc_info=True)
+            return None
+
+        extracted_content = readability_data.get("content", None)
+        if not extracted_content:
+            log.warning(
+                (
+                    "node readability did not return `content` property, "
+                    "or `content` is empty"
+                )
+            )
+            return None
+
+        return FetchedFeedEntryContent(
+            source=EntryContentSourceTypesEnum.NODE_READABILITY,
+            content=extracted_content,
+            mimetype="text/html",
+        )
 
     def _from_response(self, response: Response) -> ReadabilityContentList:
         obtained_content = []
@@ -43,7 +100,9 @@ class ReadabilityContentExtractor:
                 obtained_content.append(content)
 
         if settings.READORGANIZER_READABILITY_NODE_ENABLED:
-            obtained_content.append(self._get_node_readability(response))
+            content = self._get_node_readability(response)
+            if content:
+                obtained_content.append(content)
 
         return ReadabilityContentList(content=tuple(obtained_content))
 
