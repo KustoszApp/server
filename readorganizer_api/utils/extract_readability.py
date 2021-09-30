@@ -22,7 +22,7 @@ class ReadabilityContentExtractor:
     ) -> Optional[FetchedFeedEntryContent]:
         doc = Document(response.text)
         try:
-            extracted_content = doc.summary(html_partial=False)
+            extracted_content = doc.summary(html_partial=True)
         except Unparseable:
             return None
         return FetchedFeedEntryContent(
