@@ -65,11 +65,16 @@ class ReadabilityContentExtractor:
             log.warning(
                 "node readability script returned error code: %s", cp.returncode
             )
+            return None
 
         try:
             readability_data = json.loads(cp.stdout)
         except json.JSONDecoder:
             log.warning("could not parse node readability script output", exc_info=True)
+            return None
+
+        if not readability_data:
+            log.warning("node readability script did not return anything")
             return None
 
         extracted_content = readability_data.get("content", None)
