@@ -53,7 +53,10 @@ class SingleURLFetcher:
             if 500 <= response.status_code <= 599:
                 raise TransientFetcherError(msg)
 
-        if response.apparent_encoding:
+        if (
+            "charset" not in response.headers.get("Content-Type", "")
+            and response.apparent_encoding
+        ):
             response.encoding = response.apparent_encoding
         return response
 
