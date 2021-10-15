@@ -14,7 +14,9 @@ from readorganizer_api.utils import dispatch_task_by_name
 
 
 class ChannelsList(generics.ListAPIView):
-    queryset = models.Channel.objects.get_annotated_queryset()
+    queryset = models.Channel.objects.get_annotated_queryset().order_by(
+        "displayed_title_sort", "id"
+    )
     serializer_class = serializers.ChannelsListSerializer
     filterset_class = filters.ChannelFilter
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -27,7 +29,9 @@ class ChannelDetail(generics.RetrieveUpdateAPIView):
 
 
 class EntriesList(generics.ListAPIView):
-    queryset = models.Entry.objects.get_annotated_queryset()
+    queryset = models.Entry.objects.get_annotated_queryset().order_by(
+        "-published_time", "id"
+    )
     serializer_class = serializers.EntriesListSerializer
     filterset_class = filters.EntryFilter
 
@@ -58,7 +62,7 @@ class EntriesArchive(generics.CreateAPIView):
 
 
 class EntryFiltersList(generics.ListCreateAPIView):
-    queryset = models.EntryFilter.objects.all()
+    queryset = models.EntryFilter.objects.all().order_by("id")
     serializer_class = serializers.EntryFilterSerializer
 
 
@@ -151,10 +155,10 @@ class ChannelsActivate(generics.CreateAPIView):
 
 
 class ChannelTagsList(generics.ListAPIView):
-    queryset = models.Channel.tags.all()
+    queryset = models.Channel.tags.all().order_by("slug")
     serializer_class = serializers.TagsListSerializer
 
 
 class EntryTagsList(generics.ListAPIView):
-    queryset = models.Entry.tags.all()
+    queryset = models.Entry.tags.all().order_by("slug")
     serializer_class = serializers.TagsListSerializer

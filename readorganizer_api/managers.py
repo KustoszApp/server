@@ -61,6 +61,7 @@ class ChannelManager(models.Manager):
                         "entries__updated_time_upstream",
                     )
                 ),
+                displayed_title_sort=Coalesce("title", "title_upstream"),
             )
         )
 
