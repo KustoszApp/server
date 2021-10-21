@@ -11,9 +11,11 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import models
 from django.db import transaction
+from django.db.models import Case
 from django.db.models import Count
 from django.db.models import Max
 from django.db.models import Q
+from django.db.models import When
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.http import QueryDict
@@ -61,7 +63,13 @@ class ChannelManager(models.Manager):
                         "entries__updated_time_upstream",
                     )
                 ),
-                displayed_title_sort=Coalesce("title", "title_upstream"),
+                displayed_title_sort=Coalesce(
+                    Case(
+                        When(title="", then=None),
+                        default="title",
+                    ),
+                    "title_upstream",
+                ),
             )
         )
 
