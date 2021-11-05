@@ -242,6 +242,19 @@ def test_set_tags(db, faker):
     assert set(response.data["tags"]) != set(old_tags)
 
 
+def test_filter_tags_return_unique_entries(db, faker):
+    tags = faker.words(unique=True)
+    EntryFactory.create(tags=tags)
+    client = APIClient()
+    url = reverse("entries_list") + f"?tags={','.join(tags)}"
+
+    response = client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 1
+    assert len(response.data["results"]) == 1
+
+
 def test_entry_add_manually(db, mocker, faker):
     mocker.patch("readorganizer_api.managers.dispatch_task_by_name")
     entry_url = faker.url()

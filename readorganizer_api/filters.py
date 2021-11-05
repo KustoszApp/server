@@ -25,6 +25,7 @@ class TagFilter(drf_filters.CharFilter):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("lookup_expr", "in")
+        kwargs.setdefault("distinct", True)
         super().__init__(*args, **kwargs)
 
 
