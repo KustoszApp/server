@@ -137,7 +137,7 @@ class EntriesArchiveSerializer(serializers.Serializer):
     archived_count = serializers.IntegerField(required=True)
 
 
-class EntryFilterSerializer(serializers.Serializer):
+class EntryFilterSerializer(serializers.ModelSerializer):
     class Meta:
         model = EntryFilter
         fields = [
