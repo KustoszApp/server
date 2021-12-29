@@ -112,7 +112,7 @@ def test_deduplication_time_limit(db):
         assert model.archived is False
 
 
-def test_deduplication_ignores_archived(db):
+def test_deduplication_ignores_archived_before_deduplication(db):
     one = EntryFactory.create()
     another = EntryFactory.create()
     duplicate = EntryFactory.create(gid=one.gid, archived=True)
@@ -124,6 +124,19 @@ def test_deduplication_ignores_archived(db):
     for model in (one, another, duplicate):
         model.refresh_from_db()
     assert duplicate.updated_time == duplicate_updated_time
+
+
+def test_deduplication_uses_archived_entries(db):
+    one = EntryFactory.create(archived=True)
+    duplicate = EntryFactory.create(gid=one.gid)
+    m = Entry.objects
+
+    m.deduplicate_entries(1)
+
+    for model in (one, duplicate):
+        model.refresh_from_db()
+    assert one.archived is True
+    assert duplicate.archived is True
 
 
 def test_deduplication_ignores_already_deduplicated(db):
