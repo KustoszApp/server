@@ -1,6 +1,5 @@
 from django.utils.timezone import now as django_now
 from rest_framework import exceptions
-from rest_framework import fields as drf_fields
 from rest_framework import serializers
 from taggit.models import Tag
 from taggit_serializer.serializers import TaggitSerializer
@@ -19,6 +18,7 @@ class EntryContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = EntryContent
         fields = [
+            "id",
             "source",
             "content",
             "mimetype",
@@ -31,23 +31,13 @@ class EntryContentSerializer(serializers.ModelSerializer):
 class EntryContentMetadataSerializer(EntryContentSerializer):
     class Meta(EntryContentSerializer.Meta):
         fields = [
+            "id",
             "source",
             "mimetype",
             "language",
             "estimated_reading_time",
             "updated_time",
         ]
-
-
-class EntryContentNestedWritableSerializer(EntryContentSerializer):
-    def run_validation(self, data):
-        method = self.parent.context.get("request").method
-        if data is not drf_fields.empty and method == "PATCH":
-            for key in ("source", "mimetype", "language"):
-                if key not in data:
-                    msg = f'"{key}" is mandatory'
-                    raise exceptions.ValidationError(msg)
-        return super().run_validation(data=data)
 
 
 class EntriesListSerializer(serializers.ModelSerializer):
@@ -81,7 +71,7 @@ class EntriesListSerializer(serializers.ModelSerializer):
 
 class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
     published_time = serializers.DateTimeField(read_only=True)
-    preferred_content = EntryContentNestedWritableSerializer()
+    preferred_content = EntryContentSerializer()
     contents = EntryContentSerializer(source="content_set", required=False, many=True)
     tags = TagListSerializerField()
 
@@ -118,6 +108,16 @@ class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
             "published_time_upstream": {"read_only": True},
             "updated_time_upstream": {"read_only": True},
         }
+
+    def to_internal_value(self, data):
+        self.fields["preferred_content"] = serializers.PrimaryKeyRelatedField(
+            queryset=EntryContent.objects.all()
+        )
+        return super().to_internal_value(data)
+
+    def to_representation(self, obj):
+        self.fields["preferred_content"] = EntryContentSerializer()
+        return super().to_representation(obj)
 
     def update(self, instance, validated_data):
         new_preferred_content = validated_data.pop("preferred_content", None)

@@ -7,7 +7,6 @@ from rest_framework.test import APIClient
 import readorganizer_api
 from ..framework.factories.models import EntryContentFactory
 from ..framework.factories.models import EntryFactory
-from ..framework.utils import get_content_identifier
 from readorganizer_api.enums import ChannelTypesEnum
 from readorganizer_api.models import Channel
 from readorganizer_api.models import Entry
@@ -25,6 +24,7 @@ def test_list_content(db):
     response_entry = response.data["results"][0]
     assert len(response_entry["available_contents"]) == 3
     for key in (
+        "id",
         "source",
         "mimetype",
         "language",
@@ -47,6 +47,7 @@ def test_detail_content(db):
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data["contents"]) == 3
     for key in (
+        "id",
         "source",
         "content",
         "mimetype",
@@ -135,25 +136,36 @@ def test_set_preferred_content(db):
     url = reverse("entry_detail", args=[entry.id])
     old_preferred_content = entry.preferred_content
     new_preferred_content = entry.content_set.order_by("estimated_reading_time").first()
-    data = {
-        "preferred_content": get_content_identifier(new_preferred_content, as_dict=True)
-    }
+    data = {"preferred_content": new_preferred_content.pk}
 
     response = client.patch(url, data)
 
     assert response.status_code == status.HTTP_200_OK
-    old_values = get_content_identifier(old_preferred_content)
-    new_values = get_content_identifier(new_preferred_content)
-    received_values = get_content_identifier(response.data["preferred_content"])
-    assert received_values == new_values
-    assert received_values != old_values
     response_data = response.data["preferred_content"]
     for key in (
+        "id",
         "content",
         "estimated_reading_time",
     ):
         assert response_data[key] == getattr(new_preferred_content, key)
         assert response_data[key] != getattr(old_preferred_content, key)
+
+
+def test_try_setting_existing_preferred_content_belonging_to_other_entry(db):
+    entry = EntryFactory.create(content_set=3)
+    another_entry = EntryFactory.create(content_set=1)
+    client = APIClient()
+    url = reverse("entry_detail", args=[entry.id])
+    old_preferred_content = entry.preferred_content
+    new_preferred_content = another_entry.preferred_content
+    data = {"preferred_content": new_preferred_content.pk}
+
+    response = client.patch(url, data)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    entry.refresh_from_db()
+    assert entry.preferred_content == old_preferred_content
+    assert entry.preferred_content != new_preferred_content
 
 
 def test_try_setting_non_existing_preferred_content(db):
@@ -162,19 +174,14 @@ def test_try_setting_non_existing_preferred_content(db):
     url = reverse("entry_detail", args=[entry.id])
     old_preferred_content = entry.preferred_content
     new_preferred_content = EntryContentFactory.build()
-    data = {
-        "preferred_content": get_content_identifier(new_preferred_content, as_dict=True)
-    }
+    data = {"preferred_content": new_preferred_content.pk}
 
     response = client.patch(url, data)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     entry.refresh_from_db()
-    old_values = get_content_identifier(old_preferred_content)
-    new_values = get_content_identifier(new_preferred_content)
-    db_values = get_content_identifier(entry.preferred_content)
-    assert db_values != new_values
-    assert db_values == old_values
+    assert entry.preferred_content == old_preferred_content
+    assert entry.preferred_content != new_preferred_content
 
 
 def test_try_setting_preferred_content_invalid_input_missing_required_field(db):
@@ -182,20 +189,13 @@ def test_try_setting_preferred_content_invalid_input_missing_required_field(db):
     client = APIClient()
     url = reverse("entry_detail", args=[entry.id])
     old_preferred_content = entry.preferred_content
-    new_preferred_content = entry.content_set.first()
-    new_payload = get_content_identifier(new_preferred_content, as_dict=True)
-    new_payload.pop("source")
-    data = {"preferred_content": new_payload}
+    data = {"preferred_content": None}
 
     response = client.patch(url, data)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     entry.refresh_from_db()
-    old_values = get_content_identifier(old_preferred_content)
-    new_values = get_content_identifier(new_preferred_content)
-    db_values = get_content_identifier(entry.preferred_content)
-    assert db_values != new_values
-    assert db_values == old_values
+    assert entry.preferred_content == old_preferred_content
 
 
 def test_add_tags(db, faker):

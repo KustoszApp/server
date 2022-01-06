@@ -1,6 +1,8 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.timezone import now as django_now
 from taggit.managers import TaggableManager
@@ -155,9 +157,13 @@ class Entry(models.Model):
         ]
 
     def set_new_preferred_content(self, new_preferred_content):
-        found_content = self.content_set.filter(**new_preferred_content).first()
-        if not found_content:
+        try:
+            found_content = self.content_set.get(pk=new_preferred_content.id)
+        except ObjectDoesNotExist:
             msg = "Could not find content matching provided criteria"
+            raise InvalidDataException(msg)
+        except MultipleObjectsReturned:
+            msg = "Multiple content objects match provided criteria"
             raise InvalidDataException(msg)
         self.selected_preferred_content = found_content
 
