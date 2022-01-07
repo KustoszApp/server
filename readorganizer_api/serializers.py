@@ -153,49 +153,10 @@ class EntryFilterSerializer(serializers.ModelSerializer):
         }
 
 
-class ChannelsListSerializer(serializers.ModelSerializer):
-    unarchived_entries = serializers.IntegerField()
-    last_entry_published_time = serializers.DateTimeField()
-    tags = TagListSerializerField()
-
-    class Meta:
-        model = Channel
-        fields = [
-            "id",
-            "url",
-            "title",
-            "active",
-            "update_frequency",
-            "title_upstream",
-            "displayed_title",
-            "link",
-            "last_check_time",
-            "last_successful_check_time",
-            "added_time",
-            "deduplication_enabled",
-            "is_stale",
-            "unarchived_entries",
-            "last_entry_published_time",
-            "tags",
-        ]
-        extra_kwargs = {
-            "id": {"read_only": True},
-            "title_upstream": {"read_only": True},
-            "displayed_title": {"read_only": True},
-            "link": {"read_only": True},
-            "last_check_time": {"read_only": True},
-            "last_successful_check_time": {"read_only": True},
-            "added_time": {"read_only": True},
-            "is_stale": {"read_only": True},
-            "unarchived_entries": {"read_only": True},
-            "last_entry_published_time": {"read_only": True},
-        }
-
-
 class ChannelSerializer(TaggitSerializer, serializers.ModelSerializer):
-    unarchived_entries = serializers.IntegerField()
-    last_entry_published_time = serializers.DateTimeField()
-    tags = TagListSerializerField()
+    unarchived_entries = serializers.IntegerField(read_only=True)
+    last_entry_published_time = serializers.DateTimeField(read_only=True)
+    tags = TagListSerializerField(required=False)
 
     class Meta:
         model = Channel
@@ -226,8 +187,6 @@ class ChannelSerializer(TaggitSerializer, serializers.ModelSerializer):
             "last_successful_check_time": {"read_only": True},
             "added_time": {"read_only": True},
             "is_stale": {"read_only": True},
-            "unarchived_entries": {"read_only": True},
-            "last_entry_published_time": {"read_only": True},
         }
 
 

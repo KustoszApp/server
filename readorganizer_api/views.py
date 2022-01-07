@@ -6,20 +6,31 @@ from rest_framework.response import Response
 from readorganizer_api import filters
 from readorganizer_api import models
 from readorganizer_api import serializers
+from readorganizer_api.enums import ChannelTypesEnum
 from readorganizer_api.enums import InternalTasksEnum
 from readorganizer_api.exceptions import InvalidDataException
+from readorganizer_api.types import ChannelDataInput
 from readorganizer_api.utils import dispatch_task_by_name
 
 # from rest_framework import permissions
 
 
-class ChannelsList(generics.ListAPIView):
+class ChannelsList(generics.ListCreateAPIView):
     queryset = models.Channel.objects.get_annotated_queryset().order_by(
         "displayed_title_sort", "id"
     )
-    serializer_class = serializers.ChannelsListSerializer
+    serializer_class = serializers.ChannelSerializer
     filterset_class = filters.ChannelFilter
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        channel = ChannelDataInput(
+            url=serializer.data.get("url"),
+            channel_type=ChannelTypesEnum.FEED,
+            title=serializer.data.get("title", ""),
+            tags=serializer.data.get("tags"),
+        )
+        models.Channel.objects.add_channels([channel], fetch_content=True)
 
 
 class ChannelDetail(generics.RetrieveUpdateAPIView):
