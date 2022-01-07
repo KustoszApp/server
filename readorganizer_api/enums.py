@@ -17,6 +17,7 @@ class EntryFilterActionsEnum(models.TextChoices):
     DO_NOTHING = "nothing", "Do nothing"
     MARK_AS_READ = "mark_as_read", "Mark as read"
     ASSIGN_TAG = "assign_tag", "Assign tag"
+    RUN_SCRIPT = "run_script", "Run external application"
 
 
 class ImportChannelsActionsEnum(models.TextChoices):
@@ -33,4 +34,5 @@ class InternalTasksEnum(models.TextChoices):
     FETCH_MANUAL_ENTRY_METADATA = (
         "readorganizer_api.internal.fetch_manual_entry_metadata"
     )
+    FILTER_ACTION_RUN_SCRIPT = "readorganizer_api.internal.filter_action_run_script"
     RUN_FILTERS_ON_ENTRIES = "readorganizer_api.internal.run_filters_on_entries"

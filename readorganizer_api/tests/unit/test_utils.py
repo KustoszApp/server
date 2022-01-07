@@ -4,11 +4,13 @@ import pytest
 from django.utils.http import http_date
 from pytest import approx
 
+from ..framework.factories.models import EntryFactory
 from ..framework.factories.types import FakeRequestFactory
 from ..framework.utils import create_simple_html
 from readorganizer_api.utils import estimate_reading_time
 from readorganizer_api.utils import normalize_url
 from readorganizer_api.utils.extract_metadata import MetadataExtractor
+from readorganizer_api.utils.run_script import entry_data_env
 
 
 @pytest.mark.parametrize(
@@ -136,3 +138,20 @@ def test_metadata_extract_mixed(faker):
         metadata["article:published_time"]
     )
     assert extracted_metadata.updated_time_upstream == updated_datetime
+
+
+def test_entry_data_env(db, faker):
+    tags = faker.words(unique=True)
+    entry = EntryFactory.create(tags=tags)
+
+    env = entry_data_env(entry)
+
+    for key in ("id", "gid", "link", "updated_time"):
+        env_key = f"READORGANIZER_{key.upper()}"
+        assert env[env_key] == str(getattr(entry, key))
+    assert env["READORGANIZER_TAGS"] == ",".join(entry.tags.slugs())
+    for key in ("id", "url", "title", "displayed_title", "added_time"):
+        env_key = f"READORGANIZER_CHANNEL_{key.upper()}"
+        assert env[env_key] == str(getattr(entry.channel, key))
+    other_env = {k: v for k, v in env.items() if not k.startswith("READORGANIZER_")}
+    assert other_env

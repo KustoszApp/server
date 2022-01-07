@@ -1,6 +1,8 @@
 from django.utils.timezone import now as django_now
 
 from readorganizer_api.enums import EntryFilterActionsEnum
+from readorganizer_api.enums import InternalTasksEnum
+from readorganizer_api.utils import dispatch_task_by_name
 
 
 def do_nothing(filtered_entries, *args):
@@ -17,10 +19,20 @@ def assign_tag(filtered_entries, tag_name):
         entry.tags.add(tag_name)
 
 
+def run_script(filtered_entries, script_path):
+    for entry in filtered_entries:
+        dispatch_task_by_name(
+            InternalTasksEnum.FILTER_ACTION_RUN_SCRIPT,
+            kwargs={"entry_id": entry.pk, "script_path": script_path},
+        )
+
+
 def get_filter_action(action_name: str):
     if action_name == EntryFilterActionsEnum.MARK_AS_READ:
         return mark_as_read
     elif action_name == EntryFilterActionsEnum.ASSIGN_TAG:
         return assign_tag
+    elif action_name == EntryFilterActionsEnum.RUN_SCRIPT:
+        return run_script
     else:
         return do_nothing
