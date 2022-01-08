@@ -94,3 +94,10 @@ GitHub.sublime-settings
 
 # Ignore dynaconf secret files
 .secrets.*
+settings.local.yaml
+
+cache/
+
+# internal scripts useful during development
+recreate_local_db.sh
+prepare-db.py
