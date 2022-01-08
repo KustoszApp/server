@@ -213,3 +213,9 @@ class EntryFilter(models.Model):
     action_argument = models.TextField(
         blank=True, help_text="Argument to action (name of tag, path to script etc.)"
     )
+
+    def clean(self):
+        actions_without_args = (EntryFilterActionsEnum.MARK_AS_READ,)
+        if self.action_name not in actions_without_args and not self.action_argument:
+            msg = f"Action {self.action_name} requires action_argument"
+            raise InvalidDataException({"action_argument": msg})

@@ -6,6 +6,7 @@ from taggit_serializer.serializers import TaggitSerializer
 from taggit_serializer.serializers import TagListSerializerField
 
 from .constants import MANUAL_CHANNEL_ID
+from .enums import EntryFilterActionsEnum
 from .exceptions import InvalidDataException
 from .models import Channel
 from .models import Entry
@@ -151,6 +152,17 @@ class EntryFilterSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "id": {"read_only": True},
         }
+
+    def validate(self, data):
+        actions_without_args = (EntryFilterActionsEnum.MARK_AS_READ,)
+        if (
+            data["action_name"] not in actions_without_args
+            and not data["action_argument"]
+        ):
+            raise serializers.ValidationError(
+                f'Action {data["action_name"]} requires action_argument'
+            )
+        return data
 
 
 class ChannelSerializer(TaggitSerializer, serializers.ModelSerializer):
