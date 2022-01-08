@@ -26,13 +26,13 @@ class ImportChannelsActionsEnum(models.TextChoices):
     CONFIG = "config"
 
 
-class InternalTasksEnum(models.TextChoices):
-    ADD_READABILITY_CONTENTS = "readorganizer_api.internal.add_readability_contents"
-    DEDUPLICATE_ENTRIES = "readorganizer_api.internal.deduplicate_entries"
-    FETCH_FEED_CHANNEL_CONTENT = "readorganizer_api.internal.fetch_feed_channel_content"
-    FETCH_MANUAL_ENTRY_DATA = "readorganizer_api.internal.fetch_manual_entry_data"
-    FETCH_MANUAL_ENTRY_METADATA = (
-        "readorganizer_api.internal.fetch_manual_entry_metadata"
-    )
-    FILTER_ACTION_RUN_SCRIPT = "readorganizer_api.internal.filter_action_run_script"
-    RUN_FILTERS_ON_ENTRIES = "readorganizer_api.internal.run_filters_on_entries"
+class TaskNamesEnum(models.TextChoices):
+    ADD_CHANNELS = "readorganizer.add_channels"
+    ADD_READABILITY_CONTENTS = "readorganizer.add_readability_contents"
+    DEDUPLICATE_ENTRIES = "readorganizer.deduplicate_entries"
+    FETCH_CHANNEL_CONTENT = "readorganizer.fetch_channel_content"
+    FETCH_FEED_CHANNEL_CONTENT = "readorganizer.fetch_feed_channel_content"
+    FETCH_MANUAL_ENTRY_DATA = "readorganizer.fetch_manual_entry_data"
+    FETCH_MANUAL_ENTRY_METADATA = "readorganizer.fetch_manual_entry_metadata"
+    FILTER_ACTION_RUN_SCRIPT = "readorganizer.filter_action_run_script"
+    RUN_FILTERS_ON_ENTRIES = "readorganizer.run_filters_on_entries"

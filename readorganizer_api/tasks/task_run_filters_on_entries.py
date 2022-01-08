@@ -2,12 +2,12 @@ from typing import Iterable
 
 from celery import shared_task
 
-from readorganizer_api.enums import InternalTasksEnum
+from readorganizer_api.enums import TaskNamesEnum
 from readorganizer_api.models import Entry
 from readorganizer_api.models import EntryFilter
 
 
-@shared_task(name=InternalTasksEnum.RUN_FILTERS_ON_ENTRIES)
+@shared_task(name=TaskNamesEnum.RUN_FILTERS_ON_ENTRIES)
 def run_filters_on_entries(
     entries_ids: Iterable[int], entry_filter_ids: Iterable[int] = None
 ):

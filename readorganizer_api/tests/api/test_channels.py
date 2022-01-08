@@ -5,7 +5,7 @@ from rest_framework.test import APIClient
 import readorganizer_api
 from ..framework.factories.models import ChannelFactory
 from readorganizer_api.constants import DEFAULT_UPDATE_FREQUENCY
-from readorganizer_api.enums import InternalTasksEnum
+from readorganizer_api.enums import TaskNamesEnum
 from readorganizer_api.models import Channel
 
 
@@ -23,7 +23,7 @@ def test_create_channel(db, faker, mocker):
     created_channel = m.last()
     assert created_channel.url == new_url
     readorganizer_api.managers.dispatch_task_by_name.assert_called_once_with(
-        InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT,
+        TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT,
         kwargs={"channel_ids": [created_channel.pk], "force_fetch": False},
     )
 

@@ -22,7 +22,7 @@ from django.http import QueryDict
 from django.utils.timezone import now as django_now
 
 from .enums import ChannelTypesEnum
-from .enums import InternalTasksEnum
+from .enums import TaskNamesEnum
 from .exceptions import InvalidDataException
 from .exceptions import NoNewChannelsAddedException
 from .exceptions import PermanentFetcherError
@@ -153,7 +153,7 @@ class ChannelManager(models.Manager):
         feed_channels = active_channels.filter(channel_type=ChannelTypesEnum.FEED)
 
         feed_channels_paged = Paginator(
-            feed_channels, settings.READORGANIZER_CHANNELS_CHUNK_SIZE
+            feed_channels, settings.READORGANIZER_FETCH_CHANNELS_CHUNK_SIZE
         )
 
         fetch_feeds_tasks = []
@@ -173,7 +173,7 @@ class ChannelManager(models.Manager):
             return None
         channel_ids = [channel.id for channel in channels if channel.id]
         task = dispatch_task_by_name(
-            InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT,
+            TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT,
             kwargs={"channel_ids": channel_ids, "force_fetch": force_fetch},
         )
         return task
@@ -212,7 +212,7 @@ class ChannelManager(models.Manager):
             self.__update_entries_with_fetched_data(
                 feeds_queryset=queryset, entries_data=fetched_data.entries
             )
-            dispatch_task_by_name(InternalTasksEnum.DEDUPLICATE_ENTRIES)
+            dispatch_task_by_name(TaskNamesEnum.DEDUPLICATE_ENTRIES)
 
     def __discard_channels_updated_recently(self, queryset: QuerySet):
         now = django_now()
@@ -308,7 +308,7 @@ class ChannelManager(models.Manager):
 
         if entries_ids:
             dispatch_task_by_name(
-                InternalTasksEnum.RUN_FILTERS_ON_ENTRIES,
+                TaskNamesEnum.RUN_FILTERS_ON_ENTRIES,
                 kwargs={"entries_ids": list(entries_ids)},
             )
 
@@ -342,7 +342,7 @@ class EntryManager(models.Manager):
             raise InvalidDataException(e)
         entry.save()
         dispatch_task_by_name(
-            InternalTasksEnum.FETCH_MANUAL_ENTRY_DATA,
+            TaskNamesEnum.FETCH_MANUAL_ENTRY_DATA,
             kwargs={"entry_id": entry.pk},
         )
         return entry
@@ -491,7 +491,7 @@ class EntryManager(models.Manager):
 
         for entry_id in entries_ids:
             dispatch_task_by_name(
-                InternalTasksEnum.ADD_READABILITY_CONTENTS,
+                TaskNamesEnum.ADD_READABILITY_CONTENTS,
                 kwargs={"entry_id": entry_id},
             )
 

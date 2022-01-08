@@ -11,7 +11,7 @@ from ..framework.factories.types import FetchedFeedEntryContentFactory
 from ..framework.factories.types import FetchedFeedEntryFactory
 from ..framework.factories.types import FetchedFeedFactory
 from readorganizer_api.enums import ChannelTypesEnum
-from readorganizer_api.enums import InternalTasksEnum
+from readorganizer_api.enums import TaskNamesEnum
 from readorganizer_api.exceptions import NoNewChannelsAddedException
 from readorganizer_api.models import Channel
 from readorganizer_api.types import FeedFetcherResult
@@ -71,7 +71,7 @@ def test_fetch_channels_content(db, mocker):
     tasks = m.fetch_channels_content(qs, force_fetch=False)
 
     readorganizer_api.managers.dispatch_task_by_name.assert_called_once_with(
-        InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT,
+        TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT,
         kwargs={"channel_ids": [channel.pk], "force_fetch": False},
     )
     assert len(tasks) == 1
@@ -99,7 +99,7 @@ def test_fetch_channels_content_mix_active_inactive(db, mocker):
     tasks = m.fetch_channels_content(qs, force_fetch=False)
 
     readorganizer_api.managers.dispatch_task_by_name.assert_called_once_with(
-        InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT,
+        TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT,
         kwargs={"channel_ids": [channel.pk], "force_fetch": False},
     )
     assert len(tasks) == 1

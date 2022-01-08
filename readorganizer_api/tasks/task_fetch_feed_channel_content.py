@@ -2,21 +2,21 @@ from typing import Iterable
 
 from celery import shared_task
 
-from readorganizer_api.enums import InternalTasksEnum
+from readorganizer_api.enums import TaskNamesEnum
 from readorganizer_api.exceptions import SerialTaskAlreadyInProgress
 from readorganizer_api.models import Channel
 from readorganizer_api.utils import cache_lock
 
 
 @shared_task(
-    name=InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT,
+    name=TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT,
     autoretry_for=(SerialTaskAlreadyInProgress,),
     retry_kwargs={"max_retries": 5},
     retry_backoff=5,
     retry_jitter=True,
 )
 def fetch_feed_channel_content(channel_ids: Iterable[int], force_fetch: bool):
-    lock_id = InternalTasksEnum.FETCH_FEED_CHANNEL_CONTENT
+    lock_id = TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT
     with cache_lock(lock_id, channel_ids) as acquired_lock:
         if not acquired_lock:
             raise SerialTaskAlreadyInProgress()

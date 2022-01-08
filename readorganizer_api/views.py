@@ -7,7 +7,7 @@ from readorganizer_api import filters
 from readorganizer_api import models
 from readorganizer_api import serializers
 from readorganizer_api.enums import ChannelTypesEnum
-from readorganizer_api.enums import InternalTasksEnum
+from readorganizer_api.enums import TaskNamesEnum
 from readorganizer_api.exceptions import InvalidDataException
 from readorganizer_api.types import ChannelDataInput
 from readorganizer_api.utils import dispatch_task_by_name
@@ -93,7 +93,7 @@ class EntryFiltersRun(generics.CreateAPIView):
         if entry_filter_ids:
             entry_filter_ids = map(int, entry_filter_ids.split(","))
         dispatch_task_by_name(
-            InternalTasksEnum.RUN_FILTERS_ON_ENTRIES,
+            TaskNamesEnum.RUN_FILTERS_ON_ENTRIES,
             kwargs={
                 "entries_ids": filtered_entries_ids,
                 "entry_filter_ids": entry_filter_ids,
