@@ -1,13 +1,40 @@
-"""api URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/3.2/topics/http/urls/
-"""
+import rest_framework.authtoken.views
 from django.contrib import admin
 from django.urls import include
 from django.urls import path
 
+from readorganizer import views
+
+
+main_api_paths = [
+    path("users/login", rest_framework.authtoken.views.obtain_auth_token),
+    path("channels/", views.ChannelsList.as_view(), name="channels_list"),
+    path("channels/<int:pk>/", views.ChannelDetail.as_view(), name="channel_detail"),
+    path(
+        "channels/inactivate",
+        views.ChannelsInactivate.as_view(),
+        name="channels_inactivate",
+    ),
+    path(
+        "channels/activate", views.ChannelsActivate.as_view(), name="channels_activate"
+    ),
+    path("entries/", views.EntriesList.as_view(), name="entries_list"),
+    path("entries/<int:pk>/", views.EntryDetail.as_view(), name="entry_detail"),
+    path("entries/archive", views.EntriesArchive.as_view(), name="entries_archive"),
+    path("entries/manual_add", views.EntryManualAdd.as_view(), name="entry_manual_add"),
+    path("filters/", views.EntryFiltersList.as_view(), name="entry_filters_list"),
+    path(
+        "filters/<int:pk>/",
+        views.EntryFilterDetail.as_view(),
+        name="entry_filter_detail",
+    ),
+    path("filters/run", views.EntryFiltersRun.as_view(), name="entry_filters_run"),
+    path("tags/channel", views.ChannelTagsList.as_view(), name="channel_tags_list"),
+    path("tags/entry", views.EntryTagsList.as_view(), name="entry_tags_list"),
+]
+
+
 urlpatterns = [
     path("django-admin/", admin.site.urls),
-    path("api/v1/", include("readorganizer_api.urls")),
+    path("api/v1/", include(main_api_paths)),
 ]
