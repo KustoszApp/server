@@ -14,7 +14,6 @@ default:
     - 'localhost'
     - 'testserver'
   INSTALLED_APPS:
-    - 'readorganizer.apps.ReadOrganizerConfig'
     - 'corsheaders'
     - 'django.contrib.admin'
     - 'django.contrib.auth'
@@ -29,6 +28,7 @@ default:
     - 'rest_framework.authtoken'
     - 'taggit'
     - 'taggit_serializer'
+    - 'readorganizer'
   MIDDLEWARE:
     - 'django.middleware.security.SecurityMiddleware'
     - 'django.contrib.sessions.middleware.SessionMiddleware'
