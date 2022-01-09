@@ -97,6 +97,8 @@ GitHub.sublime-settings
 settings.local.yaml
 
 cache/
+etc/supervisor/logs/
+etc/supervisor/run/
 
 # internal scripts useful during development
 recreate_local_db.sh
