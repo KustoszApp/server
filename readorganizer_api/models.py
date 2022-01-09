@@ -7,6 +7,7 @@ from django.db import models
 from django.utils.timezone import now as django_now
 from taggit.managers import TaggableManager
 
+from .constants import DEFAULT_ENTRY_OPEN_READ_TIMEOUT
 from .constants import DEFAULT_UPDATE_FREQUENCY
 from .enums import ChannelTypesEnum
 from .enums import EntryContentSourceTypesEnum
@@ -30,7 +31,20 @@ class ChannelURLField(models.URLField):
 
 
 class User(AbstractUser):
-    pass
+    default_filter = models.TextField(
+        blank=True,
+        help_text="Entry search filter definition used by default on entries view",
+    )
+    theme_color = models.TextField(blank=True, help_text="User preferred color theme")
+    theme_view = models.TextField(blank=True, help_text="User preferred view")
+    entry_open_read_timeout = models.IntegerField(
+        default=DEFAULT_ENTRY_OPEN_READ_TIMEOUT,
+        help_text="When after opening entry it should be marked as read (in seconds)",
+    )
+    entry_open_scroll_to_top = models.BooleanField(
+        default=True,
+        help_text="Should entry scroll to top automatically after opening?",
+    )
 
 
 class Channel(models.Model):
