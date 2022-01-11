@@ -28,7 +28,7 @@ def create_celery_beat(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("django_celery_beat", "0016_auto_20210816_2057"),
+        ("django_celery_beat", "0015_edit_solarschedule_events_choices"),
         ("readorganizer", "0002_create_manual_channel_20210923_1906"),
     ]
 
