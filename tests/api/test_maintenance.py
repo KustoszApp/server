@@ -4,7 +4,6 @@ from django.urls import reverse
 from django.utils.timezone import now as django_now
 from rest_framework import status
 from rest_framework.fields import DateTimeField
-from rest_framework.test import APIClient
 
 from ..framework.factories.models import ChannelFactory
 from ..framework.factories.models import EntryFactory
@@ -12,17 +11,16 @@ from readorganizer.enums import ChannelTypesEnum
 from readorganizer.models import Channel
 
 
-def test_deactivate_id(db):
+def test_deactivate_id(db, authenticated_api_client):
     channels = ChannelFactory.create_batch(5)
     channels_to_update = channels[1:3]
     updated_channels_id = [ch.pk for ch in channels_to_update]
-    client = APIClient()
     url = (
         reverse("channels_inactivate")
         + f"?id={','.join(str(_) for _ in updated_channels_id)}"
     )
 
-    response = client.post(url)
+    response = authenticated_api_client.post(url)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["inactivated_count"] == len(channels_to_update)
@@ -35,15 +33,14 @@ def test_deactivate_id(db):
         assert channel.active is False
 
 
-def test_deactivate_stale(db):
+def test_deactivate_stale(db, authenticated_api_client):
     fresh_channel = ChannelFactory()
     stale_channel = ChannelFactory(
         last_successful_check_time=django_now() - timedelta(days=100)
     )
-    client = APIClient()
     url = reverse("channels_inactivate") + "?is_stale=1"
 
-    response = client.post(url)
+    response = authenticated_api_client.post(url)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["inactivated_count"] == 1
@@ -57,7 +54,7 @@ def test_deactivate_stale(db):
     fresh_channel.active is True
 
 
-def test_deactivate_no_new_entries(db):
+def test_deactivate_no_new_entries(db, authenticated_api_client):
     new_channel = ChannelFactory()
     old_channel = ChannelFactory()
     EntryFactory(channel=new_channel)
@@ -66,7 +63,6 @@ def test_deactivate_no_new_entries(db):
         published_time_upstream=None,
         updated_time_upstream=django_now() - timedelta(days=100),
     )
-    client = APIClient()
     reference_date = django_now() - timedelta(days=99)
     reference_date_str = DateTimeField().to_representation(reference_date)
     url = (
@@ -74,7 +70,7 @@ def test_deactivate_no_new_entries(db):
         + f"?last_entry_published_time__lte={reference_date_str}"
     )
 
-    response = client.post(url)
+    response = authenticated_api_client.post(url)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["inactivated_count"] == 1
@@ -88,17 +84,16 @@ def test_deactivate_no_new_entries(db):
     assert new_channel.active is True
 
 
-def test_activate_id(db):
+def test_activate_id(db, authenticated_api_client):
     channels = ChannelFactory.create_batch(5, active=False)
     channels_to_update = channels[1:3]
     updated_channels_id = [ch.pk for ch in channels_to_update]
-    client = APIClient()
     url = (
         reverse("channels_activate")
         + f"?id={','.join(str(_) for _ in updated_channels_id)}"
     )
 
-    response = client.post(url)
+    response = authenticated_api_client.post(url)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["activated_count"] == len(channels_to_update)
@@ -111,12 +106,11 @@ def test_activate_id(db):
         assert channel.active is True
 
 
-def test_activate_all(db):
+def test_activate_all(db, authenticated_api_client):
     channels = ChannelFactory.create_batch(5, active=False)
-    client = APIClient()
     url = reverse("channels_activate") + "?active=False"
 
-    response = client.post(url)
+    response = authenticated_api_client.post(url)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["activated_count"] == len(channels)

@@ -5,9 +5,13 @@ from django.urls import path
 
 from readorganizer import views
 
+api_authentication = [
+    path("login", rest_framework.authtoken.views.obtain_auth_token, name="login"),
+    path("me", views.UserDetail.as_view(), name="user_detail"),
+]
 
 main_api_paths = [
-    path("users/login", rest_framework.authtoken.views.obtain_auth_token),
+    path("users/", include(api_authentication)),
     path("channels/", views.ChannelsList.as_view(), name="channels_list"),
     path("channels/<int:pk>/", views.ChannelDetail.as_view(), name="channel_detail"),
     path(

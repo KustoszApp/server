@@ -12,7 +12,28 @@ from .models import Channel
 from .models import Entry
 from .models import EntryContent
 from .models import EntryFilter
+from .models import User
 from .types import EntryDataInput
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "is_active",
+            "date_joined",
+            "default_filter",
+            "theme_color",
+            "theme_view",
+            "entry_open_read_timeout",
+            "entry_open_scroll_to_top",
+        ]
+        extra_kwargs = {
+            "username": {"read_only": True},
+            "is_active": {"read_only": True},
+            "date_joined": {"read_only": True},
+        }
 
 
 class EntryContentSerializer(serializers.ModelSerializer):

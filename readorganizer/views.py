@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework import permissions
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -12,7 +13,13 @@ from readorganizer.exceptions import InvalidDataException
 from readorganizer.types import ChannelDataInput
 from readorganizer.utils import dispatch_task_by_name
 
-# from rest_framework import permissions
+
+class UserDetail(generics.RetrieveUpdateAPIView):
+    serializer_class = serializers.UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
 
 
 class ChannelsList(generics.ListCreateAPIView):
@@ -21,7 +28,7 @@ class ChannelsList(generics.ListCreateAPIView):
     )
     serializer_class = serializers.ChannelSerializer
     filterset_class = filters.ChannelFilter
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         channel = ChannelDataInput(
@@ -36,7 +43,7 @@ class ChannelsList(generics.ListCreateAPIView):
 class ChannelDetail(generics.RetrieveUpdateAPIView):
     queryset = models.Channel.objects.get_annotated_queryset()
     serializer_class = serializers.ChannelSerializer
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class EntriesList(generics.ListAPIView):
@@ -45,17 +52,20 @@ class EntriesList(generics.ListAPIView):
     )
     serializer_class = serializers.EntriesListSerializer
     filterset_class = filters.EntryFilter
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class EntryDetail(generics.RetrieveUpdateAPIView):
     queryset = models.Entry.objects.get_annotated_queryset()
     serializer_class = serializers.EntrySerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class EntriesArchive(generics.CreateAPIView):
     queryset = models.Entry.objects.get_annotated_queryset()
     serializer_class = serializers.EntriesArchiveSerializer
     filterset_class = filters.EntryFilter
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         filtered_entries = self.filter_queryset(self.get_queryset())
@@ -75,16 +85,19 @@ class EntriesArchive(generics.CreateAPIView):
 class EntryFiltersList(generics.ListCreateAPIView):
     queryset = models.EntryFilter.objects.all().order_by("id")
     serializer_class = serializers.EntryFilterSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class EntryFilterDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.EntryFilter.objects.all()
     serializer_class = serializers.EntryFilterSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class EntryFiltersRun(generics.CreateAPIView):
     queryset = models.EntryFilter.objects.all()
     filterset_class = filters.EntryFilter
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         filtered_entries = self.filter_queryset(self.get_queryset())
@@ -106,6 +119,7 @@ class EntryFiltersRun(generics.CreateAPIView):
 class EntryManualAdd(generics.CreateAPIView):
     queryset = models.Entry.objects.get_annotated_queryset()
     serializer_class = serializers.EntrySerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = serializers.EntryManualAddSerializer(data=request.data)
@@ -129,6 +143,7 @@ class ChannelsInactivate(generics.CreateAPIView):
     queryset = models.Channel.objects.get_annotated_queryset().filter(active=True)
     serializer_class = serializers.ChannelsInactivateSerializer
     filterset_class = filters.ChannelFilter
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         filtered_channels = self.filter_queryset(self.get_queryset())
@@ -149,6 +164,7 @@ class ChannelsActivate(generics.CreateAPIView):
     queryset = models.Channel.objects.get_annotated_queryset().filter(active=False)
     serializer_class = serializers.ChannelsActivateSerializer
     filterset_class = filters.ChannelFilter
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         filtered_channels = self.filter_queryset(self.get_queryset())
@@ -168,8 +184,10 @@ class ChannelsActivate(generics.CreateAPIView):
 class ChannelTagsList(generics.ListAPIView):
     queryset = models.Channel.tags.all().order_by("slug")
     serializer_class = serializers.TagsListSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class EntryTagsList(generics.ListAPIView):
     queryset = models.Entry.tags.all().order_by("slug")
     serializer_class = serializers.TagsListSerializer
+    permission_classes = [permissions.IsAuthenticated]
