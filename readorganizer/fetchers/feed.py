@@ -1,6 +1,9 @@
+import logging
 from typing import Iterable
 
 from django.conf import settings
+from reader import Entry
+from reader import EntryUpdateStatus
 from reader import FeedExistsError
 from reader import make_reader
 
@@ -12,15 +15,27 @@ from readorganizer.types import FetchedFeed
 from readorganizer.types import FetchedFeedEntry
 from readorganizer.types import FetchedFeedEntryContent
 
+log = logging.getLogger(__name__)
+
 
 class FeedChannelsFetcher:
     def __init__(self, feed_urls: Iterable[str]):
         self._prepare_directories()
         self._db_file = FETCHERS_CACHE_DIR / "readerdb.sqlite"
+        self._fetched_entries = []
         self._reader = make_reader(
             url=str(self._db_file), feed_root=str(FEED_FETCHER_LOCAL_FEEDS_DIR)
         )
+        self._reader.after_entry_update_hooks.append(self._reader_plugin())
         self._feed_urls = self._normalize_paths_for_reader(feed_urls)
+
+    def _reader_plugin(self):
+        fetched_entries = self._fetched_entries
+
+        def inner(reader, entry: Entry, status: EntryUpdateStatus):
+            fetched_entries.append((entry.feed_url, entry.id))
+
+        return inner
 
     def _prepare_directories(self):
         for d in (FETCHERS_CACHE_DIR, FEED_FETCHER_LOCAL_FEEDS_DIR):
@@ -101,40 +116,40 @@ class FeedChannelsFetcher:
             ("published_time", "published"),
             ("updated_time", "updated"),
         )
-        for feed_url in self._feed_urls:
-            for entry in self._reader.get_entries(feed=feed_url, read=False):
-                obj_data = {}
-                for key, reader_key in data_mapping:
-                    value = getattr(entry, reader_key, None)
-                    if key == "feed_url":
-                        value = self._normalize_output_path(value)
-                    if value:
-                        obj_data[key] = value
+        for entry_definition in self._fetched_entries:
+            entry = self._reader.get_entry(entry_definition)
+            obj_data = {}
+            for key, reader_key in data_mapping:
+                value = getattr(entry, reader_key, None)
+                if key == "feed_url":
+                    value = self._normalize_output_path(value)
+                if value:
+                    obj_data[key] = value
 
-                contents = []
-                if entry.summary:
-                    content_obj = FetchedFeedEntryContent(
-                        source=EntryContentSourceTypesEnum.FEED_SUMMARY,
-                        content=entry.summary,
-                    )
-                    contents.append(content_obj)
-                for entry_content in entry.content:
-                    content_data = {
-                        "source": EntryContentSourceTypesEnum.FEED_CONTENT,
-                        "content": entry_content.value,
-                    }
-                    if entry_content.type:
-                        content_data["mimetype"] = entry_content.type
-                    if entry_content.language:
-                        content_data["language"] = entry_content.language
+            contents = []
+            if entry.summary:
+                content_obj = FetchedFeedEntryContent(
+                    source=EntryContentSourceTypesEnum.FEED_SUMMARY,
+                    content=entry.summary,
+                )
+                contents.append(content_obj)
+            for entry_content in entry.content:
+                content_data = {
+                    "source": EntryContentSourceTypesEnum.FEED_CONTENT,
+                    "content": entry_content.value,
+                }
+                if entry_content.type:
+                    content_data["mimetype"] = entry_content.type
+                if entry_content.language:
+                    content_data["language"] = entry_content.language
 
-                    content_obj = FetchedFeedEntryContent(**content_data)
-                    contents.append(content_obj)
-                if contents:
-                    obj_data["content"] = tuple(contents)
+                content_obj = FetchedFeedEntryContent(**content_data)
+                contents.append(content_obj)
+            if contents:
+                obj_data["content"] = tuple(contents)
 
-                obj = FetchedFeedEntry(**obj_data)
-                fetched_entries.append(obj)
+            obj = FetchedFeedEntry(**obj_data)
+            fetched_entries.append(obj)
         return fetched_entries
 
     def update(self):

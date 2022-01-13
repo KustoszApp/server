@@ -12,6 +12,6 @@ dynaconf[yaml]==3.1.4
 hyperlink==21.0.0
 listparser==0.18
 readability-lxml==0.8.1
-reader==1.18
+reader==2.7
 requests-cache==0.8.1
 Unalix==0.7

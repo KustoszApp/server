@@ -200,10 +200,9 @@ class ChannelManager(models.Manager):
         fetched_data = FeedChannelsFetcher.fetch(feed_urls=requested_feed_urls)
         log.debug("fetched data of %s feeds", len(fetched_data.feeds))
         log.debug("fetched data of %s entries in total", len(fetched_data.entries))
-        log.info(
-            "fetcher failed to fetch following feeds: %s",
-            [i.url for i in fetched_data.feeds if i.fetch_failed],
-        )
+        fetch_failed_urls = [i.url for i in fetched_data.feeds if i.fetch_failed]
+        if fetch_failed_urls:
+            log.info("fetcher failed to fetch following feeds: %s", fetch_failed_urls)
 
         self.__update_feeds_with_fetched_data(
             feeds_queryset=queryset, feeds_data=fetched_data.feeds
@@ -213,6 +212,7 @@ class ChannelManager(models.Manager):
                 feeds_queryset=queryset, entries_data=fetched_data.entries
             )
             dispatch_task_by_name(TaskNamesEnum.DEDUPLICATE_ENTRIES)
+        log.info("feeds update complete")
 
     def __discard_channels_updated_recently(self, queryset: QuerySet):
         now = django_now()
