@@ -1,4 +1,3 @@
-import logging
 from typing import Iterable
 
 from django.conf import settings
@@ -14,8 +13,6 @@ from readorganizer.types import FeedFetcherResult
 from readorganizer.types import FetchedFeed
 from readorganizer.types import FetchedFeedEntry
 from readorganizer.types import FetchedFeedEntryContent
-
-log = logging.getLogger(__name__)
 
 
 class FeedChannelsFetcher:

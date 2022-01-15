@@ -53,6 +53,12 @@ def entry_data_env(entry):
 
 
 def run_script(entry, script_path):
+    log.info(
+        "Running script %s on entry %s [entry gid: %s]",
+        script_path,
+        entry.pk,
+        entry.gid,
+    )
     cp = subprocess.run(
         script_path,
         encoding="UTF-8",
@@ -62,19 +68,19 @@ def run_script(entry, script_path):
         timeout=30,
     )
 
+    if cp.stdout:
+        log.debug(
+            "Script %s entry %s standard output: %s", script_path, entry.pk, cp.stdout
+        )
+
+    if cp.stderr:
+        log.warning(
+            "Script %s entry %s standard error: %s", script_path, entry.pk, cp.stderr
+        )
+
     log.info(
-        "Finished running script %s, entry %s. Exit code: %s",
+        "Finished running script %s on entry %s. Exit code: %s",
         script_path,
         entry.pk,
         cp.returncode,
     )
-
-    if cp.stdout:
-        log.info(
-            "Script %s, entry %s standard output: %s", script_path, entry.pk, cp.stdout
-        )
-
-    if cp.stderr:
-        log.info(
-            "Script %s, entry %s standard error: %s", script_path, entry.pk, cp.stderr
-        )

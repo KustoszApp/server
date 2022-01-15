@@ -56,10 +56,10 @@ class DuplicateFinder:
                 if entry.archived is True or not is_duplicate:
                     continue
                 log.info(
-                    "Entry %s (%s) is considered a duplicate based on %s call result",
+                    "Function %s considers entry %s a duplicate [entry gid: %s]",
+                    function_name,
                     entry.pk,
                     entry.gid,
-                    function_name,
                 )
                 found_duplicates.append(entry.pk)
                 break

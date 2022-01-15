@@ -192,7 +192,7 @@ class ChannelManager(models.Manager):
             requested_feed_urls = list(requested_feed_urls)
 
         log.info("will update %s feeds", len(requested_feed_urls))
-        log.debug("updating feeds with urls: %s", requested_feed_urls)
+        log.debug("feeds urls: %s", requested_feed_urls)
 
         if not requested_feed_urls:
             return
@@ -202,7 +202,8 @@ class ChannelManager(models.Manager):
         log.debug("fetched data of %s entries in total", len(fetched_data.entries))
         fetch_failed_urls = [i.url for i in fetched_data.feeds if i.fetch_failed]
         if fetch_failed_urls:
-            log.info("fetcher failed to fetch following feeds: %s", fetch_failed_urls)
+            log.info("failed to fetch %s feeds", len(fetch_failed_urls))
+            log.debug("failed to fetch feeds urls: %s", fetch_failed_urls)
 
         self.__update_feeds_with_fetched_data(
             feeds_queryset=queryset, feeds_data=fetched_data.feeds
@@ -224,10 +225,10 @@ class ChannelManager(models.Manager):
                 time_since_last_update = time_always_update
 
             log.debug(
-                "channel %s (%s) seconds since last update: %s",
+                "channel %s seconds since last update: %s [channel url: %s]",
                 channel.pk,
-                channel.url,
                 time_since_last_update,
+                channel.url,
             )
 
             if time_since_last_update > channel.update_frequency:
@@ -246,8 +247,8 @@ class ChannelManager(models.Manager):
             if not received_data:
                 log.warning(
                     (
-                        "channel %s (%s) was requested for update, "
-                        "but fetcher did not return it"
+                        "channel %s was requested for update, "
+                        "but fetcher did not return it [channel url: %s]"
                     ),
                     channel_model.pk,
                     channel_model.url,
@@ -258,7 +259,10 @@ class ChannelManager(models.Manager):
                 channel_model.last_successful_check_time = right_now
                 if received_data.title != channel_model.title_upstream:
                     log.debug(
-                        "channel %s (%s) title_upstream changed from '%s' to '%s'",
+                        (
+                            "channel %s title_upstream changed "
+                            "[channel url: %s ; old value '%s' ; new value '%s']"
+                        ),
                         channel_model.pk,
                         channel_model.url,
                         channel_model.title_upstream,
@@ -267,7 +271,10 @@ class ChannelManager(models.Manager):
                     channel_model.title_upstream = received_data.title
                 if received_data.link != channel_model.link:
                     log.debug(
-                        "channel %s (%s) link changed from '%s' to '%s'",
+                        (
+                            "channel %s link changed "
+                            "[channel url: %s ; old value '%s' ; new value '%s']"
+                        ),
                         channel_model.pk,
                         channel_model.url,
                         channel_model.link,
@@ -294,7 +301,7 @@ class ChannelManager(models.Manager):
             channel_entries_data = grouped_by_feed.get(channel_model.url)
             if not channel_entries_data:
                 log.info(
-                    "channel %s (%s) did not fetch any new entries",
+                    "channel %s did not fetch any new entries [channel url: %s]",
                     channel_model.pk,
                     channel_model.url,
                 )
@@ -365,11 +372,8 @@ class EntryManager(models.Manager):
         if not duplicate_ids:
             return duplicate_ids
         duplicates = recent_entries.filter(pk__in=duplicate_ids)
-        log.info(
-            "Marking %s entries as duplicates (ids: %s)",
-            len(duplicate_ids),
-            ", ".join(map(str, duplicate_ids)),
-        )
+        log.info("Marking %s entries as duplicates", len(duplicate_ids))
+        log.debug("entry ids:", ", ".join(map(str, duplicate_ids)))
         duplicates.update(archived=True, updated_time=django_now())
         return duplicate_ids
 
@@ -398,10 +402,10 @@ class EntryManager(models.Manager):
             new_contents.append(content_obj)
 
         log.debug(
-            "entry %s (%s) has %s new content objects",
+            "entry %s has %s new content objects [entry gid: %s]",
             entry.pk,
-            entry.gid,
             len(new_contents),
+            entry.gid,
         )
 
         with transaction.atomic():
@@ -414,10 +418,10 @@ class EntryManager(models.Manager):
         self, channel_model, entries_data: Iterable[FetchedFeedEntry]
     ):
         log.info(
-            "channel %s (%s) fetched entries: %s",
+            "channel %s fetched entries: %s [channel url: %s]",
             channel_model.pk,
-            channel_model.url,
             len(entries_data),
+            channel_model.url,
         )
         queryset = self.get_queryset()
 
@@ -429,8 +433,9 @@ class EntryManager(models.Manager):
         if len(entries_data) != len(entries_data_map):
             log.warning(
                 (
-                    "channel %s (%s) fetched entries with duplicated ids; "
+                    "channel %s fetched entries with duplicated ids; "
                     "channel source might be misbehaving and data might be missing"
+                    "[channel url: %s]"
                 ),
                 channel_model.pk,
                 channel_model.url,
@@ -508,10 +513,19 @@ class EntryManager(models.Manager):
             if not filtered_entries:
                 continue
             log.info(
-                "Filter '%s' (calls '%s' with argument '%s') matched for entries: %s",
+                "Filter %s matched for %s entries",
+                filtering_rule.pk,
+                len(filtered_entries),
+            )
+            log.debug(
+                "Filter %s name: '%s'; action: '%s'; action_argument: '%s'",
+                filtering_rule.pk,
                 filtering_rule.name,
                 filtering_rule.action_name,
                 filtering_rule.action_argument,
+            )
+            log.debug(
+                "matched entries ids: %s",
                 ", ".join([str(e.pk) for e in filtered_entries]),
             )
             action = get_filter_action(filtering_rule.action_name)
@@ -528,10 +542,10 @@ class EntryManager(models.Manager):
         self, channel_model, queryset, entries_data_map
     ):
         log.debug(
-            "channel %s (%s) number of entries considered for update: %s",
+            "channel %s number of entries considered for update: %s [channel url: %s]",
             channel_model.pk,
-            channel_model.url,
             len(entries_data_map),
+            channel_model.url,
         )
         # FIXME: support enclosures
         updated_entries = []
@@ -551,10 +565,10 @@ class EntryManager(models.Manager):
                     updated_fields.update(model_updated_fields)
 
             log.debug(
-                "channel %s (%s) number of updated entries: %s",
+                "channel %s number of updated entries: %s [channel url: %s]",
                 channel_model.pk,
-                channel_model.url,
                 len(updated_entries),
+                channel_model.url,
             )
             if not updated_entries:
                 return
@@ -580,11 +594,14 @@ class EntryManager(models.Manager):
                 entry.full_clean()
             except ValidationError as e:
                 log.warning(
-                    "channel %s (%s): fetched entry with id '%s' is not valid:\n%s",
+                    (
+                        "channel %s: fetched entry with id '%s' is not valid:\n"
+                        "%s\n[channel url: %s]"
+                    ),
                     channel_model.pk,
-                    channel_model.url,
                     entry.gid,
                     e,
+                    channel_model.url,
                 )
                 continue
             EntryContent = entry.content_set.get_queryset().model
@@ -608,10 +625,10 @@ class EntryManager(models.Manager):
                 entry, contents = entry_dict.values()
                 entry.save()
                 log.debug(
-                    "entry %s (%s) has %s content objects",
+                    "entry %s has %s content objects [entry gid: %s]",
                     entry.pk,
-                    entry.gid,
                     len(contents),
+                    entry.gid,
                 )
                 for content in contents:
                     content.entry = entry
@@ -633,7 +650,7 @@ class EntryManager(models.Manager):
             model_value = getattr(entry_model, model_key)
             if model_value != fetched_value:
                 log.debug(
-                    "entry %s: will change %s from '%s' to '%s'",
+                    "entry %s %s changed [old value: '%s'; new value: '%s']",
                     entry_model.pk,
                     model_key,
                     model_value,

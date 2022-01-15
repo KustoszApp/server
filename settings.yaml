@@ -62,6 +62,29 @@ default:
   USE_I18N: True
   USE_L10N: True
   USE_TZ: True
+  LOGGING:
+    version: 1
+    disable_existing_loggers: False
+    handlers:
+      console:
+        class: 'logging.StreamHandler'
+      'null':
+        class: 'logging.NullHandler'
+    root:
+      handlers:
+        - 'console'
+      level: 'WARNING'
+    loggers:
+      reader:
+        handlers:
+          - 'console'
+        level: 'CRITICAL'
+        propagate: False
+      readability:
+        handlers:
+          - 'console'
+        level: 'ERROR'
+        propagate: False
   STATIC_URL: '/static/'
   REST_FRAMEWORK:
     DEFAULT_AUTHENTICATION_CLASSES:
