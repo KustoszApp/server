@@ -66,6 +66,7 @@ class EntriesListSerializer(serializers.ModelSerializer):
     published_time = serializers.DateTimeField()
     preferred_content = EntryContentSerializer()
     available_contents = EntryContentMetadataSerializer(source="content_set", many=True)
+    tags = TagListSerializerField()
 
     class Meta:
         model = Entry
@@ -85,6 +86,7 @@ class EntriesListSerializer(serializers.ModelSerializer):
             "published_time",
             "preferred_content",
             "available_contents",
+            "tags",
         ]
         extra_kwargs = {
             "id": {"read_only": True},
