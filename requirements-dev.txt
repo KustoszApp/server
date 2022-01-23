@@ -1,7 +1,0 @@
--r requirements-test.txt
-black
-flake8
-ipdb
-ipython
-pip-outdated
-pre-commit

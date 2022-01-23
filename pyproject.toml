@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "kustosz"
+version = "22.01.0"
+description = ""
+authors = ["Mirek Długosz <mirek@mirekdlugosz.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+celery = "^5.2.3"
+Django = "^3.2.11"
+django-celery-beat = "^2.2.1"
+django-celery-results = "^2.2.0"
+django-cors-headers = "^3.11.0"
+django-extensions = "^3.1.5"
+django-filter = "^21.1"
+django-taggit = "^1.5.1"
+django-taggit-serializer = "^0.1.7"
+djangorestframework = "^3.13.1"
+dynaconf = { version = "^3.1.7", extras = ["yaml"] }
+hyperlink = "^21.0.0"
+listparser = "^0.18"
+readability-lxml = "^0.8.1"
+reader = "^2.8"
+requests-cache = "^0.9.1"
+Unalix = "^0.9"
+
+[tool.poetry.dev-dependencies]
+# FIXME: make it two separate groups in poetry 1.2+
+# test dependencies
+dominate = "~2"
+factory-boy = "~3"
+Faker = "~8"
+freezegun = "~1"
+pytest = "~6"
+pytest-django = "~4"
+pytest-mock = "~3"
+pytest-factoryboy = "~2"
+# dev dependencies
+black = "*"
+flake8 = "*"
+ipdb = "*"
+ipython = "*"
+pre-commit = "*"
+nox = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
