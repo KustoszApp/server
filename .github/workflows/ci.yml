@@ -1,0 +1,45 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+env:
+  NOX_VERSION: "2022.1.7"
+  POETRY_VERSION: "1.1.12"
+  # If it's good enough for nox, it's good enough for us
+  FORCE_COLOR: "1"
+  PRE_COMMIT_COLOR: "always"
+  # See https://github.com/theacodes/nox/issues/545
+  # and https://github.com/pre-commit/pre-commit/issues/2178#issuecomment-1002163763
+  SETUPTOOLS_USE_DISTUTILS: "stdlib"
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up default Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Install build tools
+        run: python -m pip install nox==${{ env.NOX_VERSION}} poetry==${{ env.POETRY_VERSION}}
+      - name: Actually lint
+        run: nox --non-interactive --error-on-missing-interpreter --session "lint"
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.9", "3.10"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install build tools
+        run: python -m pip install nox==${{ env.NOX_VERSION}} poetry==${{ env.POETRY_VERSION}}
+      - name: Actually test
+        run: nox --non-interactive --error-on-missing-interpreter --session "tests-${{ matrix.python-version }}" -- --full-trace
