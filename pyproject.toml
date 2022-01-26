@@ -6,7 +6,7 @@ license = "EUPL-1.2"
 authors = ["Mirek Długosz <mirek@mirekdlugosz.com>"]
 readme = "README.md"
 homepage = "https://github.com/KustoszApp/server/"
-repository = "git+https://github.com/KustoszApp/server.git"
+repository = "https://github.com/KustoszApp/server/"
 documentation = "https://github.com/KustoszApp/server/"
 classifiers = [
     "Development Status :: 4 - Beta",
