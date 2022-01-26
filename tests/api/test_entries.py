@@ -3,13 +3,13 @@ from datetime import datetime
 from django.urls import reverse
 from rest_framework import status
 
-import readorganizer
+import kustosz
 from ..framework.factories.models import EntryContentFactory
 from ..framework.factories.models import EntryFactory
-from readorganizer.enums import ChannelTypesEnum
-from readorganizer.models import Channel
-from readorganizer.models import Entry
-from readorganizer.utils import optional_make_aware
+from kustosz.enums import ChannelTypesEnum
+from kustosz.models import Channel
+from kustosz.models import Entry
+from kustosz.utils import optional_make_aware
 
 
 def test_list_content(db, authenticated_api_client):
@@ -245,7 +245,7 @@ def test_filter_tags_return_unique_entries(db, faker, authenticated_api_client):
 
 
 def test_entry_add_manually(db, mocker, faker, authenticated_api_client):
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     entry_url = faker.url()
     url = reverse("entry_manual_add")
     data = {"link": entry_url}
@@ -254,13 +254,13 @@ def test_entry_add_manually(db, mocker, faker, authenticated_api_client):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data["link"] == entry_url
-    assert readorganizer.managers.dispatch_task_by_name.called
+    assert kustosz.managers.dispatch_task_by_name.called
 
 
 def test_entry_try_add_manually_invalid_url(
     db, mocker, faker, authenticated_api_client
 ):
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     entry_url = faker.text()
     url = reverse("entry_manual_add")
     data = {"link": entry_url}
@@ -269,13 +269,13 @@ def test_entry_try_add_manually_invalid_url(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["link"] != entry_url
-    assert not readorganizer.managers.dispatch_task_by_name.called
+    assert not kustosz.managers.dispatch_task_by_name.called
 
 
 def test_entry_try_add_manually_already_exists(
     db, mocker, faker, authenticated_api_client
 ):
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     manual_channel = Channel.objects.filter(
         channel_type=ChannelTypesEnum.MANUAL
     ).first()
@@ -287,4 +287,4 @@ def test_entry_try_add_manually_already_exists(
     response = authenticated_api_client.post(url, data)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert not readorganizer.managers.dispatch_task_by_name.called
+    assert not kustosz.managers.dispatch_task_by_name.called

@@ -4,10 +4,10 @@ from typing import Mapping
 import factory.fuzzy
 from django.utils.timezone import now
 
-from readorganizer import types as ro_types
-from readorganizer.constants import DEFAULT_UPDATE_FREQUENCY
-from readorganizer.enums import ChannelTypesEnum
-from readorganizer.enums import EntryContentSourceTypesEnum
+from kustosz import types as ro_types
+from kustosz.constants import DEFAULT_UPDATE_FREQUENCY
+from kustosz.enums import ChannelTypesEnum
+from kustosz.enums import EntryContentSourceTypesEnum
 
 
 @dataclass(frozen=True)

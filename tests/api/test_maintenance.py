@@ -7,8 +7,8 @@ from rest_framework.fields import DateTimeField
 
 from ..framework.factories.models import ChannelFactory
 from ..framework.factories.models import EntryFactory
-from readorganizer.enums import ChannelTypesEnum
-from readorganizer.models import Channel
+from kustosz.enums import ChannelTypesEnum
+from kustosz.models import Channel
 
 
 def test_deactivate_id(db, authenticated_api_client):

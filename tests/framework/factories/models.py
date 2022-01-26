@@ -2,11 +2,11 @@ import factory.fuzzy
 from django.utils.timezone import now
 from factory.django import DjangoModelFactory
 
-from readorganizer import models as ro_models
-from readorganizer.constants import DEFAULT_UPDATE_FREQUENCY
-from readorganizer.enums import ChannelTypesEnum
-from readorganizer.enums import EntryContentSourceTypesEnum
-from readorganizer.enums import EntryFilterActionsEnum
+from kustosz import models as ro_models
+from kustosz.constants import DEFAULT_UPDATE_FREQUENCY
+from kustosz.enums import ChannelTypesEnum
+from kustosz.enums import EntryContentSourceTypesEnum
+from kustosz.enums import EntryFilterActionsEnum
 
 
 class ChannelFactory(DjangoModelFactory):

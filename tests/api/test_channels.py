@@ -1,15 +1,15 @@
 from django.urls import reverse
 from rest_framework import status
 
-import readorganizer
+import kustosz
 from ..framework.factories.models import ChannelFactory
-from readorganizer.constants import DEFAULT_UPDATE_FREQUENCY
-from readorganizer.enums import TaskNamesEnum
-from readorganizer.models import Channel
+from kustosz.constants import DEFAULT_UPDATE_FREQUENCY
+from kustosz.enums import TaskNamesEnum
+from kustosz.models import Channel
 
 
 def test_create_channel(db, faker, mocker, authenticated_api_client):
-    mocker.patch("readorganizer.managers.dispatch_task_by_name", return_value="1")
+    mocker.patch("kustosz.managers.dispatch_task_by_name", return_value="1")
     m = Channel.objects
     url = reverse("channels_list")
     new_url = faker.url()
@@ -20,7 +20,7 @@ def test_create_channel(db, faker, mocker, authenticated_api_client):
     assert response.status_code == status.HTTP_201_CREATED
     created_channel = m.last()
     assert created_channel.url == new_url
-    readorganizer.managers.dispatch_task_by_name.assert_called_once_with(
+    kustosz.managers.dispatch_task_by_name.assert_called_once_with(
         TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT,
         kwargs={"channel_ids": [created_channel.pk], "force_fetch": False},
     )

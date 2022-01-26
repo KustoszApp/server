@@ -2,7 +2,7 @@ import pytest
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from readorganizer.models import User
+from kustosz.models import User
 
 
 @pytest.fixture()

@@ -3,20 +3,20 @@ from datetime import timedelta
 import pytest
 from django.utils.timezone import now as django_now
 
-import readorganizer
+import kustosz
 from ..framework.factories.models import ChannelFactory
 from ..framework.factories.models import EntryFactory
 from ..framework.factories.types import ChannelDataInputFactory
 from ..framework.factories.types import FetchedFeedEntryContentFactory
 from ..framework.factories.types import FetchedFeedEntryFactory
 from ..framework.factories.types import FetchedFeedFactory
-from readorganizer.enums import ChannelTypesEnum
-from readorganizer.enums import TaskNamesEnum
-from readorganizer.exceptions import NoNewChannelsAddedException
-from readorganizer.models import Channel
-from readorganizer.types import FeedFetcherResult
-from readorganizer.types import FetchedFeed
-from readorganizer.utils import estimate_reading_time
+from kustosz.enums import ChannelTypesEnum
+from kustosz.enums import TaskNamesEnum
+from kustosz.exceptions import NoNewChannelsAddedException
+from kustosz.models import Channel
+from kustosz.types import FeedFetcherResult
+from kustosz.types import FetchedFeed
+from kustosz.utils import estimate_reading_time
 
 
 def test_add_channels(db):
@@ -63,14 +63,14 @@ def test_add_channel_with_tags(db):
 
 
 def test_fetch_channels_content(db, mocker):
-    mocker.patch("readorganizer.managers.dispatch_task_by_name", return_value="1")
+    mocker.patch("kustosz.managers.dispatch_task_by_name", return_value="1")
     channel = ChannelFactory.create()
     m = Channel.objects
     qs = m.all()
 
     tasks = m.fetch_channels_content(qs, force_fetch=False)
 
-    readorganizer.managers.dispatch_task_by_name.assert_called_once_with(
+    kustosz.managers.dispatch_task_by_name.assert_called_once_with(
         TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT,
         kwargs={"channel_ids": [channel.pk], "force_fetch": False},
     )
@@ -78,19 +78,19 @@ def test_fetch_channels_content(db, mocker):
 
 
 def test_fetch_channels_content_only_inactive(db, mocker):
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     ChannelFactory.create(active=False)
     m = Channel.objects
     qs = m.all()
 
     tasks = m.fetch_channels_content(qs, force_fetch=False)
 
-    assert not readorganizer.managers.dispatch_task_by_name.called
+    assert not kustosz.managers.dispatch_task_by_name.called
     assert len(tasks) == 0
 
 
 def test_fetch_channels_content_mix_active_inactive(db, mocker):
-    mocker.patch("readorganizer.managers.dispatch_task_by_name", return_value="1")
+    mocker.patch("kustosz.managers.dispatch_task_by_name", return_value="1")
     channel = ChannelFactory.create()
     ChannelFactory.create(active=False)
     m = Channel.objects
@@ -98,7 +98,7 @@ def test_fetch_channels_content_mix_active_inactive(db, mocker):
 
     tasks = m.fetch_channels_content(qs, force_fetch=False)
 
-    readorganizer.managers.dispatch_task_by_name.assert_called_once_with(
+    kustosz.managers.dispatch_task_by_name.assert_called_once_with(
         TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT,
         kwargs={"channel_ids": [channel.pk], "force_fetch": False},
     )
@@ -106,86 +106,86 @@ def test_fetch_channels_content_mix_active_inactive(db, mocker):
 
 
 def test_fetch_channels_content_paging(db, mocker):
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     ChannelFactory.create_batch(51)
     m = Channel.objects
     qs = m.all()
 
     tasks = m.fetch_channels_content(qs, force_fetch=False)
 
-    assert readorganizer.managers.dispatch_task_by_name.call_count == 2
+    assert kustosz.managers.dispatch_task_by_name.call_count == 2
     assert len(tasks) == 2
 
 
 def test_fetch_feed_channels_content(db, mocker):
-    mocker.patch("readorganizer.managers.FeedChannelsFetcher.fetch")
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch")
     mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
+        "kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
     mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+        "kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
     )
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
 
-    readorganizer.managers.FeedChannelsFetcher.fetch.assert_called_once_with(
+    kustosz.managers.FeedChannelsFetcher.fetch.assert_called_once_with(
         feed_urls=[channel.url]
     )
     assert (
-        readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data.called  # noqa
+        kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data.called  # noqa
     )
     assert (
-        readorganizer.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data.called  # noqa
+        kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data.called  # noqa
     )
 
 
 def test_fetch_feed_channels_content_updated_recently(db, mocker):
-    mocker.patch("readorganizer.managers.FeedChannelsFetcher.fetch")
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch")
     mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
+        "kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
     mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+        "kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
     )
     channel = ChannelFactory.create()
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
 
-    assert not readorganizer.managers.FeedChannelsFetcher.fetch.called
+    assert not kustosz.managers.FeedChannelsFetcher.fetch.called
     assert (
-        not readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data.called  # noqa
+        not kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data.called  # noqa
     )
     assert (
-        not readorganizer.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data.called  # noqa
+        not kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data.called  # noqa
     )
 
 
 def test_fetch_feed_channels_content_updated_recently_force_true(db, mocker):
-    mocker.patch("readorganizer.managers.FeedChannelsFetcher.fetch")
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch")
     mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
+        "kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
     mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+        "kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
     )
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     channel = ChannelFactory.create()
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=True)
 
-    readorganizer.managers.FeedChannelsFetcher.fetch.assert_called_once_with(
+    kustosz.managers.FeedChannelsFetcher.fetch.assert_called_once_with(
         feed_urls=[channel.url]
     )
     assert (
-        readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data.called  # noqa
+        kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data.called  # noqa
     )
     assert (
-        readorganizer.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data.called  # noqa
+        kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data.called  # noqa
     )
 
 
@@ -193,11 +193,9 @@ def test_fetch_channels_content_channel_updated(db, mocker):
     channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
     fetched_feed_data = FetchedFeedFactory(url=channel.url)
     fetcher_rv = FeedFetcherResult(feeds=[fetched_feed_data], entries=[])
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv)
     mocker.patch(
-        "readorganizer.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
-    )
-    mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+        "kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
     )
     m = Channel.objects
 
@@ -223,11 +221,9 @@ def test_fetch_channels_content_channel_not_updated_no_new_data(db, mocker):
         title=channel.title_upstream,
     )
     fetcher_rv = FeedFetcherResult(feeds=[fetched_feed_data], entries=[])
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv)
     mocker.patch(
-        "readorganizer.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
-    )
-    mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+        "kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
     )
     m = Channel.objects
 
@@ -251,11 +247,9 @@ def test_fetch_channels_content_channel_not_updated_fetch_failure(db, mocker):
         fetch_failed=True,
     )
     fetcher_rv = FeedFetcherResult(feeds=[fetched_feed_data], entries=[])
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv)
     mocker.patch(
-        "readorganizer.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
-    )
-    mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+        "kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
     )
     m = Channel.objects
 
@@ -284,11 +278,9 @@ def test_fetch_channels_content_channel_mix_updated_fetch_failure(db, mocker):
     fetcher_rv = FeedFetcherResult(
         feeds=[fetched_feed_data1, fetched_feed_data2], entries=[]
     )
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv)
     mocker.patch(
-        "readorganizer.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
-    )
-    mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+        "kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
     )
     m = Channel.objects
 
@@ -325,13 +317,11 @@ def test_fetch_feed_channels_entry_added(db, mocker):
     channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
     fetched_entry_data = FetchedFeedEntryFactory(feed_url=channel.url)
     fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv)
     mocker.patch(
-        "readorganizer.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+        "kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
-    mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
-    )
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
@@ -356,13 +346,11 @@ def test_fetch_feed_channels_entry_updated(db, mocker):
     entry = EntryFactory.create(channel=channel)
     fetched_entry_data = FetchedFeedEntryFactory(feed_url=channel.url, gid=entry.gid)
     fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv)
     mocker.patch(
-        "readorganizer.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+        "kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
-    mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
-    )
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
@@ -395,13 +383,11 @@ def test_fetch_feed_channels_entry_not_updated_no_new_data(db, mocker):
         content=[],
     )
     fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv)
     mocker.patch(
-        "readorganizer.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+        "kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
-    mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
-    )
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
@@ -433,13 +419,11 @@ def test_fetch_feed_channels_entry_content_updated(db, mocker):
         feed_url=channel.url, gid=entry.gid, content=[fetched_entry_content]
     )
     fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv)
     mocker.patch(
-        "readorganizer.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+        "kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
-    mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
-    )
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
@@ -469,13 +453,11 @@ def test_fetch_feed_channels_entry_content_added(db, mocker):
         feed_url=channel.url, gid=entry.gid, content=[fetched_entry_content]
     )
     fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv)
     mocker.patch(
-        "readorganizer.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+        "kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
-    mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
-    )
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)
@@ -511,13 +493,11 @@ def test_fetch_feed_channels_entry_content_not_updated_no_changes(db, mocker):
         feed_url=channel.url, gid=entry.gid, content=[fetched_entry_content]
     )
     fetcher_rv = FeedFetcherResult(feeds=[], entries=[fetched_entry_data])
+    mocker.patch("kustosz.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv)
     mocker.patch(
-        "readorganizer.managers.FeedChannelsFetcher.fetch", return_value=fetcher_rv
+        "kustosz.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
     )
-    mocker.patch(
-        "readorganizer.managers.ChannelManager._ChannelManager__update_feeds_with_fetched_data"  # noqa
-    )
-    mocker.patch("readorganizer.managers.dispatch_task_by_name")
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
     m = Channel.objects
 
     m._fetch_feed_channels_content(channel_ids=[channel.id], force_fetch=False)

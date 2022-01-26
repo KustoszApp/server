@@ -7,10 +7,10 @@ from pytest import approx
 from ..framework.factories.models import EntryFactory
 from ..framework.factories.types import FakeRequestFactory
 from ..framework.utils import create_simple_html
-from readorganizer.utils import estimate_reading_time
-from readorganizer.utils import normalize_url
-from readorganizer.utils.extract_metadata import MetadataExtractor
-from readorganizer.utils.run_script import entry_data_env
+from kustosz.utils import estimate_reading_time
+from kustosz.utils import normalize_url
+from kustosz.utils.extract_metadata import MetadataExtractor
+from kustosz.utils.run_script import entry_data_env
 
 
 @pytest.mark.parametrize(
@@ -147,11 +147,11 @@ def test_entry_data_env(db, faker):
     env = entry_data_env(entry)
 
     for key in ("id", "gid", "link", "updated_time"):
-        env_key = f"READORGANIZER_{key.upper()}"
+        env_key = f"KUSTOSZ_{key.upper()}"
         assert env[env_key] == str(getattr(entry, key))
-    assert env["READORGANIZER_TAGS"] == ",".join(entry.tags.slugs())
+    assert env["KUSTOSZ_TAGS"] == ",".join(entry.tags.slugs())
     for key in ("id", "url", "title", "displayed_title", "added_time"):
-        env_key = f"READORGANIZER_CHANNEL_{key.upper()}"
+        env_key = f"KUSTOSZ_CHANNEL_{key.upper()}"
         assert env[env_key] == str(getattr(entry.channel, key))
-    other_env = {k: v for k, v in env.items() if not k.startswith("READORGANIZER_")}
+    other_env = {k: v for k, v in env.items() if not k.startswith("KUSTOSZ_")}
     assert other_env

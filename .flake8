@@ -2,5 +2,5 @@
 select = BLK,C,E,F,W
 ignore = E203,W503
 exclude =
-    readorganizer/migrations
+    kustosz/migrations
 max-line-length = 88

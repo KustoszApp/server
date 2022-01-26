@@ -3,16 +3,16 @@ from datetime import timedelta
 from django.utils.timezone import now as django_now
 from freezegun import freeze_time
 
-import readorganizer
+import kustosz
 from ..framework.factories.models import ChannelFactory
 from ..framework.factories.models import EntryFactory
 from ..framework.factories.models import EntryFilterFactory
 from ..framework.factories.types import ReadabilityContentListFactory
 from ..framework.factories.types import SingleEntryExtractedMetadataFactory
-from readorganizer.enums import EntryFilterActionsEnum
-from readorganizer.managers import DuplicateFinder
-from readorganizer.models import Entry
-from readorganizer.models import EntryFilter
+from kustosz.enums import EntryFilterActionsEnum
+from kustosz.managers import DuplicateFinder
+from kustosz.models import Entry
+from kustosz.models import EntryFilter
 
 
 def test_deduplication_same_gid(db):
@@ -224,9 +224,7 @@ def test_filter_no_matches(db):
 
 
 def test_filter_none_defined(db, mocker):
-    mocker.patch(
-        "readorganizer.managers.EntryManager._EntryManager__get_filtered_entries"
-    )
+    mocker.patch("kustosz.managers.EntryManager._EntryManager__get_filtered_entries")
     one = EntryFactory.create()
     another = EntryFactory.create()
     m = Entry.objects
@@ -239,7 +237,7 @@ def test_filter_none_defined(db, mocker):
     assert one.archived is False
     assert another.archived is False
     assert (
-        not readorganizer.managers.EntryManager._EntryManager__get_filtered_entries.called  # noqa
+        not kustosz.managers.EntryManager._EntryManager__get_filtered_entries.called  # noqa
     )
 
 
@@ -260,9 +258,9 @@ def test_filter_none_enabled(db):
 
 def test_manual_entry_update_metadata(db, mocker):
     extracted_data = SingleEntryExtractedMetadataFactory()
-    mocker.patch("readorganizer.managers.SingleURLFetcher.fetch")
+    mocker.patch("kustosz.managers.SingleURLFetcher.fetch")
     mocker.patch(
-        "readorganizer.managers.MetadataExtractor.from_response",
+        "kustosz.managers.MetadataExtractor.from_response",
         return_value=extracted_data,
     )
     entry = EntryFactory.create(
@@ -280,22 +278,22 @@ def test_manual_entry_update_metadata(db, mocker):
 
 
 def test_manual_entry_skip_update_metadata_when_filled(db, mocker):
-    mocker.patch("readorganizer.managers.SingleURLFetcher.fetch")
-    mocker.patch("readorganizer.managers.MetadataExtractor.from_response")
+    mocker.patch("kustosz.managers.SingleURLFetcher.fetch")
+    mocker.patch("kustosz.managers.MetadataExtractor.from_response")
     entry = EntryFactory.create()
     m = Entry.objects
 
     m._ensure_manual_entry_metadata(entry.pk)
 
-    assert not readorganizer.managers.SingleURLFetcher.fetch.called
-    assert not readorganizer.managers.MetadataExtractor.from_response.called
+    assert not kustosz.managers.SingleURLFetcher.fetch.called
+    assert not kustosz.managers.MetadataExtractor.from_response.called
 
 
 def test_manual_entry_update_metadata_only_author(db, mocker):
     extracted_data = SingleEntryExtractedMetadataFactory()
-    mocker.patch("readorganizer.managers.SingleURLFetcher.fetch")
+    mocker.patch("kustosz.managers.SingleURLFetcher.fetch")
     mocker.patch(
-        "readorganizer.managers.MetadataExtractor.from_response",
+        "kustosz.managers.MetadataExtractor.from_response",
         return_value=extracted_data,
     )
     entry = EntryFactory.create(
@@ -316,9 +314,9 @@ def test_manual_entry_update_metadata_only_author(db, mocker):
 
 def test_manual_entry_update_metadata_only_title(db, mocker):
     extracted_data = SingleEntryExtractedMetadataFactory()
-    mocker.patch("readorganizer.managers.SingleURLFetcher.fetch")
+    mocker.patch("kustosz.managers.SingleURLFetcher.fetch")
     mocker.patch(
-        "readorganizer.managers.MetadataExtractor.from_response",
+        "kustosz.managers.MetadataExtractor.from_response",
         return_value=extracted_data,
     )
     entry = EntryFactory.create(
@@ -341,9 +339,9 @@ def test_manual_entry_update_metadata_no_upstream_times(db, mocker):
     extracted_data = SingleEntryExtractedMetadataFactory(
         published_time_upstream=None, updated_time_upstream=None
     )
-    mocker.patch("readorganizer.managers.SingleURLFetcher.fetch")
+    mocker.patch("kustosz.managers.SingleURLFetcher.fetch")
     mocker.patch(
-        "readorganizer.managers.MetadataExtractor.from_response",
+        "kustosz.managers.MetadataExtractor.from_response",
         return_value=extracted_data,
     )
     entry = EntryFactory.create(
@@ -362,9 +360,9 @@ def test_manual_entry_update_metadata_no_upstream_times(db, mocker):
 
 def test_add_readability(db, mocker):
     extracted_data = ReadabilityContentListFactory()
-    mocker.patch("readorganizer.managers.SingleURLFetcher.fetch")
+    mocker.patch("kustosz.managers.SingleURLFetcher.fetch")
     mocker.patch(
-        "readorganizer.managers.ReadabilityContentExtractor.from_response",
+        "kustosz.managers.ReadabilityContentExtractor.from_response",
         return_value=extracted_data,
     )
     entry = EntryFactory.create()
