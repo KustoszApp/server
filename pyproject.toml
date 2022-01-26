@@ -1,8 +1,22 @@
 [tool.poetry]
 name = "kustosz"
 version = "22.01.0"
-description = ""
+description = "Focus on the worthwhile content with Kustosz, open source self-hosted web application. This package contains backend server."
+license = "EUPL-1.2"
 authors = ["Mirek Długosz <mirek@mirekdlugosz.com>"]
+readme = "README.md"
+homepage = "https://github.com/KustoszApp/server/"
+repository = "git+https://github.com/KustoszApp/server.git"
+documentation = "https://github.com/KustoszApp/server/"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
