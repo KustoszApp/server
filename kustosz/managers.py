@@ -121,7 +121,7 @@ class ChannelManager(models.Manager):
             with transaction.atomic():
                 channel.save()
                 if channel_tags:
-                    channel.tags.set(*channel_tags)
+                    channel.tags.set(channel_tags)
                 map_obj["added"] = True
 
         inserted_channels = queryset.filter(url__in=new_urls)
