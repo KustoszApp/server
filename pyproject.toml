@@ -37,6 +37,7 @@ readability-lxml = "^0.8.1"
 reader = "^2.8"
 requests-cache = "^0.9.1"
 Unalix = "^0.9"
+redis = { version = "4.1.4", optional = true }
 
 [tool.poetry.dev-dependencies]
 # FIXME: make it two separate groups in poetry 1.2+
@@ -56,6 +57,9 @@ ipdb = "*"
 ipython = "*"
 pre-commit = "*"
 nox = "*"
+
+[tool.poetry.extras]
+redis = ["redis"]
 
 [tool.poetry.scripts]
 kustosz-manager = 'kustosz.cli.manage:main'
