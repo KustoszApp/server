@@ -54,16 +54,16 @@ ENV DJANGO_SETTINGS_MODULE=kustosz.settings
 RUN python -m venv $VIRTUAL_ENV
 RUN mkdir -p $HOME/supervisor/logs
 RUN mkdir -p $HOME/supervisor/run
-RUN mkdir $APP_HOME
-RUN mkdir $APP_HOME/staticfiles
-RUN mkdir $APP_HOME/mediafiles
+RUN mkdir -p $APP_HOME/static
+RUN mkdir -p $APP_HOME/staticfiles
+RUN mkdir -p $APP_HOME/mediafiles
 
 COPY --from=frontendbuilder /opt/kustosz-frontend-build/dist/ $APP_HOME/staticfiles/
 COPY --from=backendbuilder /opt/kustosz-build/dist/kustosz*.whl $HOME/wheels/
 RUN pip install --no-cache --upgrade pip
-RUN pip install --no-cache $HOME/wheels/* redis
+RUN pip install --no-cache $HOME/wheels/* redis whitenoise gunicorn
 
-COPY ./settings*yaml $VIRTUAL_ENV/lib/python3.9/site-packages/
+COPY ./settings.yaml $VIRTUAL_ENV/lib/python3.9/site-packages/settings.yaml
 
 COPY ./etc/supervisor/supervisord.conf $HOME/supervisor/supervisord.conf
 COPY ./etc/supervisor/redis.conf $HOME/supervisor/redis.conf
@@ -71,5 +71,6 @@ COPY ./etc/supervisor/redis.conf $HOME/supervisor/redis.conf
 COPY ./containers/entrypoint.prod.sh $HOME/entrypoint.sh
 
 WORKDIR $HOME
+EXPOSE 8000
 
 ENTRYPOINT [ "/opt/kustosz/entrypoint.sh" ]

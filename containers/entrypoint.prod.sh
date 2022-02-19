@@ -26,15 +26,24 @@ if [ -z "${KUSTOSZ_SKIP_MIGRATE:+x}" ]; then
     kustosz-manager migrate --noinput
 fi
 
+# create cache table by default
+if [ -z "${KUSTOSZ_SKIP_CREATECACHETABLE:+x}" ]; then
+    kustosz-manager createcachetable
+fi
+
 # run collectstatic by default
 if [ -z "${KUSTOSZ_SKIP_COLLECTSTATIC:+x}" ]; then
-    kustosz-manager collectstatic
+    kustosz-manager collectstatic --noinput
 fi
 
 # run celery and redis by default
 if [ -z "${KUSTOSZ_ORCHESTRATED:+x}" ]; then
     supervisord -c $HOME/supervisor/supervisord.conf
     supervisorctl -c $HOME/supervisor/supervisord.conf start redis-server
+fi
+
+if [ -z "${@:+x}" ]; then
+    exec gunicorn kustosz.wsgi --bind 0.0.0.0:8000
 fi
 
 exec "$@"
