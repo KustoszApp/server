@@ -60,8 +60,8 @@ RUN mkdir -p $APP_HOME/mediafiles
 
 COPY --from=frontendbuilder /opt/kustosz-frontend-build/dist/ $APP_HOME/staticfiles/
 COPY --from=backendbuilder /opt/kustosz-build/dist/kustosz*.whl $HOME/wheels/
-RUN pip install --no-cache --upgrade pip
-RUN pip install --no-cache $HOME/wheels/* redis whitenoise gunicorn
+RUN pip install --no-cache --upgrade pip wheel
+RUN pip install --no-cache --find-links $HOME/wheels/ kustosz[container]
 
 COPY ./settings.yaml $VIRTUAL_ENV/lib/python3.9/site-packages/settings.yaml
 
