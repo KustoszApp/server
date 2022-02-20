@@ -1,3 +1,6 @@
+# vim: fdm=marker
+
+# {{{ base image
 FROM python:3.9-bullseye as base
 
 RUN apt-get update && \
@@ -7,9 +10,13 @@ RUN apt-get update && \
         jq \
         nodejs && \
     rm -rf /var/lib/apt/lists/*
-# FIXME: we pull node to use kustosz-node-readability. but we never install that
 
-# build frontend
+RUN adduser --home /opt/kustosz kustosz && adduser kustosz kustosz
+
+# FIXME: we pull node to use kustosz-node-readability. but we never install that
+# }}}
+
+# {{{ build frontend
 FROM base as frontendbuilder
 
 RUN apt-get update && \
@@ -21,32 +28,39 @@ WORKDIR $BUILDDIR
 # FIXME: we should build from latest / specified tag
 RUN npm install
 RUN npm run build
+# }}}
 
-# build backend
+# {{{ build backend
 FROM base as backendbuilder
 
+USER kustosz
+
 ENV SETUPTOOLS_USE_DISTUTILS="stdlib"
-ENV BUILDDIR=/opt/kustosz-build/
+ENV BUILDDIR=/opt/kustosz/
+ENV PATH="/opt/kustosz/.local/bin:$PATH"
 
 WORKDIR $BUILDDIR
 
 RUN pip install --no-cache --upgrade pip
 RUN pip install --no-cache poetry==1.1.12
 
+COPY pyproject.toml poetry.lock $BUILDDIR
+RUN poetry config virtualenvs.in-project true && \
+    poetry install --no-interaction --no-dev --no-root -E container
+
 COPY . $BUILDDIR
 RUN poetry build
+# }}}
 
-# build production image
+# {{{ build production image
 FROM base as release
-
-RUN adduser --home /opt/kustosz kustosz && adduser kustosz kustosz
 
 USER kustosz
 
 ENV SETUPTOOLS_USE_DISTUTILS="stdlib"
 ENV HOME=/opt/kustosz/
 ENV APP_HOME="$HOME/web"
-ENV VIRTUAL_ENV="$HOME/virtualenv/"
+ENV VIRTUAL_ENV="$HOME/.venv/"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV ENV_FOR_DYNACONF="production"
 ENV DJANGO_SETTINGS_MODULE=kustosz.settings
@@ -59,7 +73,8 @@ RUN mkdir -p $APP_HOME/staticfiles
 RUN mkdir -p $APP_HOME/mediafiles
 
 COPY --from=frontendbuilder /opt/kustosz-frontend-build/dist/ $APP_HOME/staticfiles/
-COPY --from=backendbuilder /opt/kustosz-build/dist/kustosz*.whl $HOME/wheels/
+COPY --from=backendbuilder /opt/kustosz/.venv $VIRTUAL_ENV
+COPY --from=backendbuilder /opt/kustosz/dist/kustosz*.whl $HOME/wheels/
 RUN pip install --no-cache --upgrade pip wheel
 RUN pip install --no-cache --find-links $HOME/wheels/ kustosz[container]
 
@@ -74,3 +89,4 @@ WORKDIR $HOME
 EXPOSE 8000
 
 ENTRYPOINT [ "/opt/kustosz/entrypoint.sh" ]
+# }}}
