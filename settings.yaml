@@ -143,3 +143,4 @@ production:
   STATIC_ROOT: '/opt/kustosz/web/static/'
   STATICFILES_DIRS:
     - '/opt/kustosz/web/staticfiles/'
+  DATABASES__default__NAME: '/opt/kustosz/web/db/db.sqlite3'
