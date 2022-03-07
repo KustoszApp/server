@@ -66,6 +66,7 @@ ENV ENV_FOR_DYNACONF="production"
 ENV DJANGO_SETTINGS_MODULE=kustosz.settings
 
 RUN python -m venv $VIRTUAL_ENV
+RUN mkdir -p $HOME/.config/kustosz
 RUN mkdir -p $HOME/supervisor/logs
 RUN mkdir -p $HOME/supervisor/run
 RUN mkdir -p $APP_HOME/db
@@ -89,6 +90,7 @@ COPY ./containers/entrypoint.prod.sh $HOME/entrypoint.sh
 WORKDIR $HOME
 EXPOSE 8000
 VOLUME $APP_HOME/db
+VOLUME $HOME/.config/kustosz
 
 ENTRYPOINT [ "/opt/kustosz/entrypoint.sh" ]
 # }}}
