@@ -1,0 +1,147 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kustosz
+  labels:
+    app: kustosz
+spec:
+  containers:
+  - name: postgres
+    image: docker.io/library/postgres:14-bullseye
+    volumeMounts:
+    - mountPath: /var/lib/postgresql/data/
+      name: postgres_data-pvc
+    ports:
+      - containerPort: 5432
+    env:
+      - name: POSTGRES_USER
+        value: postgres
+      - name: POSTGRES_DB
+        value: kustosz
+      - name: POSTGRES_PASSWORD
+        value: postgreskustoszpassword
+    tty: true
+  - name: redis
+    image: docker.io/library/redis:6-bullseye
+    volumeMounts:
+    - mountPath: /data
+      name: redis_data-pvc
+    ports:
+      - containerPort: 6379
+    tty: true
+  - name: kustosz_api
+    image: kustosz
+    volumeMounts:
+      - mountPath: /opt/kustosz/.config/kustosz/
+        name: kustosz_config-pvc
+    ports:
+      - containerPort: 8000
+        hostPort: 80
+    env:
+      - name: DYNACONF_DATABASES__default__ENGINE
+        value: "django.db.backends.postgresql_psycopg2"
+      - name: DYNACONF_DATABASES__default__NAME
+        value: "kustosz"
+      - name: DYNACONF_DATABASES__default__USER
+        value: "postgres"
+      - name: DYNACONF_DATABASES__default__PASSWORD
+        value: "postgreskustoszpassword"
+      - name: DYNACONF_DATABASES__default__HOST
+        value: "localhost"
+      - name: DYNACONF_DATABASES__default__PORT
+        value: "5432"
+      - name: DYNACONF_CELERY_BROKER_URL
+        value: "redis://localhost:6379/"
+      - name: KUSTOSZ_ORCHESTRATED
+        value: "1"
+  - name: celery_worker
+    image: kustosz
+    command:
+      - "wait-for-it"
+      - "localhost:8000"
+      - "-t"
+      - "180"
+      - "--"
+      - "celery"
+      - "-A"
+      - "kustosz"
+      - "worker"
+      - "-l"
+      - "INFO"
+      - "-Q"
+      - "fetch_channels_content,celery"
+    env:
+      - name: DYNACONF_DATABASES__default__ENGINE
+        value: "django.db.backends.postgresql_psycopg2"
+      - name: DYNACONF_DATABASES__default__NAME
+        value: "kustosz"
+      - name: DYNACONF_DATABASES__default__USER
+        value: "postgres"
+      - name: DYNACONF_DATABASES__default__PASSWORD
+        value: "postgreskustoszpassword"
+      - name: DYNACONF_DATABASES__default__HOST
+        value: "localhost"
+      - name: DYNACONF_DATABASES__default__PORT
+        value: "5432"
+      - name: DYNACONF_CELERY_BROKER_URL
+        value: "redis://localhost:6379/"
+      - name: KUSTOSZ_SKIP_MIGRATE
+        value: "1"
+      - name: KUSTOSZ_SKIP_CREATECACHETABLE
+        value: "1"
+      - name: KUSTOSZ_SKIP_COLLECTSTATIC
+        value: "1"
+      - name: KUSTOSZ_ORCHESTRATED
+        value: "1"
+  - name: celery_beat
+    image: kustosz
+    command:
+      - "wait-for-it"
+      - "localhost:8000"
+      - "-t"
+      - "180"
+      - "--"
+      - "celery"
+      - "-A"
+      - "kustosz"
+      - "beat"
+      - "-l"
+      - "INFO"
+    env:
+      - name: DYNACONF_DATABASES__default__ENGINE
+        value: "django.db.backends.postgresql_psycopg2"
+      - name: DYNACONF_DATABASES__default__NAME
+        value: "kustosz"
+      - name: DYNACONF_DATABASES__default__USER
+        value: "postgres"
+      - name: DYNACONF_DATABASES__default__PASSWORD
+        value: "postgreskustoszpassword"
+      - name: DYNACONF_DATABASES__default__HOST
+        value: "localhost"
+      - name: DYNACONF_DATABASES__default__PORT
+        value: "5432"
+      - name: DYNACONF_CELERY_BROKER_URL
+        value: "redis://localhost:6379/"
+      - name: KUSTOSZ_SKIP_MIGRATE
+        value: "1"
+      - name: KUSTOSZ_SKIP_CREATECACHETABLE
+        value: "1"
+      - name: KUSTOSZ_SKIP_COLLECTSTATIC
+        value: "1"
+      - name: KUSTOSZ_ORCHESTRATED
+        value: "1"
+  dnsConfig:
+    nameservers:
+    - 10.45.248.15
+    - 1.1.1.1
+  restartPolicy: OnFailure
+  volumes:
+  - name: postgres_data-pvc
+    persistentVolumeClaim:
+      claimName: postgres_data
+  - name: redis_data-pvc
+    persistentVolumeClaim:
+      claimName: redis_data
+  - name: kustosz_config-pvc
+    persistentVolumeClaim:
+      claimName: kustosz_config

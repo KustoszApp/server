@@ -31,6 +31,7 @@ services:
       DYNACONF_DATABASES__default__HOST: "postgres"
       DYNACONF_DATABASES__default__PORT: "5432"
       DYNACONF_CELERY_BROKER_URL: "redis://redis:6379/"
+      KUSTOSZ_ORCHESTRATED: "1"
     depends_on:
       - postgres
       - redis
