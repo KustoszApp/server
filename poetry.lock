@@ -1,13 +1,13 @@
 [[package]]
 name = "amqp"
-version = "5.0.9"
+version = "5.1.0"
 description = "Low-level AMQP client for Python (fork of amqplib)."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-vine = "5.0.0"
+vine = ">=5.0.0"
 
 [[package]]
 name = "appdirs"
@@ -375,14 +375,14 @@ python-crontab = ">=2.3.4"
 
 [[package]]
 name = "django-celery-results"
-version = "2.2.0"
+version = "2.3.0"
 description = "Celery result backends for Django."
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-celery = ">=5.0,<6.0"
+celery = ">=5.2.3,<6.0"
 
 [[package]]
 name = "django-cors-headers"
@@ -497,7 +497,7 @@ yaml = ["ruamel.yaml"]
 
 [[package]]
 name = "executing"
-version = "0.8.2"
+version = "0.8.3"
 description = "Get the currently executing AST node of a frame, and other information"
 category = "dev"
 optional = false
@@ -568,11 +568,11 @@ pyflakes = ">=2.4.0,<2.5.0"
 
 [[package]]
 name = "freezegun"
-version = "1.1.0"
+version = "1.2.0"
 description = "Let your Python tests travel through time"
 category = "dev"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.6"
 
 [package.dependencies]
 python-dateutil = ">=2.7"
@@ -604,7 +604,7 @@ idna = ">=2.5"
 
 [[package]]
 name = "identify"
-version = "2.4.10"
+version = "2.4.11"
 description = "File identification library for Python"
 category = "dev"
 optional = false
@@ -652,7 +652,7 @@ toml = {version = ">=0.10.2", markers = "python_version > \"3.6\""}
 
 [[package]]
 name = "ipython"
-version = "8.0.1"
+version = "8.1.1"
 description = "IPython: Productive Interactive Computing"
 category = "dev"
 optional = false
@@ -661,7 +661,6 @@ python-versions = ">=3.8"
 [package.dependencies]
 appnope = {version = "*", markers = "sys_platform == \"darwin\""}
 backcall = "*"
-black = "*"
 colorama = {version = "*", markers = "sys_platform == \"win32\""}
 decorator = "*"
 jedi = ">=0.16"
@@ -669,21 +668,22 @@ matplotlib-inline = "*"
 pexpect = {version = ">4.3", markers = "sys_platform != \"win32\""}
 pickleshare = "*"
 prompt-toolkit = ">=2.0.0,<3.0.0 || >3.0.0,<3.0.1 || >3.0.1,<3.1.0"
-pygments = "*"
+pygments = ">=2.4.0"
 stack-data = "*"
 traitlets = ">=5"
 
 [package.extras]
-all = ["Sphinx (>=1.3)", "curio", "ipykernel", "ipyparallel", "ipywidgets", "matplotlib (!=3.2.0)", "nbconvert", "nbformat", "notebook", "numpy (>=1.19)", "pandas", "pygments", "pytest", "pytest-asyncio", "qtconsole", "testpath", "trio"]
+all = ["black", "Sphinx (>=1.3)", "ipykernel", "nbconvert", "nbformat", "ipywidgets", "notebook", "ipyparallel", "qtconsole", "curio", "matplotlib (!=3.2.0)", "numpy (>=1.19)", "pandas", "pytest", "testpath", "trio", "pytest-asyncio"]
+black = ["black"]
 doc = ["Sphinx (>=1.3)"]
 kernel = ["ipykernel"]
 nbconvert = ["nbconvert"]
 nbformat = ["nbformat"]
-notebook = ["notebook", "ipywidgets"]
+notebook = ["ipywidgets", "notebook"]
 parallel = ["ipyparallel"]
 qtconsole = ["qtconsole"]
-test = ["pytest", "pytest-asyncio", "testpath", "pygments"]
-test_extra = ["pytest", "testpath", "curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.19)", "pandas", "pygments", "trio"]
+test = ["pytest", "pytest-asyncio", "testpath"]
+test_extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.19)", "pandas", "pytest", "testpath", "trio"]
 
 [[package]]
 name = "iso8601"
@@ -710,7 +710,7 @@ testing = ["Django (<3.1)", "colorama", "docopt", "pytest (<7.0.0)"]
 
 [[package]]
 name = "kombu"
-version = "5.2.3"
+version = "5.2.4"
 description = "Messaging library for Python."
 category = "main"
 optional = false
@@ -911,6 +911,14 @@ python-versions = ">=3.6.2"
 
 [package.dependencies]
 wcwidth = "*"
+
+[[package]]
+name = "psycopg2"
+version = "2.9.3"
+description = "psycopg2 - Python-PostgreSQL Database Adapter"
+category = "main"
+optional = true
+python-versions = ">=3.6"
 
 [[package]]
 name = "ptyprocess"
@@ -1154,7 +1162,7 @@ use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
 name = "requests-cache"
-version = "0.9.2"
+version = "0.9.3"
 description = "A transparent persistent cache for the requests library"
 category = "main"
 optional = false
@@ -1335,7 +1343,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "virtualenv"
-version = "20.13.1"
+version = "20.13.3"
 description = "Virtual Python Environment builder"
 category = "dev"
 optional = false
@@ -1379,18 +1387,18 @@ optional = true
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
 [extras]
-container = ["gunicorn", "redis", "whitenoise"]
+container = ["gunicorn", "psycopg2", "redis", "whitenoise"]
 redis = ["redis"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b259b4530ab7869c70ccc73113c2e0f1451e9cdcc975757f4f0f519bfb61d297"
+content-hash = "e5683f9ab9081086dce41528c0ce2ce25401a691004e2dce2a3a0d7fffe7cf68"
 
 [metadata.files]
 amqp = [
-    {file = "amqp-5.0.9-py3-none-any.whl", hash = "sha256:9cd81f7b023fc04bbb108718fbac674f06901b77bfcdce85b10e2a5d0ee91be5"},
-    {file = "amqp-5.0.9.tar.gz", hash = "sha256:1e5f707424e544078ca196e72ae6a14887ce74e02bd126be54b7c03c971bef18"},
+    {file = "amqp-5.1.0-py3-none-any.whl", hash = "sha256:a575f4fa659a2290dc369b000cff5fea5c6be05fe3f2d5e511bcf56c7881c3ef"},
+    {file = "amqp-5.1.0.tar.gz", hash = "sha256:446b3e8a8ebc2ceafd424ffcaab1c353830d48161256578ed7a65448e601ebed"},
 ]
 appdirs = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
@@ -1530,8 +1538,8 @@ django-celery-beat = [
     {file = "django_celery_beat-2.2.1-py2.py3-none-any.whl", hash = "sha256:ab43049634fd18dc037927d7c2c7d5f67f95283a20ebbda55f42f8606412e66c"},
 ]
 django-celery-results = [
-    {file = "django_celery_results-2.2.0-py2.py3-none-any.whl", hash = "sha256:d5f83fad9091e52cd6dbb3ca80632153ad14b6cdac4d73258e040f92717237cb"},
-    {file = "django_celery_results-2.2.0.tar.gz", hash = "sha256:cc0285090a306f97f1d4b7929ed98af0475bf6db2568976b3387de4fbe812edc"},
+    {file = "django_celery_results-2.3.0-py2.py3-none-any.whl", hash = "sha256:37b8734ad0038cdeabe9efb09721dfdbe1ff7bf6e1d81ff3e10a1eb23a2b321f"},
+    {file = "django_celery_results-2.3.0.tar.gz", hash = "sha256:203cf7321081d09be91738aff715c97bcc769db8c727621049e2786118059dac"},
 ]
 django-cors-headers = [
     {file = "django-cors-headers-3.11.0.tar.gz", hash = "sha256:eb98389bf7a2afc5d374806af4a9149697e3a6955b5a2dc2bf049f7d33647456"},
@@ -1569,8 +1577,8 @@ dynaconf = [
     {file = "dynaconf-3.1.7.tar.gz", hash = "sha256:e9d80b46ba4d9372f2f40c812594c963f74178140c0b596e57f2881001fc4d35"},
 ]
 executing = [
-    {file = "executing-0.8.2-py2.py3-none-any.whl", hash = "sha256:32fc6077b103bd19e6494a72682d66d5763cf20a106d5aa7c5ccbea4e47b0df7"},
-    {file = "executing-0.8.2.tar.gz", hash = "sha256:c23bf42e9a7b9b212f185b1b2c3c91feb895963378887bb10e64a2e612ec0023"},
+    {file = "executing-0.8.3-py2.py3-none-any.whl", hash = "sha256:d1eef132db1b83649a3905ca6dd8897f71ac6f8cac79a7e58a1a09cf137546c9"},
+    {file = "executing-0.8.3.tar.gz", hash = "sha256:c6554e21c6b060590a6d3be4b82fb78f8f0194d809de5ea7df1c093763311501"},
 ]
 factory-boy = [
     {file = "factory_boy-3.2.1-py2.py3-none-any.whl", hash = "sha256:eb02a7dd1b577ef606b75a253b9818e6f9eaf996d94449c9d5ebb124f90dc795"},
@@ -1593,8 +1601,8 @@ flake8 = [
     {file = "flake8-4.0.1.tar.gz", hash = "sha256:806e034dda44114815e23c16ef92f95c91e4c71100ff52813adf7132a6ad870d"},
 ]
 freezegun = [
-    {file = "freezegun-1.1.0-py2.py3-none-any.whl", hash = "sha256:2ae695f7eb96c62529f03a038461afe3c692db3465e215355e1bb4b0ab408712"},
-    {file = "freezegun-1.1.0.tar.gz", hash = "sha256:177f9dd59861d871e27a484c3332f35a6e3f5d14626f2bf91be37891f18927f3"},
+    {file = "freezegun-1.2.0-py3-none-any.whl", hash = "sha256:93e90676da387a241a7c2ae7ae68af7b95bfe80e952d0bbf3e088342de90a38d"},
+    {file = "freezegun-1.2.0.tar.gz", hash = "sha256:e19563d0b05dcab6dc8ad21c05269004a96998ce2b6b1b8131f1297ae20dd038"},
 ]
 gunicorn = [
     {file = "gunicorn-20.1.0-py3-none-any.whl", hash = "sha256:9dcc4547dbb1cb284accfb15ab5667a0e5d1881cc443e0677b4882a4067a807e"},
@@ -1605,8 +1613,8 @@ hyperlink = [
     {file = "hyperlink-21.0.0.tar.gz", hash = "sha256:427af957daa58bc909471c6c40f74c5450fa123dd093fc53efd2e91d2705a56b"},
 ]
 identify = [
-    {file = "identify-2.4.10-py2.py3-none-any.whl", hash = "sha256:7d10baf6ba6f1912a0a49f4c1c2c49fa1718765c3a37d72d13b07779567c5b85"},
-    {file = "identify-2.4.10.tar.gz", hash = "sha256:e12b2aea3cf108de73ae055c2260783bde6601de09718f6768cf8e9f6f6322a6"},
+    {file = "identify-2.4.11-py2.py3-none-any.whl", hash = "sha256:fd906823ed1db23c7a48f9b176a1d71cb8abede1e21ebe614bac7bdd688d9213"},
+    {file = "identify-2.4.11.tar.gz", hash = "sha256:2986942d3974c8f2e5019a190523b0b0e2a07cb8e89bf236727fb4b26f27f8fd"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
@@ -1624,8 +1632,8 @@ ipdb = [
     {file = "ipdb-0.13.9.tar.gz", hash = "sha256:951bd9a64731c444fd907a5ce268543020086a697f6be08f7cc2c9a752a278c5"},
 ]
 ipython = [
-    {file = "ipython-8.0.1-py3-none-any.whl", hash = "sha256:c503a0dd6ccac9c8c260b211f2dd4479c042b49636b097cc9a0d55fe62dff64c"},
-    {file = "ipython-8.0.1.tar.gz", hash = "sha256:ab564d4521ea8ceaac26c3a2c6e5ddbca15c8848fd5a5cc325f960da88d42974"},
+    {file = "ipython-8.1.1-py3-none-any.whl", hash = "sha256:6f56bfaeaa3247aa3b9cd3b8cbab3a9c0abf7428392f97b21902d12b2f42a381"},
+    {file = "ipython-8.1.1.tar.gz", hash = "sha256:8138762243c9b3a3ffcf70b37151a2a35c23d3a29f9743878c33624f4207be3d"},
 ]
 iso8601 = [
     {file = "iso8601-1.0.2-py3-none-any.whl", hash = "sha256:d7bc01b1c2a43b259570bb307f057abc578786ea734ba2b87b836c5efc5bd443"},
@@ -1636,8 +1644,8 @@ jedi = [
     {file = "jedi-0.18.1.tar.gz", hash = "sha256:74137626a64a99c8eb6ae5832d99b3bdd7d29a3850fe2aa80a4126b2a7d949ab"},
 ]
 kombu = [
-    {file = "kombu-5.2.3-py3-none-any.whl", hash = "sha256:eeaeb8024f3a5cfc71c9250e45cddb8493f269d74ada2f74909a93c59c4b4179"},
-    {file = "kombu-5.2.3.tar.gz", hash = "sha256:81a90c1de97e08d3db37dbf163eaaf667445e1068c98bfd89f051a40e9f6dbbd"},
+    {file = "kombu-5.2.4-py3-none-any.whl", hash = "sha256:8b213b24293d3417bcf0d2f5537b7f756079e3ea232a8386dcc89a59fd2361a4"},
+    {file = "kombu-5.2.4.tar.gz", hash = "sha256:37cee3ee725f94ea8bb173eaab7c1760203ea53bbebae226328600f9d2799610"},
 ]
 listparser = [
     {file = "listparser-0.18.tar.bz2", hash = "sha256:e5081e01eda572da28c385fe203e614b2ca70039eb88715568ade660274dd4e7"},
@@ -1763,6 +1771,19 @@ prompt-toolkit = [
     {file = "prompt_toolkit-3.0.28-py3-none-any.whl", hash = "sha256:30129d870dcb0b3b6a53efdc9d0a83ea96162ffd28ffe077e94215b233dc670c"},
     {file = "prompt_toolkit-3.0.28.tar.gz", hash = "sha256:9f1cd16b1e86c2968f2519d7fb31dd9d669916f515612c269d14e9ed52b51650"},
 ]
+psycopg2 = [
+    {file = "psycopg2-2.9.3-cp310-cp310-win32.whl", hash = "sha256:083707a696e5e1c330af2508d8fab36f9700b26621ccbcb538abe22e15485362"},
+    {file = "psycopg2-2.9.3-cp310-cp310-win_amd64.whl", hash = "sha256:d3ca6421b942f60c008f81a3541e8faf6865a28d5a9b48544b0ee4f40cac7fca"},
+    {file = "psycopg2-2.9.3-cp36-cp36m-win32.whl", hash = "sha256:9572e08b50aed176ef6d66f15a21d823bb6f6d23152d35e8451d7d2d18fdac56"},
+    {file = "psycopg2-2.9.3-cp36-cp36m-win_amd64.whl", hash = "sha256:a81e3866f99382dfe8c15a151f1ca5fde5815fde879348fe5a9884a7c092a305"},
+    {file = "psycopg2-2.9.3-cp37-cp37m-win32.whl", hash = "sha256:cb10d44e6694d763fa1078a26f7f6137d69f555a78ec85dc2ef716c37447e4b2"},
+    {file = "psycopg2-2.9.3-cp37-cp37m-win_amd64.whl", hash = "sha256:4295093a6ae3434d33ec6baab4ca5512a5082cc43c0505293087b8a46d108461"},
+    {file = "psycopg2-2.9.3-cp38-cp38-win32.whl", hash = "sha256:34b33e0162cfcaad151f249c2649fd1030010c16f4bbc40a604c1cb77173dcf7"},
+    {file = "psycopg2-2.9.3-cp38-cp38-win_amd64.whl", hash = "sha256:0762c27d018edbcb2d34d51596e4346c983bd27c330218c56c4dc25ef7e819bf"},
+    {file = "psycopg2-2.9.3-cp39-cp39-win32.whl", hash = "sha256:8cf3878353cc04b053822896bc4922b194792df9df2f1ad8da01fb3043602126"},
+    {file = "psycopg2-2.9.3-cp39-cp39-win_amd64.whl", hash = "sha256:06f32425949bd5fe8f625c49f17ebb9784e1e4fe928b7cce72edc36fb68e4c0c"},
+    {file = "psycopg2-2.9.3.tar.gz", hash = "sha256:8e841d1bf3434da985cc5ef13e6f75c8981ced601fd70cc6bf33351b91562981"},
+]
 ptyprocess = [
     {file = "ptyprocess-0.7.0-py2.py3-none-any.whl", hash = "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35"},
     {file = "ptyprocess-0.7.0.tar.gz", hash = "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"},
@@ -1870,8 +1891,8 @@ requests = [
     {file = "requests-2.27.1.tar.gz", hash = "sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61"},
 ]
 requests-cache = [
-    {file = "requests-cache-0.9.2.tar.gz", hash = "sha256:71c03bfba2e2e30a8484fe6ac7a97e4ad3fb569bc8f1f554fe01e27c51b47810"},
-    {file = "requests_cache-0.9.2-py3-none-any.whl", hash = "sha256:318d0f228f785af02d159e973fdf7d06568f795b8099b01b3d066430a3194226"},
+    {file = "requests-cache-0.9.3.tar.gz", hash = "sha256:b32f8afba2439e1b3e12cba511c8f579271eff827f063210d62f9efa5bed6564"},
+    {file = "requests_cache-0.9.3-py3-none-any.whl", hash = "sha256:d8b32405b2725906aa09810f4796e54cc03029de269381b404c426bae927bada"},
 ]
 "ruamel.yaml" = [
     {file = "ruamel.yaml-0.17.21-py3-none-any.whl", hash = "sha256:742b35d3d665023981bd6d16b3d24248ce5df75fdb4e2924e93a05c1f8b61ca7"},
@@ -1959,8 +1980,8 @@ vine = [
     {file = "vine-5.0.0.tar.gz", hash = "sha256:7d3b1624a953da82ef63462013bbd271d3eb75751489f9807598e8f340bd637e"},
 ]
 virtualenv = [
-    {file = "virtualenv-20.13.1-py2.py3-none-any.whl", hash = "sha256:45e1d053cad4cd453181ae877c4ffc053546ae99e7dd049b9ff1d9be7491abf7"},
-    {file = "virtualenv-20.13.1.tar.gz", hash = "sha256:e0621bcbf4160e4e1030f05065c8834b4e93f4fcc223255db2a823440aca9c14"},
+    {file = "virtualenv-20.13.3-py2.py3-none-any.whl", hash = "sha256:dd448d1ded9f14d1a4bfa6bfc0c5b96ae3be3f2d6c6c159b23ddcfd701baa021"},
+    {file = "virtualenv-20.13.3.tar.gz", hash = "sha256:e9dd1a1359d70137559034c0f5433b34caf504af2dc756367be86a5a32967134"},
 ]
 wcwidth = [
     {file = "wcwidth-0.2.5-py2.py3-none-any.whl", hash = "sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784"},
