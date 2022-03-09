@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-bullseye
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - "5432"
+    networks:
+      - kustosz
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: kustosz
+      POSTGRES_PASSWORD: postgreskustoszpassword
+
+  redis:
+    image: redis:6-bullseye
+    expose:
+      - "6379"
+    networks:
+      - kustosz
+
+  kustosz_api:
+    image: kustosz
+    environment:
+      DYNACONF_DATABASES__default__ENGINE: "django.db.backends.postgresql_psycopg2"
+      DYNACONF_DATABASES__default__NAME: "kustosz"
+      DYNACONF_DATABASES__default__USER: "postgres"
+      DYNACONF_DATABASES__default__PASSWORD: "postgreskustoszpassword"
+      DYNACONF_DATABASES__default__HOST: "postgres"
+      DYNACONF_DATABASES__default__PORT: "5432"
+      DYNACONF_CELERY_BROKER_URL: "redis://redis:6379/"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - kustosz
+    ports:
+      - "80:8000"
+
+  celery_worker:
+    image: kustosz
+    command: wait-for-it kustosz_api:8000 -t 180 -- celery -A kustosz worker -l INFO -Q fetch_channels_content,celery
+    environment:
+      DYNACONF_DATABASES__default__ENGINE: "django.db.backends.postgresql_psycopg2"
+      DYNACONF_DATABASES__default__NAME: "kustosz"
+      DYNACONF_DATABASES__default__USER: "postgres"
+      DYNACONF_DATABASES__default__PASSWORD: "postgreskustoszpassword"
+      DYNACONF_DATABASES__default__HOST: "postgres"
+      DYNACONF_DATABASES__default__PORT: "5432"
+      DYNACONF_CELERY_BROKER_URL: "redis://redis:6379/"
+      KUSTOSZ_SKIP_MIGRATE: "1"
+      KUSTOSZ_SKIP_CREATECACHETABLE: "1"
+      KUSTOSZ_SKIP_COLLECTSTATIC: "1"
+      KUSTOSZ_ORCHESTRATED: "1"
+    networks:
+      - kustosz
+    depends_on:
+      - kustosz_api
+      - redis
+
+  celery_beat:
+    image: kustosz
+    command: wait-for-it kustosz_api:8000 -t 180 -- celery -A kustosz beat -l INFO
+    environment:
+      DYNACONF_DATABASES__default__ENGINE: "django.db.backends.postgresql_psycopg2"
+      DYNACONF_DATABASES__default__NAME: "kustosz"
+      DYNACONF_DATABASES__default__USER: "postgres"
+      DYNACONF_DATABASES__default__PASSWORD: "postgreskustoszpassword"
+      DYNACONF_DATABASES__default__HOST: "postgres"
+      DYNACONF_DATABASES__default__PORT: "5432"
+      DYNACONF_CELERY_BROKER_URL: "redis://redis:6379/"
+      KUSTOSZ_SKIP_MIGRATE: "1"
+      KUSTOSZ_SKIP_CREATECACHETABLE: "1"
+      KUSTOSZ_SKIP_COLLECTSTATIC: "1"
+      KUSTOSZ_ORCHESTRATED: "1"
+    networks:
+      - kustosz
+    depends_on:
+      - celery_worker
+      - redis
+
+volumes:
+  postgres_data:
+
+networks:
+  kustosz:

@@ -9,13 +9,9 @@ DJANGODB=$(mktemp --suffix=.json)
 dynaconf list -k DATABASES__default --output-flat -o "$DJANGODB" > /dev/null
 
 if ! jq '.DATABASES__default.ENGINE' "$DJANGODB" |grep -q sqlite3 ; then
-    DB_HOST="$(jq '.DATABASES__default.HOST' "$DJANGODB")"
-    DB_PORT="$(jq '.DATABASES__default.PORT' "$DJANGODB")"
-    echo "Waiting for db"
-    while ! nc -z "$DB_HOST" "$DB_PORT"; do
-        sleep 0.1
-    done
-    echo "db started"
+    DB_HOST="$(jq -r '.DATABASES__default.HOST' "$DJANGODB")"
+    DB_PORT="$(jq -r '.DATABASES__default.PORT' "$DJANGODB")"
+    wait-for-it "$DB_HOST":"$DB_PORT" -t 120
     unset DB_HOST
     unset DB_PORT
 fi

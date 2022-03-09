@@ -5,6 +5,8 @@ FROM python:3.9-bullseye as base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        netcat-openbsd \
+        wait-for-it \
         supervisor \
         redis \
         jq \
