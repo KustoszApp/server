@@ -148,3 +148,4 @@ production:
   STATICFILES_DIRS:
     - '/opt/kustosz/web/staticfiles/'
   DATABASES__default__NAME: '/opt/kustosz/web/db/db.sqlite3'
+  KUSTOSZ_READABILITY_NODE_ENABLED: True

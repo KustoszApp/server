@@ -97,6 +97,7 @@ GitHub.sublime-settings
 .secrets.*
 settings.local.yaml
 
+.frontend
 cache/
 etc/supervisor/logs/
 etc/supervisor/run/

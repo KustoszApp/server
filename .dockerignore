@@ -35,6 +35,7 @@ wheels/
 *.egg
 *.manifest
 *.spec
+node_modules
 
 # Installer logs
 pip-log.txt
