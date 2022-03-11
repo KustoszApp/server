@@ -64,12 +64,17 @@ jobs:
           cd .frontend
           export previousTag=$(git tag --sort=-creatordate | head -n 1)
           git checkout "$previousTag"
+      - name: Install qemu dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user-static
       - name: Build container image
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
           image: quay.io/kustosz/app
           tags: "latest ${{ github.ref_name }}"
+          platforms: linux/amd64, linux/arm64
           containerfiles: |
             ./Dockerfile
       - name: Push To quay.io
