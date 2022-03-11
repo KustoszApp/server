@@ -20,7 +20,7 @@ jobs:
   publish-pypi:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up default Python
         uses: actions/setup-python@v2
         with:
@@ -36,7 +36,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Prepare GitHub release body
@@ -49,3 +49,34 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           body_path: "${{ env.CHANGELOG_PATH }}"
+  publish-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Fetch frontend repository
+        uses: actions/checkout@v3
+        with:
+          repository: "KustoszApp/web-ui"
+          path: ".frontend"
+          fetch-depth: 0
+      - name: Checkout latest frontend tag
+        run: |
+          cd .frontend
+          export previousTag=$(git tag --sort=-creatordate | head -n 1)
+          git checkout "$previousTag"
+      - name: Build container image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: quay.io/kustosz/app
+          tags: "latest ${{ github.ref_name }}"
+          containerfiles: |
+            ./Dockerfile
+      - name: Push To quay.io
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: kustosz/app
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: quay.io/
+          username: ${{ secrets.QUAYIO_USERNAME }}
+          password: ${{ secrets.QUAYIO_PASSWORD }}
