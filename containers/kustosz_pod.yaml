@@ -30,7 +30,7 @@ spec:
       - containerPort: 6379
     tty: true
   - name: kustosz_api
-    image: kustosz
+    image: quay.io/kustosz/app
     volumeMounts:
       - mountPath: /opt/kustosz/.config/kustosz/
         name: kustosz_config-pvc
@@ -55,7 +55,7 @@ spec:
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
   - name: celery_worker
-    image: kustosz
+    image: quay.io/kustosz/app
     command:
       - "wait-for-it"
       - "localhost:8000"
@@ -94,7 +94,7 @@ spec:
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
   - name: celery_beat
-    image: kustosz
+    image: quay.io/kustosz/app
     command:
       - "wait-for-it"
       - "localhost:8000"
