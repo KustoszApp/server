@@ -1,3 +1,5 @@
+[![Kustosz](./kustosz_logo.svg)](https://docs.kustosz.org)
+
 # Kustosz - backend server repository
 
 Focus on the worthwhile content with Kustosz, open source self-hosted web application.
