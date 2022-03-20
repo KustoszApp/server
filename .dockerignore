@@ -35,7 +35,7 @@ wheels/
 *.egg
 *.manifest
 *.spec
-node_modules
+.frontend/node_modules/
 
 # Installer logs
 pip-log.txt
@@ -87,3 +87,4 @@ GitHub.sublime-settings
 cache/
 etc/supervisor/logs/
 etc/supervisor/run/
+db.sqlite3
