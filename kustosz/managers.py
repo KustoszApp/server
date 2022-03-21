@@ -15,6 +15,7 @@ from django.db.models import Case
 from django.db.models import Count
 from django.db.models import Max
 from django.db.models import Q
+from django.db.models import TextField
 from django.db.models import When
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
@@ -63,12 +64,11 @@ class ChannelManager(models.Manager):
                         "entries__updated_time_upstream",
                     )
                 ),
-                displayed_title_sort=Coalesce(
-                    Case(
-                        When(title="", then=None),
-                        default="title",
-                    ),
-                    "title_upstream",
+                displayed_title_sort=Case(
+                    When(Q(title="") & Q(title_upstream=""), then="url"),
+                    When(title="", then="title_upstream"),
+                    default="title",
+                    output_field=TextField(),
                 ),
             )
         )

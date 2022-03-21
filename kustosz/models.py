@@ -89,8 +89,10 @@ class Channel(models.Model):
     def displayed_title(self):
         if self.title:
             return self.title
-        else:
+        elif self.title_upstream:
             return self.title_upstream
+        else:
+            return self.url
 
     @property
     def is_stale(self):

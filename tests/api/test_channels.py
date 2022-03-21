@@ -8,6 +8,25 @@ from kustosz.enums import TaskNamesEnum
 from kustosz.models import Channel
 
 
+def test_channels_order(db, faker, authenticated_api_client):
+    no_titles = ChannelFactory.create(title="", title_upstream="")
+    title_upstream = ChannelFactory.create(title="", title_upstream="e")
+    title = ChannelFactory.create(title="a")
+    url = reverse("channels_list")
+
+    response = authenticated_api_client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    response_data = response.data["results"]
+    assert len(response_data) == 3
+    assert response_data[0]["id"] == title.pk
+    assert response_data[0]["displayed_title"] == title.title
+    assert response_data[1]["id"] == title_upstream.pk
+    assert response_data[1]["displayed_title"] == title_upstream.title_upstream
+    assert response_data[2]["id"] == no_titles.pk
+    assert response_data[2]["displayed_title"] == no_titles.url
+
+
 def test_create_channel(db, faker, mocker, authenticated_api_client):
     mocker.patch("kustosz.managers.dispatch_task_by_name", return_value="1")
     m = Channel.objects
