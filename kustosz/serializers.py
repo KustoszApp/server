@@ -3,7 +3,7 @@ from rest_framework import exceptions
 from rest_framework import serializers
 from taggit.models import Tag
 
-from .constants import MANUAL_CHANNEL_ID
+from .enums import ChannelTypesEnum
 from .enums import EntryFilterActionsEnum
 from .exceptions import InvalidDataException
 from .models import Channel
@@ -249,7 +249,10 @@ class EntryManualAddSerializer(TaggitSerializer, serializers.Serializer):
 
     def to_internal_value(self, data):
         internal_value = super().to_internal_value(data)
-        return EntryDataInput(channel=MANUAL_CHANNEL_ID, **internal_value)
+        manual_channel = Channel.objects.filter(
+            channel_type=ChannelTypesEnum.MANUAL
+        ).first()
+        return EntryDataInput(channel=manual_channel.pk, **internal_value)
 
 
 class TagsListSerializer(serializers.ModelSerializer):
