@@ -208,6 +208,27 @@ def test_filter_mark_assign_tag(db):
     assert "Whatever" not in another.tags.names()
 
 
+def test_filter_mark_assign_multiple_tags(db):
+    one = EntryFactory.create()
+    another = EntryFactory.create()
+    EntryFilterFactory.create(
+        condition=f"link={one.link}",
+        action_name=EntryFilterActionsEnum.ASSIGN_TAG,
+        action_argument="Foo, Bar",
+    )
+    m = Entry.objects
+
+    m._run_filters_on_entries([one.pk, another.pk], EntryFilter.objects.all())
+
+    for model in (one, another):
+        model.refresh_from_db()
+
+    assert "Foo" in one.tags.names()
+    assert "Bar" in one.tags.names()
+    assert "Foo, Bar" not in one.tags.names()
+    assert "Foo" not in another.tags.names()
+
+
 def test_filter_no_matches(db):
     one = EntryFactory.create()
     another = EntryFactory.create()

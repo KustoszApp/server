@@ -13,10 +13,10 @@ def mark_as_read(filtered_entries, *args):
     filtered_entries.update(archived=True, updated_time=django_now())
 
 
-def assign_tag(filtered_entries, tag_name):
-    # TODO: adding multiple tags?
+def assign_tag(filtered_entries, tags):
+    tags = [tag.strip() for tag in tags.split(",")]
     for entry in filtered_entries:
-        entry.tags.add(tag_name)
+        entry.tags.add(*tags)
 
 
 def run_script(filtered_entries, script_path):
