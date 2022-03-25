@@ -1,4 +1,4 @@
-[![Kustosz](./kustosz_logo.svg)](https://docs.kustosz.org)
+[![Kustosz](./kustosz_logo.svg)](https://www.kustosz.org)
 
 # Kustosz - backend server repository
 
@@ -8,12 +8,9 @@ This repository contains backend server.
 
 ## Installation
 
-```
-python manage.py makemigrations kustosz
-python manage.py migrate
-python manage.py createcachetable
-python manage.py createsuperuser --username admin --email admin@example.invalid
-```
+See [Kustosz installation documentation](https://docs.kustosz.org/en/stable/installation.html) for instructions on how to deploy or try Kustosz.
+
+See [backend development documentation](https://docs.kustosz.org/en/stable/development/backend.html) for instructions on how to build Kustosz backend from source and run development version of code.
 
 ## License
 
