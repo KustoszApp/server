@@ -92,6 +92,7 @@ RUN pip install --no-cache --upgrade pip wheel setuptools==59.6.0  # TODO: setup
 RUN pip install --no-cache --no-index --find-links $HOME/wheels/ kustosz[container]
 
 COPY --chown=kustosz:kustosz ./settings/settings.yaml $KUSTOSZ_BASE_DIR/settings/settings.yaml
+COPY --chown=kustosz:kustosz ./containers/settings.local.yaml $KUSTOSZ_BASE_DIR/settings/settings.local.yaml
 
 COPY --chown=kustosz:kustosz ./etc/supervisor/supervisord.conf $HOME/supervisor/supervisord.conf
 COPY --chown=kustosz:kustosz ./etc/supervisor/redis.conf $HOME/supervisor/redis.conf

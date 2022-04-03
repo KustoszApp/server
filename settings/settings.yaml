@@ -129,23 +129,3 @@ default:
 
 production:
   DEBUG: False
-  STATICFILES_STORAGE: 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-  # we need to maintain the same list as default MIDDLEWARE,
-  # with whitenoise injected in the middle
-  MIDDLEWARE:
-    - 'django.middleware.security.SecurityMiddleware'
-    - 'corsheaders.middleware.CorsMiddleware'
-    - 'whitenoise.middleware.WhiteNoiseMiddleware'
-    - 'django.contrib.sessions.middleware.SessionMiddleware'
-    - 'django.middleware.common.CommonMiddleware'
-    - 'django.middleware.csrf.CsrfViewMiddleware'
-    - 'django.contrib.auth.middleware.AuthenticationMiddleware'
-    - 'django.contrib.messages.middleware.MessageMiddleware'
-    - 'django.middleware.clickjacking.XFrameOptionsMiddleware'
-  CELERY_BROKER_URL: 'redis://localhost:6379/'
-  WHITENOISE_INDEX_FILE: True
-  STATIC_ROOT: '/opt/kustosz/web/static/'
-  STATICFILES_DIRS:
-    - '/opt/kustosz/web/staticfiles/'
-  DATABASES__default__NAME: '/opt/kustosz/web/db/db.sqlite3'
-  KUSTOSZ_READABILITY_NODE_ENABLED: True
