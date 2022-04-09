@@ -1,5 +1,7 @@
 [![Kustosz](./kustosz_logo.svg)](https://www.kustosz.org)
 
+![GitHub](https://img.shields.io/github/license/KustoszApp/server?color=green) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/kustosz?color=green) ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/KustoszApp/server/CI?label=CI) ![GitHub issues](https://img.shields.io/github/issues/KustoszApp/server?color=green) ![GitHub pull requests](https://img.shields.io/github/issues-pr/KustoszApp/server) ![GitHub Repo stars](https://img.shields.io/github/stars/KustoszApp/server?color=green) ![GitHub Release Date](https://img.shields.io/github/release-date/KustoszApp/server) ![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/KustoszApp/server/latest?color=green) ![GitHub last commit](https://img.shields.io/github/last-commit/KustoszApp/server)
+
 # Kustosz - backend server repository
 
 Focus on the worthwhile content with Kustosz, open source self-hosted web application.
