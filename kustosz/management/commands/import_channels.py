@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import listparser
-import yaml
 from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
+from ruamel.yaml import YAML
 
 from kustosz.constants import FEED_FETCHER_LOCAL_FEEDS_DIR
 from kustosz.enums import ChannelTypesEnum
@@ -74,8 +74,9 @@ class Command(BaseCommand):
         return channels
 
     def get_channels_config(self, path):
+        yaml = YAML(typ="safe")
         with open(path) as fh:
-            feeds_conf = yaml.load(fh, Loader=yaml.FullLoader)
+            feeds_conf = yaml.load(fh)
 
         channels = []
         for feed in feeds_conf:
