@@ -179,8 +179,9 @@ class EntryFilterSerializer(serializers.ModelSerializer):
     def validate(self, data):
         actions_without_args = (EntryFilterActionsEnum.MARK_AS_READ,)
         if (
-            data["action_name"] not in actions_without_args
-            and not data["action_argument"]
+            "action_name" in data
+            and data.get("action_name") not in actions_without_args
+            and not data.get("action_argument")
         ):
             raise serializers.ValidationError(
                 f'Action {data["action_name"]} requires action_argument'
