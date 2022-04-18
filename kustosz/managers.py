@@ -373,7 +373,7 @@ class EntryManager(models.Manager):
             return duplicate_ids
         duplicates = recent_entries.filter(pk__in=duplicate_ids)
         log.info("Marking %s entries as duplicates", len(duplicate_ids))
-        log.debug("entry ids:", ", ".join(map(str, duplicate_ids)))
+        log.debug("entry ids: %s", ", ".join(map(str, duplicate_ids)))
         duplicates.update(archived=True, updated_time=django_now())
         return duplicate_ids
 
