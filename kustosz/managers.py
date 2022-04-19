@@ -412,7 +412,7 @@ class EntryManager(models.Manager):
             for content in new_contents:
                 content.save()
             entry.readability_fetch_time = entry.updated_time = django_now()
-            entry.save()
+            entry.save(update_fields=["readability_fetch_time", "updated_time"])
 
     def _create_or_update_with_fetched_data(
         self, channel_model, entries_data: Iterable[FetchedFeedEntry]
