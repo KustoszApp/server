@@ -19,6 +19,8 @@ class SingleURLFetcher:
             cache_name=(FETCHERS_CACHE_DIR / "http_cache"),
             **settings.KUSTOSZ_REQUESTS_CACHE_INIT_OPTIONS,
         )
+        for header, value in settings.KUSTOSZ_URL_FETCHER_EXTRA_HEADERS.items():
+            self._session.headers[header] = value
 
     def _fetch(self, url):
         try:

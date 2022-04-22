@@ -125,6 +125,7 @@ default:
   KUSTOSZ_REQUESTS_CACHE_INIT_OPTIONS:
     backend: 'filesystem'
     expire_after: 3600  # one hour, in seconds
+  KUSTOSZ_URL_FETCHER_EXTRA_HEADERS: {}
 
 
 production:
