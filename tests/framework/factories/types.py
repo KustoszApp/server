@@ -10,11 +10,16 @@ from kustosz.enums import ChannelTypesEnum
 from kustosz.enums import EntryContentSourceTypesEnum
 
 
-@dataclass(frozen=True)
+@dataclass
 class FakeRequestType:
-    url: str
+    apparent_encoding: str
+    content: bytes
+    encoding: str
     headers: Mapping[str, str]
+    ok: bool
+    status_code: str
     text: str
+    url: str
 
 
 class ChannelDataInputFactory(factory.Factory):
@@ -33,9 +38,18 @@ class FakeRequestFactory(factory.Factory):
     class Meta:
         model = FakeRequestType
 
-    url = factory.Faker("uri")
+    apparent_encoding = ""
+    content = bytes()
+    encoding = factory.LazyAttribute(
+        lambda r: "utf-8"
+        if "utf-8" in r.headers.get("Content-Type", "")
+        else "iso-8859-1"
+    )
     headers = factory.LazyFunction(lambda: {})
+    ok = True
+    status_code = "200"
     text = ""
+    url = factory.Faker("uri")
 
 
 class FetchedFeedEntryContentFactory(factory.Factory):
