@@ -1,3 +1,4 @@
+import enum
 from typing import Iterable
 
 from django.conf import settings
@@ -15,16 +16,46 @@ from kustosz.types import FetchedFeedEntry
 from kustosz.types import FetchedFeedEntryContent
 
 
+def normalize_paths_for_reader(paths):
+    new_paths = []
+    for path in paths:
+        if path.startswith("file://"):
+            path = local_url_to_reader_feed_url(path)
+        new_paths.append(path)
+    return new_paths
+
+
+def normalize_path_for_kustosz(path):
+    if path.startswith("file:"):
+        return reader_feed_url_to_local_url(path)
+    return path
+
+
+def local_url_to_reader_feed_url(path):
+    without_prefix = path.removeprefix("file://")
+    return f"file:{without_prefix}"
+
+
+def reader_feed_url_to_local_url(path):
+    without_prefix = path.removeprefix("file:")
+    return f"file://{without_prefix}"
+
+
+class FeedFetcherPurpose(enum.Enum):
+    MAIN = enum.auto()
+    FEED_DISCOVERY = enum.auto()
+
+
 class FeedChannelsFetcher:
-    def __init__(self, feed_urls: Iterable[str]):
+    def __init__(self, purpose: FeedFetcherPurpose):
+        self._purpose = purpose
         self._prepare_directories()
-        self._db_file = FETCHERS_CACHE_DIR / "readerdb.sqlite"
+        self._db_file = self._get_db_file()
         self._fetched_entries = []
         self._reader = make_reader(
             url=str(self._db_file), feed_root=str(FEED_FETCHER_LOCAL_FEEDS_DIR)
         )
         self._reader.after_entry_update_hooks.append(self._reader_plugin())
-        self._feed_urls = self._normalize_paths_for_reader(feed_urls)
 
     def _reader_plugin(self):
         fetched_entries = self._fetched_entries
@@ -38,34 +69,15 @@ class FeedChannelsFetcher:
         for d in (FETCHERS_CACHE_DIR, FEED_FETCHER_LOCAL_FEEDS_DIR):
             d.mkdir(mode=0o700, exist_ok=True)
 
-    @classmethod
-    def _normalize_paths_for_reader(cls, paths):
-        new_paths = []
-        for path in paths:
-            if cls._is_local_url(path):
-                path = cls._local_url_to_reader_feed_url(path)
-            new_paths.append(path)
-        return new_paths
+    def _get_db_file(self):
+        db_name = f"readerdb.{self._purpose.name}.sqlite"
+        return FETCHERS_CACHE_DIR / db_name
 
-    @staticmethod
-    def _is_local_url(path):
-        return path.startswith("file://")
-
-    @staticmethod
-    def _local_url_to_reader_feed_url(path):
-        without_prefix = path.removeprefix("file://")
-        return f"file:{without_prefix}"
-
-    @classmethod
-    def _normalize_output_path(cls, path):
-        if path.startswith("file:"):
-            return cls._reader_feed_url_to_local_url(path)
-        return path
-
-    @staticmethod
-    def _reader_feed_url_to_local_url(path):
-        without_prefix = path.removeprefix("file:")
-        return f"file://{without_prefix}"
+    def _remove_db_from_cache(self):
+        db_name = f"readerdb.{self._purpose.name}.sqlite"
+        for path in FETCHERS_CACHE_DIR.glob("*"):
+            if path.is_file() and db_name in path.name:
+                path.unlink(missing_ok=True)
 
     def _disable_updates_for_existing_feeds(self):
         feeds = self._reader.get_feeds(updates_enabled=True)
@@ -78,18 +90,12 @@ class FeedChannelsFetcher:
                 self._reader.add_feed(feed)
             except FeedExistsError:
                 self._reader.enable_feed_updates(feed)
-                self._mark_all_entries_as_read(feed)
-
-    def _mark_all_entries_as_read(self, feed: str):
-        entries = self._reader.get_entries(feed=feed, read=False)
-        for entry in entries:
-            self._reader.mark_entry_as_read(entry)
 
     def _get_new_feeds_data(self):
         fetched_feeds: tuple[FetchedFeed, ...] = []
         for feed in self._reader.get_feeds(updates_enabled=True):
             obj_data = {
-                "url": self._normalize_output_path(feed.url),
+                "url": normalize_path_for_kustosz(feed.url),
                 "fetch_failed": bool(feed.last_exception),
             }
             if feed.title:
@@ -118,9 +124,9 @@ class FeedChannelsFetcher:
             obj_data = {}
             for key, reader_key in data_mapping:
                 value = getattr(entry, reader_key, None)
-                if key == "feed_url":
-                    value = self._normalize_output_path(value)
                 if value:
+                    if key == "feed_url":
+                        value = normalize_path_for_kustosz(value)
                     obj_data[key] = value
 
             contents = []
@@ -149,9 +155,9 @@ class FeedChannelsFetcher:
             fetched_entries.append(obj)
         return fetched_entries
 
-    def update(self):
+    def update(self, feed_urls: Iterable[str]):
         self._disable_updates_for_existing_feeds()
-        self._add_feeds(self._feed_urls)
+        self._add_feeds(normalize_paths_for_reader(feed_urls))
         self._reader.update_feeds(workers=settings.KUSTOSZ_FEED_READER_WORKERS)
 
     def get_new_data(self):
@@ -162,7 +168,12 @@ class FeedChannelsFetcher:
 
     @classmethod
     def fetch(cls, feed_urls: Iterable[str]) -> FeedFetcherResult:
-        fetcher = cls(feed_urls)
-        fetcher.update()
+        fetcher = cls(purpose=FeedFetcherPurpose.MAIN)
+        fetcher.update(feed_urls)
         rv = fetcher.get_new_data()
         return rv
+
+    @classmethod
+    def clean_cached_files(cls):
+        fetcher = cls(purpose=FeedFetcherPurpose.MAIN)
+        fetcher._remove_db_from_cache()
