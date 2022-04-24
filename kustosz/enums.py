@@ -29,6 +29,7 @@ class ImportChannelsActionsEnum(models.TextChoices):
 class TaskNamesEnum(models.TextChoices):
     ADD_CHANNELS = "kustosz.add_channels"
     ADD_READABILITY_CONTENTS = "kustosz.add_readability_contents"
+    CLEAN_FEED_FETCHER_CACHE = "kustosz.clean_feed_fetcher_cache"
     DEDUPLICATE_ENTRIES = "kustosz.deduplicate_entries"
     FETCH_CHANNEL_CONTENT = "kustosz.fetch_channel_content"
     FETCH_FEED_CHANNEL_CONTENT = "kustosz.fetch_feed_channel_content"

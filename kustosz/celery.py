@@ -10,6 +10,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kustosz.settings")
 app = Celery("kustosz")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.conf.task_routes = {
-    TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT: {"queue": "fetch_channels_content"}
+    TaskNamesEnum.CLEAN_FEED_FETCHER_CACHE: {"queue": "fetch_channels_content"},
+    TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT: {"queue": "fetch_channels_content"},
 }
 app.autodiscover_tasks()

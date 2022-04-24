@@ -81,6 +81,15 @@ class ChannelManager(models.Manager):
         archived_count = queryset.update(active=True)
         return archived_count
 
+    def delete_channels(self, queryset):
+        has_feeds = queryset.filter(channel_type=ChannelTypesEnum.FEED).exists()
+        deleted_count = queryset.delete()
+        if has_feeds:
+            dispatch_task_by_name(
+                TaskNamesEnum.CLEAN_FEED_FETCHER_CACHE,
+            )
+        return deleted_count
+
     def add_channels(
         self, channels_list: Iterable[ChannelDataInput], fetch_content: bool = True
     ) -> AddChannelResult:

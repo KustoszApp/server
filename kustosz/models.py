@@ -12,10 +12,12 @@ from .constants import DEFAULT_UPDATE_FREQUENCY
 from .enums import ChannelTypesEnum
 from .enums import EntryContentSourceTypesEnum
 from .enums import EntryFilterActionsEnum
+from .enums import TaskNamesEnum
 from .exceptions import InvalidDataException
 from .forms.fields import ChannelURLFormField
 from .managers import ChannelManager
 from .managers import EntryManager
+from .utils import dispatch_task_by_name
 from .validators import ChannelURLValidator
 
 
@@ -109,6 +111,13 @@ class Channel(models.Model):
         staleness_line = django_now() - timedelta(seconds=staleness_seconds)
 
         return staleness_line > last_successful_check
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        if self.channel_type == ChannelTypesEnum.FEED:
+            dispatch_task_by_name(
+                TaskNamesEnum.CLEAN_FEED_FETCHER_CACHE,
+            )
 
 
 class Entry(models.Model):
