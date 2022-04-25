@@ -58,6 +58,9 @@ class ChannelManager(models.Manager):
             .exclude(channel_type=ChannelTypesEnum.MANUAL)
             .annotate(
                 unarchived_entries=Count("entries", filter=Q(entries__archived=False)),
+                tagged_entries=Count(
+                    "entries", filter=Q(entries__tags__isnull=False), distinct=True
+                ),
                 last_entry_published_time=Max(
                     Coalesce(
                         "entries__published_time_upstream",
