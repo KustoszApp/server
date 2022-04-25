@@ -31,6 +31,15 @@ class ChannelFactory(DjangoModelFactory):
             return
         self.tags.add(*extracted)
 
+    @factory.post_generation
+    def entries(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            assert isinstance(extracted, int)
+            EntryFactory.create_batch(size=extracted, channel=self, **kwargs)
+
 
 class EntryContentFactory(DjangoModelFactory):
     class Meta:

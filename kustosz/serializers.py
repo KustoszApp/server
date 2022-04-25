@@ -242,6 +242,13 @@ class ChannelsActivateSerializer(serializers.Serializer):
     activated_count = serializers.IntegerField(required=True)
 
 
+class ChannelsDeleteSerializer(serializers.Serializer):
+    deleted_channels = serializers.ListField(
+        child=serializers.IntegerField(), required=True
+    )
+    deleted_count = serializers.IntegerField(required=True)
+
+
 class EntryManualAddSerializer(TaggitSerializer, serializers.Serializer):
     link = serializers.URLField()
     title = serializers.CharField(required=False)
@@ -252,9 +259,7 @@ class EntryManualAddSerializer(TaggitSerializer, serializers.Serializer):
 
     def to_internal_value(self, data):
         internal_value = super().to_internal_value(data)
-        manual_channel = Channel.objects.filter(
-            channel_type=ChannelTypesEnum.MANUAL
-        ).first()
+        manual_channel = Channel.objects.get(channel_type=ChannelTypesEnum.MANUAL)
         return EntryDataInput(channel=manual_channel.pk, **internal_value)
 
 

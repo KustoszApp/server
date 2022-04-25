@@ -181,6 +181,30 @@ class ChannelsActivate(generics.CreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
 
+class ChannelsDelete(generics.CreateAPIView):
+    queryset = models.Channel.objects.get_annotated_queryset().filter(active=False)
+    serializer_class = serializers.ChannelsDeleteSerializer
+    filterset_class = filters.ChannelFilter
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        keep_tagged_entries = request.data.get("keep_tagged_entries", True)
+        filtered_channels = self.filter_queryset(self.get_queryset())
+        deleted_channels = list(filtered_channels.values_list("pk", flat=True))
+        deleted_items, deleted_count = models.Channel.objects.delete_channels(
+            filtered_channels, keep_tagged_entries
+        )
+        serializer = self.get_serializer(
+            data={
+                "deleted_count": deleted_count.get("kustosz.Channel", 0),
+                "deleted_channels": deleted_channels,
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+
 class ChannelTagsList(generics.ListAPIView):
     queryset = models.Channel.tags.all().order_by("slug")
     serializer_class = serializers.TagsListSerializer

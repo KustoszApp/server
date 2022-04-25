@@ -84,9 +84,16 @@ class ChannelManager(models.Manager):
         archived_count = queryset.update(active=True)
         return archived_count
 
-    def delete_channels(self, queryset):
+    def delete_channels(self, queryset, keep_tagged_entries=True):
+        EntryManager = self.model.entries.rel.related_model.objects
+        manual_channel = self.get_queryset().get(channel_type=ChannelTypesEnum.MANUAL)
         has_feeds = queryset.filter(channel_type=ChannelTypesEnum.FEED).exists()
-        deleted_count = queryset.delete()
+        with transaction.atomic():
+            if keep_tagged_entries:
+                EntryManager.filter(
+                    channel__in=queryset, tags__isnull=False
+                ).distinct().update(channel=manual_channel, updated_time=django_now())
+            deleted_count = queryset.delete()
         if has_feeds:
             dispatch_task_by_name(
                 TaskNamesEnum.CLEAN_FEED_FETCHER_CACHE,
