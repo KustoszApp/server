@@ -128,3 +128,8 @@ class SingleURLFetcher:
         fetcher = cls()
         response = fetcher._fetch(url)
         return response
+
+    @classmethod
+    def clean_cached_files(cls):
+        fetcher = cls()
+        fetcher._session.remove_expired_responses()

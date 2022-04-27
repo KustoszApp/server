@@ -2,6 +2,7 @@
 from .task_add_channels import add_channels
 from .task_add_readability_contents import add_readability_contents
 from .task_clean_feed_fetcher_cache import clean_feed_fetcher_cache
+from .task_clean_url_fetcher_cache import clean_url_fetcher_cache
 from .task_deduplicate_entries import deduplicate_entries
 from .task_fetch_channel_content import fetch_channel_content
 from .task_fetch_feed_channel_content import fetch_feed_channel_content
