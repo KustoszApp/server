@@ -69,7 +69,48 @@ spec:
       - "-l"
       - "INFO"
       - "-Q"
-      - "fetch_channels_content,celery"
+      - "celery"
+    env:
+      - name: DYNACONF_DATABASES__default__ENGINE
+        value: "django.db.backends.postgresql_psycopg2"
+      - name: DYNACONF_DATABASES__default__NAME
+        value: "kustosz"
+      - name: DYNACONF_DATABASES__default__USER
+        value: "postgres"
+      - name: DYNACONF_DATABASES__default__PASSWORD
+        value: "postgreskustoszpassword"
+      - name: DYNACONF_DATABASES__default__HOST
+        value: "localhost"
+      - name: DYNACONF_DATABASES__default__PORT
+        value: "5432"
+      - name: DYNACONF_CELERY_BROKER_URL
+        value: "redis://localhost:6379/"
+      - name: KUSTOSZ_SKIP_MIGRATE
+        value: "1"
+      - name: KUSTOSZ_SKIP_CREATECACHETABLE
+        value: "1"
+      - name: KUSTOSZ_SKIP_COLLECTSTATIC
+        value: "1"
+      - name: KUSTOSZ_ORCHESTRATED
+        value: "1"
+  - name: celery_worker_fetch_channels_content
+    image: quay.io/kustosz/app
+    command:
+      - "wait-for-it"
+      - "localhost:8000"
+      - "-t"
+      - "180"
+      - "--"
+      - "celery"
+      - "-A"
+      - "kustosz"
+      - "worker"
+      - "-l"
+      - "INFO"
+      - "-Q"
+      - "fetch_channels_content"
+      - "--concurrency"
+      - "1"
     env:
       - name: DYNACONF_DATABASES__default__ENGINE
         value: "django.db.backends.postgresql_psycopg2"

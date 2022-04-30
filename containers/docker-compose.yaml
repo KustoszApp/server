@@ -42,7 +42,28 @@ services:
 
   celery_worker:
     image: quay.io/kustosz/app
-    command: wait-for-it kustosz_api:8000 -t 180 -- celery -A kustosz worker -l INFO -Q fetch_channels_content,celery
+    command: wait-for-it kustosz_api:8000 -t 180 -- celery -A kustosz worker -l INFO -Q celery
+    environment:
+      DYNACONF_DATABASES__default__ENGINE: "django.db.backends.postgresql_psycopg2"
+      DYNACONF_DATABASES__default__NAME: "kustosz"
+      DYNACONF_DATABASES__default__USER: "postgres"
+      DYNACONF_DATABASES__default__PASSWORD: "postgreskustoszpassword"
+      DYNACONF_DATABASES__default__HOST: "postgres"
+      DYNACONF_DATABASES__default__PORT: "5432"
+      DYNACONF_CELERY_BROKER_URL: "redis://redis:6379/"
+      KUSTOSZ_SKIP_MIGRATE: "1"
+      KUSTOSZ_SKIP_CREATECACHETABLE: "1"
+      KUSTOSZ_SKIP_COLLECTSTATIC: "1"
+      KUSTOSZ_ORCHESTRATED: "1"
+    networks:
+      - kustosz
+    depends_on:
+      - kustosz_api
+      - redis
+
+  celery_worker_fetch_channels_content:
+    image: quay.io/kustosz/app
+    command: wait-for-it kustosz_api:8000 -t 180 -- celery -A kustosz worker -l INFO -Q fetch_channels_content --concurrency 1
     environment:
       DYNACONF_DATABASES__default__ENGINE: "django.db.backends.postgresql_psycopg2"
       DYNACONF_DATABASES__default__NAME: "kustosz"
@@ -80,6 +101,7 @@ services:
       - kustosz
     depends_on:
       - celery_worker
+      - celery_worker_fetch_channels_content
       - redis
 
 volumes:
