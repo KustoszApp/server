@@ -313,6 +313,42 @@ def test_fetch_channels_content_channel_mix_updated_fetch_failure(db, mocker):
     )
 
 
+def test_fetch_channels_content_unexpected_channel(db, mocker):
+    def side_effect(*args, **kwargs):
+        _, deleted_channel_url = kwargs.get("feed_urls")
+        Channel.objects.get(url=deleted_channel_url).delete()
+        return mocker.DEFAULT
+
+    existing_channel, deleted_channel = ChannelFactory.create_batch(
+        2, last_check_time=django_now() - timedelta(days=365)
+    )
+    fetched_feed_data = [
+        FetchedFeedFactory(url=existing_channel.url),
+        FetchedFeedFactory(url=deleted_channel.url),
+    ]
+    fetcher_rv = FeedFetcherResult(feeds=fetched_feed_data, entries=[])
+    mocker.patch(
+        "kustosz.managers.FeedChannelsFetcher.fetch",
+        return_value=fetcher_rv,
+        side_effect=side_effect,
+    )
+    mocker.patch(
+        "kustosz.managers.ChannelManager._ChannelManager__update_entries_with_fetched_data"  # noqa
+    )
+    m = Channel.objects
+    number_of_channels = m.count()
+
+    m._fetch_feed_channels_content(
+        channel_ids=[existing_channel.id, deleted_channel.id], force_fetch=False
+    )
+
+    updated_channel = m.get(pk=existing_channel.id)
+    assert m.count() == (number_of_channels - 1)
+    with pytest.raises(Channel.DoesNotExist):
+        m.get(url=deleted_channel.url)
+    assert updated_channel.url != deleted_channel.url
+
+
 def test_fetch_feed_channels_entry_added(db, mocker):
     channel = ChannelFactory.create(last_check_time=django_now() - timedelta(days=365))
     fetched_entry_data = FetchedFeedEntryFactory(feed_url=channel.url)
