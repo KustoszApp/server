@@ -2,6 +2,7 @@ from typing import Iterable
 
 from celery import shared_task
 
+from kustosz.enums import SerialQueuesNamesEnum
 from kustosz.enums import TaskNamesEnum
 from kustosz.exceptions import SerialTaskAlreadyInProgress
 from kustosz.models import Channel
@@ -16,7 +17,7 @@ from kustosz.utils import cache_lock
     retry_jitter=True,
 )
 def fetch_feed_channel_content(channel_ids: Iterable[int], force_fetch: bool):
-    lock_id = TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT
+    lock_id = SerialQueuesNamesEnum.FEED_FETCHER
     with cache_lock(lock_id, channel_ids) as acquired_lock:
         if not acquired_lock:
             raise SerialTaskAlreadyInProgress()

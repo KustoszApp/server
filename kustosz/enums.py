@@ -26,6 +26,10 @@ class ImportChannelsActionsEnum(models.TextChoices):
     CONFIG = "config"
 
 
+class SerialQueuesNamesEnum(models.TextChoices):
+    FEED_FETCHER = "feed_fetcher"
+
+
 class TaskNamesEnum(models.TextChoices):
     ADD_CHANNELS = "kustosz.add_channels"
     ADD_READABILITY_CONTENTS = "kustosz.add_readability_contents"

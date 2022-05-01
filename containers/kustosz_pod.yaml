@@ -93,7 +93,7 @@ spec:
         value: "1"
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
-  - name: celery_worker_fetch_channels_content
+  - name: celery_worker_feed_fetcher
     image: quay.io/kustosz/app
     command:
       - "wait-for-it"
@@ -108,7 +108,7 @@ spec:
       - "-l"
       - "INFO"
       - "-Q"
-      - "fetch_channels_content"
+      - "feed_fetcher"
       - "--concurrency"
       - "1"
     env:

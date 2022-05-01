@@ -61,9 +61,9 @@ services:
       - kustosz_api
       - redis
 
-  celery_worker_fetch_channels_content:
+  celery_worker_feed_fetcher:
     image: quay.io/kustosz/app
-    command: wait-for-it kustosz_api:8000 -t 180 -- celery -A kustosz worker -l INFO -Q fetch_channels_content --concurrency 1
+    command: wait-for-it kustosz_api:8000 -t 180 -- celery -A kustosz worker -l INFO -Q feed_fetcher --concurrency 1
     environment:
       DYNACONF_DATABASES__default__ENGINE: "django.db.backends.postgresql_psycopg2"
       DYNACONF_DATABASES__default__NAME: "kustosz"
@@ -101,7 +101,7 @@ services:
       - kustosz
     depends_on:
       - celery_worker
-      - celery_worker_fetch_channels_content
+      - celery_worker_feed_fetcher
       - redis
 
 volumes:
