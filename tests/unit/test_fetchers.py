@@ -17,6 +17,16 @@ from kustosz.fetchers.url import SingleURLFetcher
             id="meta_http_equiv",
         ),
         pytest.param(
+            '<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-13; boundary=something" />',  # noqa
+            "iso-8859-13",
+            id="http_equiv_first",
+        ),
+        pytest.param(
+            '<html><head><meta http-equiv="Content-Type" content="text/html; boundary=something; charset=euc-jp" />',  # noqa
+            "euc-jp",
+            id="http_equiv_last",
+        ),
+        pytest.param(
             "<html><head><title>Test</title></head></html>", "", id="no_meta_tag"
         ),
         pytest.param(

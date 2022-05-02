@@ -1,4 +1,5 @@
 import logging
+import re
 from html.parser import HTMLParser
 
 from django.conf import settings
@@ -34,15 +35,10 @@ class EncodingSeekingParser(HTMLParser):
             and (meta_content := attrs_dict.get("content"))
             and "charset" in meta_content
         ):
-            for elem in meta_content.split(";"):
-                try:
-                    _, final_encoding = elem.split("=", maxsplit=2)
-                except ValueError:
-                    continue
-                if not final_encoding:
-                    continue
-                self.found_encoding = final_encoding.strip().lower()
-                return
+            charset_re = r"charset=([^ ;\n]+)"
+            if m := re.search(charset_re, meta_content):
+                self.found_encoding = m.group(1).strip().lower()
+            return
 
 
 class SingleURLFetcher:
