@@ -165,11 +165,14 @@ class ReadabilityContentList:
 
 @dataclass(frozen=True)
 class SingleEntryExtractedMetadata:
-    #: Title (subject) of entry
-    title: str
-
     #: Author of entry
-    author: str
+    author: Optional[str] = ""
+
+    #: URL of entry
+    link: Optional[str] = ""
+
+    #: Title (subject) of entry
+    title: Optional[str] = ""
 
     #: Publication date of entry
     published_time_upstream: Optional[datetime] = None

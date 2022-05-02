@@ -1,8 +1,10 @@
 import logging
+import re
 import urllib.parse
 from datetime import datetime
 
-from readability import Document
+from readability.cleaners import html_cleaner
+from readability.htmls import build_doc
 from readability.htmls import shorten_title
 from readability.readability import Unparseable
 from requests import Response
@@ -14,6 +16,7 @@ log = logging.getLogger(__name__)
 
 SUPPORTED_METADATA = (
     "author",
+    "link",
     "title",
     "published_time_upstream",
     "updated_time_upstream",
@@ -40,9 +43,15 @@ class MetadataExtractor:
         content = response.text
         if content.strip():
             try:
-                doc = Document(content)
-                doc.title()  # this forces Document to create lxml tree under html
-                self._parsed_content = doc.html
+                # readability default html cleaner removes <link> elements,
+                # so we have to copy-paste critical parts here
+                doc, encoding = build_doc(content)
+                html_cleaner.links = False
+                doc = html_cleaner.clean_html(doc)
+                doc.make_links_absolute(
+                    self._url, resolve_base_href=True, handle_failures="discard"
+                )
+                self._parsed_content = doc
                 self._applicable_sources = SUPPORTED_SOURCES
             except Unparseable:
                 pass
@@ -81,6 +90,9 @@ class MetadataExtractor:
         # in practice, many websites just put name here
         return self.__get_meta_value(property="article:author")
 
+    def _get_opengraph_link(self):
+        return self.__get_meta_value(property="og:url")
+
     def _get_opengraph_title(self):
         return self.__get_meta_value(property="og:title")
 
@@ -99,12 +111,32 @@ class MetadataExtractor:
     def _get_html_author(self):
         return self.__get_meta_value(name="author")
 
+    def _get_html_link(self):
+        selector = './/link[@rel="canonical"][@href]'
+        element = self._parsed_content.find(selector)
+        if element is None:
+            return
+        element_value = element.get("href")
+        return element_value
+
     def _get_html_title(self):
         return shorten_title(self._parsed_content)
 
     # def _get_html_published_time_upstream(self):
     # def _get_html_updated_time_upstream(self):
     # def _get_headers_author(self):
+
+    def _get_headers_link(self):
+        if not self._headers:
+            return
+        link_header = self._headers.get("Link", "")
+        if not link_header:
+            return
+        canonical_link_re = r'<([^;]*?)>; [^,\n]*rel="[^"]*\bcanonical\b[^"]*"'
+        if m := re.search(canonical_link_re, link_header):
+            return m.group(1)
+        return None
+
     # def _get_headers_title(self):
 
     def _get_headers_published_time_upstream(self):
@@ -123,6 +155,9 @@ class MetadataExtractor:
 
     def _get_url_author(self):
         return self._parsed_url.hostname or self._parsed_url.netloc
+
+    def _get_url_link(self):
+        return self._url
 
     def _get_url_title(self):
         return self._url

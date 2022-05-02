@@ -97,7 +97,8 @@ class SingleEntryExtractedMetadataFactory(factory.Factory):
     class Meta:
         model = ro_types.SingleEntryExtractedMetadata
 
-    title = factory.Faker("text")
     author = factory.Faker("name")
+    title = factory.Faker("text")
+    link = factory.Faker("url")
     published_time_upstream = factory.LazyFunction(now)
     updated_time_upstream = factory.LazyFunction(now)

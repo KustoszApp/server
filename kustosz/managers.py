@@ -366,6 +366,12 @@ class EntryManager(models.Manager):
             entry.full_clean()
         except ValidationError as e:
             raise InvalidDataException(e)
+        entry_exists = self.get_queryset().filter(
+            channel=entry.channel_id, link__in=(entry.gid, entry.link)
+        )
+        if entry_exists.count():
+            msg = "Entry with this Channel and Link already exists."
+            raise InvalidDataException(msg)
         entry.save()
         dispatch_task_by_name(
             TaskNamesEnum.FETCH_MANUAL_ENTRY_DATA,
@@ -494,8 +500,12 @@ class EntryManager(models.Manager):
         except PermanentFetcherError:
             new_metadata = MetadataExtractor.from_url(entry.link)
 
+        # link is special, because it will always be present, but it could
+        # redirect somewhere else (usually to track clicks). We want to store
+        # final URL
         for key, value in asdict(new_metadata).items():
-            if not getattr(entry, key):
+            old_value = getattr(entry, key)
+            if not old_value or (key == "link" and value != old_value):
                 log.debug(
                     "entry %s: setting %s to '%s' based on extracted metadata",
                     entry.pk,

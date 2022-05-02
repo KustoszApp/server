@@ -57,6 +57,7 @@ def test_metadata_extract_opengraph(faker):
     metadata = {
         "article:author": faker.name(),
         "og:title": faker.sentence(),
+        "og:url": faker.url(),
         "article:published_time": faker.iso8601(),
         "article:modified_time": faker.iso8601(),
     }
@@ -67,6 +68,7 @@ def test_metadata_extract_opengraph(faker):
 
     assert extracted_metadata.title == metadata["og:title"]
     assert extracted_metadata.author == metadata["article:author"]
+    assert extracted_metadata.link == metadata["og:url"]
     assert extracted_metadata.published_time_upstream == datetime.fromisoformat(
         metadata["article:published_time"]
     )
@@ -89,10 +91,29 @@ def test_metadata_extract_html(faker):
     assert not extracted_metadata.updated_time_upstream
 
 
+def test_metadata_extract_html_link(faker):
+    title = faker.sentence()
+    url = faker.url()
+    html = (
+        "<html><head>"
+        f"<title>{title}</title>"
+        f"<link rel='canonical' href='{url}'>"
+        "</head></html>"
+    )
+    resp = FakeRequestFactory(text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.title == title
+    assert extracted_metadata.link == url
+
+
 def test_metadata_extract_headers(faker):
+    url = faker.url()
     datetime_obj = faker.date_time()
     headers = {
         "Last-Modified": http_date(datetime_obj.timestamp()),
+        "Link": f'<{url}>; rel="canonical"',
     }
     resp = FakeRequestFactory(headers=headers)
 
@@ -100,8 +121,50 @@ def test_metadata_extract_headers(faker):
 
     assert extracted_metadata.title
     assert extracted_metadata.author
+    assert extracted_metadata.link == url
     assert extracted_metadata.published_time_upstream == datetime_obj
     assert extracted_metadata.updated_time_upstream == datetime_obj
+
+
+@pytest.mark.parametrize(
+    "header_text",
+    [
+        pytest.param('<{0}>; rel="canonical"', id="base-case"),
+        pytest.param(
+            '<{0}>; rel="canonical"; rel="preconnect"', id="multiple-rels-first"
+        ),
+        pytest.param(
+            '<{0}>; rel="preconnect"; rel="canonical"', id="multiple-rels-last"
+        ),
+        pytest.param('<{0}>; rel="canonical next"', id="multiple-values-first"),
+        pytest.param('<{0}>; rel="prev canonical next"', id="multiple-values-middle"),
+        pytest.param('<{0}>; rel="prev canonical"', id="multiple-values-last"),
+        pytest.param(
+            '<http://example.invalid>; rel="preconnect", <{0}>; rel="canonical"',
+            id="multiple-urls-last",
+        ),
+        pytest.param(
+            '<{0}>; rel="canonical", <http://example.invalid>; rel="preconnect"',
+            id="multiple-urls-first",
+        ),
+        pytest.param('<{0}>; rel="stylesheet"', id="no-canonical"),
+        pytest.param('<{0}>; title="link title"', id="no-rel"),
+        pytest.param("<{0}>", id="no-param"),
+    ],
+)
+def test_metadata_extract_headers_link(faker, request, header_text):
+    url = faker.url()
+    headers = {
+        "Link": header_text.format(url),
+    }
+    resp = FakeRequestFactory(headers=headers)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    if not request.node.callspec.id.startswith("no"):
+        assert extracted_metadata.link == url
+    else:
+        assert extracted_metadata.link != url
 
 
 def test_metadata_extract_url(faker):

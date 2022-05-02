@@ -285,15 +285,20 @@ def test_manual_entry_update_metadata(db, mocker):
         return_value=extracted_data,
     )
     entry = EntryFactory.create(
-        title="", author="", published_time_upstream=None, updated_time_upstream=None
+        link="",
+        title="",
+        author="",
+        published_time_upstream=None,
+        updated_time_upstream=None,
     )
     m = Entry.objects
 
     m._ensure_manual_entry_metadata(entry.pk)
 
     entry.refresh_from_db()
-    assert entry.title == extracted_data.title
     assert entry.author == extracted_data.author
+    assert entry.link == extracted_data.link
+    assert entry.title == extracted_data.title
     assert entry.published_time_upstream == extracted_data.published_time_upstream
     assert entry.updated_time_upstream == extracted_data.updated_time_upstream
 
@@ -324,13 +329,63 @@ def test_manual_entry_update_metadata_only_author(db, mocker):
 
     m._ensure_manual_entry_metadata(entry.pk)
 
+    old_link = entry.link
     old_title = entry.title
     entry.refresh_from_db()
+    assert entry.author == extracted_data.author
+    assert entry.link != old_link
+    assert entry.link == extracted_data.link
     assert entry.title == old_title
     assert entry.title != extracted_data.title
-    assert entry.author == extracted_data.author
     assert entry.published_time_upstream == extracted_data.published_time_upstream
     assert entry.updated_time_upstream == extracted_data.updated_time_upstream
+
+
+def test_manual_entry_update_metadata_only_link(db, mocker):
+    extracted_data = SingleEntryExtractedMetadataFactory()
+    mocker.patch("kustosz.managers.SingleURLFetcher.fetch")
+    mocker.patch(
+        "kustosz.managers.MetadataExtractor.from_response",
+        return_value=extracted_data,
+    )
+    # We *always* have link, so we need empty title to trigger request,
+    # which might tell us that URL updated
+    entry = EntryFactory.create(
+        link="", title="", published_time_upstream=None, updated_time_upstream=None
+    )
+    m = Entry.objects
+
+    m._ensure_manual_entry_metadata(entry.pk)
+
+    old_author = entry.author
+    old_title = entry.title
+    entry.refresh_from_db()
+    assert entry.link == extracted_data.link
+    assert entry.author == old_author
+    assert entry.author != extracted_data.author
+    assert entry.title != old_title
+    assert entry.title == extracted_data.title
+    assert entry.published_time_upstream == extracted_data.published_time_upstream
+    assert entry.updated_time_upstream == extracted_data.updated_time_upstream
+
+
+def test_manual_entry_update_metadata_link_redirect(db, faker, mocker):
+    old_url = faker.url()
+    new_url = faker.url()
+    extracted_data = SingleEntryExtractedMetadataFactory(link=new_url)
+    mocker.patch("kustosz.managers.SingleURLFetcher.fetch")
+    mocker.patch(
+        "kustosz.managers.MetadataExtractor.from_response",
+        return_value=extracted_data,
+    )
+    entry = EntryFactory.create(gid=old_url, link=old_url, title="")
+    m = Entry.objects
+
+    m._ensure_manual_entry_metadata(entry.pk)
+
+    entry.refresh_from_db()
+    assert entry.link == new_url
+    assert entry.gid == old_url
 
 
 def test_manual_entry_update_metadata_only_title(db, mocker):
@@ -348,10 +403,13 @@ def test_manual_entry_update_metadata_only_title(db, mocker):
     m._ensure_manual_entry_metadata(entry.pk)
 
     old_author = entry.author
+    old_link = entry.link
     entry.refresh_from_db()
-    assert entry.title == extracted_data.title
     assert entry.author == old_author
     assert entry.author != extracted_data.author
+    assert entry.link != old_link
+    assert entry.link == extracted_data.link
+    assert entry.title == extracted_data.title
     assert entry.published_time_upstream == extracted_data.published_time_upstream
     assert entry.updated_time_upstream == extracted_data.updated_time_upstream
 
