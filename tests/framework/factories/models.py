@@ -2,7 +2,7 @@ import factory.fuzzy
 from django.utils.timezone import now
 from factory.django import DjangoModelFactory
 
-from kustosz import models as ro_models
+from kustosz import models as kustosz_models
 from kustosz.constants import DEFAULT_UPDATE_FREQUENCY
 from kustosz.enums import ChannelTypesEnum
 from kustosz.enums import EntryContentSourceTypesEnum
@@ -11,7 +11,7 @@ from kustosz.enums import EntryFilterActionsEnum
 
 class ChannelFactory(DjangoModelFactory):
     class Meta:
-        model = ro_models.Channel
+        model = kustosz_models.Channel
 
     url = factory.Faker("uri")
     channel_type = ChannelTypesEnum.FEED
@@ -43,7 +43,7 @@ class ChannelFactory(DjangoModelFactory):
 
 class EntryContentFactory(DjangoModelFactory):
     class Meta:
-        model = ro_models.EntryContent
+        model = kustosz_models.EntryContent
 
     source = factory.fuzzy.FuzzyChoice(EntryContentSourceTypesEnum.values)
     content = factory.Faker("text")
@@ -55,7 +55,7 @@ class EntryContentFactory(DjangoModelFactory):
 
 class EntryFactory(DjangoModelFactory):
     class Meta:
-        model = ro_models.Entry
+        model = kustosz_models.Entry
 
     channel = factory.SubFactory(ChannelFactory)
     gid = factory.Faker("uri")
@@ -89,7 +89,7 @@ class EntryFactory(DjangoModelFactory):
 
 class EntryFilterFactory(DjangoModelFactory):
     class Meta:
-        model = ro_models.EntryFilter
+        model = kustosz_models.EntryFilter
 
     enabled = True
     name = factory.Faker("text")

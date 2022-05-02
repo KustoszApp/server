@@ -4,7 +4,7 @@ from typing import Mapping
 import factory.fuzzy
 from django.utils.timezone import now
 
-from kustosz import types as ro_types
+from kustosz import types as kustosz_types
 from kustosz.constants import DEFAULT_UPDATE_FREQUENCY
 from kustosz.enums import ChannelTypesEnum
 from kustosz.enums import EntryContentSourceTypesEnum
@@ -24,7 +24,7 @@ class FakeRequestType:
 
 class ChannelDataInputFactory(factory.Factory):
     class Meta:
-        model = ro_types.ChannelDataInput
+        model = kustosz_types.ChannelDataInput
 
     url = factory.Faker("uri")
     channel_type = ChannelTypesEnum.FEED
@@ -54,7 +54,7 @@ class FakeRequestFactory(factory.Factory):
 
 class FetchedFeedEntryContentFactory(factory.Factory):
     class Meta:
-        model = ro_types.FetchedFeedEntryContent
+        model = kustosz_types.FetchedFeedEntryContent
 
     source = factory.fuzzy.FuzzyChoice(EntryContentSourceTypesEnum.values)
     content = factory.Faker("text")
@@ -64,7 +64,7 @@ class FetchedFeedEntryContentFactory(factory.Factory):
 
 class FetchedFeedEntryFactory(factory.Factory):
     class Meta:
-        model = ro_types.FetchedFeedEntry
+        model = kustosz_types.FetchedFeedEntry
 
     feed_url = factory.Faker("uri")
     gid = factory.Faker("uri")
@@ -78,7 +78,7 @@ class FetchedFeedEntryFactory(factory.Factory):
 
 class FetchedFeedFactory(factory.Factory):
     class Meta:
-        model = ro_types.FetchedFeed
+        model = kustosz_types.FetchedFeed
 
     url = factory.Faker("uri")
     fetch_failed = False
@@ -88,14 +88,14 @@ class FetchedFeedFactory(factory.Factory):
 
 class ReadabilityContentListFactory(factory.Factory):
     class Meta:
-        model = ro_types.ReadabilityContentList
+        model = kustosz_types.ReadabilityContentList
 
     content = factory.List([FetchedFeedEntryContentFactory()])
 
 
 class SingleEntryExtractedMetadataFactory(factory.Factory):
     class Meta:
-        model = ro_types.SingleEntryExtractedMetadata
+        model = kustosz_types.SingleEntryExtractedMetadata
 
     author = factory.Faker("name")
     title = factory.Faker("text")
