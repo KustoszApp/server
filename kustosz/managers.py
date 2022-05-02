@@ -171,6 +171,11 @@ class ChannelManager(models.Manager):
 
         feed_channels = active_channels.filter(channel_type=ChannelTypesEnum.FEED)
 
+        if force_fetch and feed_channels:
+            dispatch_task_by_name(
+                TaskNamesEnum.CLEAN_FEED_FETCHER_CACHE,
+            )
+
         feed_channels_paged = Paginator(
             feed_channels, settings.KUSTOSZ_FETCH_CHANNELS_CHUNK_SIZE
         )
