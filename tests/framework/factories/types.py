@@ -99,6 +99,6 @@ class SingleEntryExtractedMetadataFactory(factory.Factory):
 
     author = factory.Faker("name")
     title = factory.Faker("text")
-    link = factory.Faker("url")
+    link = factory.Faker("uri")
     published_time_upstream = factory.LazyFunction(now)
     updated_time_upstream = factory.LazyFunction(now)

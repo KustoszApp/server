@@ -246,7 +246,7 @@ def test_filter_tags_return_unique_entries(db, faker, authenticated_api_client):
 
 def test_entry_add_manually(db, mocker, faker, authenticated_api_client):
     mocker.patch("kustosz.managers.dispatch_task_by_name")
-    entry_url = faker.url()
+    entry_url = faker.uri()
     url = reverse("entry_manual_add")
     data = {"link": entry_url}
 
@@ -279,7 +279,7 @@ def test_entry_try_add_manually_already_exists(
     manual_channel = Channel.objects.filter(
         channel_type=ChannelTypesEnum.MANUAL
     ).first()
-    gid = faker.url()
+    gid = faker.uri()
     entry = EntryFactory.create(channel=manual_channel, gid=gid, link=gid)
     url = reverse("entry_manual_add")
     data = {"link": entry.link}
@@ -298,8 +298,8 @@ def test_entry_try_add_manually_link_already_exists(
     manual_channel = Channel.objects.filter(
         channel_type=ChannelTypesEnum.MANUAL
     ).first()
-    gid = faker.url()
-    link = faker.url()
+    gid = faker.uri()
+    link = faker.uri()
     entry = EntryFactory.create(channel=manual_channel, gid=gid, link=link)
     url = reverse("entry_manual_add")
     data = {"link": entry.link}

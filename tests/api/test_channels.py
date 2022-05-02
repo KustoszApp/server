@@ -31,7 +31,7 @@ def test_create_channel(db, faker, mocker, authenticated_api_client):
     mocker.patch("kustosz.managers.dispatch_task_by_name", return_value="1")
     m = Channel.objects
     url = reverse("channels_list")
-    new_url = faker.url()
+    new_url = faker.uri()
     data = {"url": new_url}
 
     response = authenticated_api_client.post(url, data)
@@ -48,7 +48,7 @@ def test_create_channel(db, faker, mocker, authenticated_api_client):
 def test_update_url(db, faker, authenticated_api_client):
     channel = ChannelFactory.create()
     url = reverse("channel_detail", args=[channel.id])
-    new_url = faker.url()
+    new_url = faker.uri()
     data = {"url": new_url}
 
     response = authenticated_api_client.patch(url, data)

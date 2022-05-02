@@ -57,7 +57,7 @@ def test_metadata_extract_opengraph(faker):
     metadata = {
         "article:author": faker.name(),
         "og:title": faker.sentence(),
-        "og:url": faker.url(),
+        "og:url": faker.uri(),
         "article:published_time": faker.iso8601(),
         "article:modified_time": faker.iso8601(),
     }
@@ -93,7 +93,7 @@ def test_metadata_extract_html(faker):
 
 def test_metadata_extract_html_link(faker):
     title = faker.sentence()
-    url = faker.url()
+    url = faker.uri()
     html = (
         "<html><head>"
         f"<title>{title}</title>"
@@ -139,7 +139,7 @@ def test_metadata_extract_opengraph_link_absolute(faker):
 
 
 def test_metadata_extract_headers(faker):
-    url = faker.url()
+    url = faker.uri()
     datetime_obj = faker.date_time()
     headers = {
         "Last-Modified": http_date(datetime_obj.timestamp()),
@@ -183,7 +183,7 @@ def test_metadata_extract_headers(faker):
     ],
 )
 def test_metadata_extract_headers_link(faker, request, header_text):
-    url = faker.url()
+    url = faker.uri()
     headers = {
         "Link": header_text.format(url),
     }

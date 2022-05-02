@@ -370,8 +370,8 @@ def test_manual_entry_update_metadata_only_link(db, mocker):
 
 
 def test_manual_entry_update_metadata_link_redirect(db, faker, mocker):
-    old_url = faker.url()
-    new_url = faker.url()
+    old_url = faker.uri()
+    new_url = faker.uri()
     extracted_data = SingleEntryExtractedMetadataFactory(link=new_url)
     mocker.patch("kustosz.managers.SingleURLFetcher.fetch")
     mocker.patch(
