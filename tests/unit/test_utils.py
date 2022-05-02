@@ -108,6 +108,36 @@ def test_metadata_extract_html_link(faker):
     assert extracted_metadata.link == url
 
 
+def test_metadata_extract_link_validation(faker):
+    url = faker.uri()
+    metadata = {
+        "og:url": faker.text(),
+    }
+    html = create_simple_html(meta=metadata)
+    resp = FakeRequestFactory(url=url, text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.link == url
+    assert extracted_metadata.link != metadata["og:url"]
+
+
+def test_metadata_extract_opengraph_link_absolute(faker):
+    domain = faker.url()
+    correct_path = faker.file_path().lstrip("/")
+    wrong_path = faker.file_path().lstrip("/")
+    og_url = f"{domain}{correct_path}"
+    resp_url = f"{domain}{wrong_path}"
+    metadata = {"og:url": og_url}
+    html = create_simple_html(meta=metadata)
+    resp = FakeRequestFactory(url=resp_url, text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.link == og_url
+    assert extracted_metadata.link != resp_url
+
+
 def test_metadata_extract_headers(faker):
     url = faker.url()
     datetime_obj = faker.date_time()

@@ -3,6 +3,7 @@ import re
 import urllib.parse
 from datetime import datetime
 
+from django.core.exceptions import ValidationError
 from readability.cleaners import html_cleaner
 from readability.htmls import build_doc
 from readability.htmls import shorten_title
@@ -10,6 +11,7 @@ from readability.readability import Unparseable
 from requests import Response
 
 from kustosz.types import SingleEntryExtractedMetadata
+from kustosz.validators import EntryURLValidator
 
 
 log = logging.getLogger(__name__)
@@ -70,6 +72,7 @@ class MetadataExtractor:
         sources = tuple(
             source for source in self._applicable_sources if source in self._sources
         )
+        entry_url_validator = EntryURLValidator()
         for meta_key in self._metadata_keys:
             for source_name in sources:
                 function_name = f"_get_{source_name}_{meta_key}"
@@ -80,6 +83,12 @@ class MetadataExtractor:
                 log.debug("%s: %s returned %s", self._url, function_name, value)
                 if not value:
                     continue
+                if meta_key == "link":
+                    try:
+                        entry_url_validator(value)
+                    except ValidationError:
+                        continue
+                log.debug("%s: setting %s to %s", self._url, meta_key, value)
                 metadata[meta_key] = value
                 break
         return metadata
@@ -91,7 +100,14 @@ class MetadataExtractor:
         return self.__get_meta_value(property="article:author")
 
     def _get_opengraph_link(self):
-        return self.__get_meta_value(property="og:url")
+        # according to spec, URL has to utilize http:// or https:// protocols,
+        # but Facebook implementation does handle absolute path
+        # (apparently while ignoring <base href="">, if present)
+        og_url = self.__get_meta_value(property="og:url")
+        if og_url and not og_url.startswith(("http://", "https://")):
+            og_url_parsed = self._parsed_url._replace(path=og_url)
+            og_url = urllib.parse.urlunparse(og_url_parsed)
+        return og_url
 
     def _get_opengraph_title(self):
         return self.__get_meta_value(property="og:title")
