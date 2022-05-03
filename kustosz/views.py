@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from django.utils.timezone import now as django_now
 from rest_framework import generics
 from rest_framework import permissions
 from rest_framework import status
@@ -44,6 +47,17 @@ class ChannelDetail(generics.RetrieveUpdateAPIView):
     queryset = models.Channel.objects.get_annotated_queryset()
     serializer_class = serializers.ChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_update(self, serializer):
+        if "url" not in serializer.validated_data:
+            super().perform_update(serializer)
+            return
+
+        serializer.save(last_check_time=django_now() - timedelta(days=365))
+        dispatch_task_by_name(
+            TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT,
+            kwargs={"channel_ids": [serializer.data.get("id")], "force_fetch": False},
+        )
 
 
 class EntriesList(generics.ListAPIView):

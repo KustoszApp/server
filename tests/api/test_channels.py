@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.urls import reverse
 from rest_framework import status
 
@@ -6,6 +8,7 @@ from ..framework.factories.models import ChannelFactory
 from kustosz.constants import DEFAULT_UPDATE_FREQUENCY
 from kustosz.enums import TaskNamesEnum
 from kustosz.models import Channel
+from kustosz.utils import optional_make_aware
 
 
 def test_channels_order(db, faker, authenticated_api_client):
@@ -45,7 +48,8 @@ def test_create_channel(db, faker, mocker, authenticated_api_client):
     )
 
 
-def test_update_url(db, faker, authenticated_api_client):
+def test_update_url(db, faker, mocker, authenticated_api_client):
+    mocker.patch("kustosz.views.dispatch_task_by_name")
     channel = ChannelFactory.create()
     url = reverse("channel_detail", args=[channel.id])
     new_url = faker.uri()
@@ -56,6 +60,14 @@ def test_update_url(db, faker, authenticated_api_client):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["url"] == new_url
     assert response.data["url"] != channel.url
+    last_check_time = optional_make_aware(
+        datetime.strptime(response.data["last_check_time"], "%Y-%m-%dT%H:%M:%S.%fZ")
+    )
+    assert channel.last_check_time > last_check_time
+    kustosz.views.dispatch_task_by_name.assert_called_once_with(
+        TaskNamesEnum.FETCH_FEED_CHANNEL_CONTENT,
+        kwargs={"channel_ids": [channel.pk], "force_fetch": False},
+    )
 
 
 def test_update_title(db, faker, authenticated_api_client):
