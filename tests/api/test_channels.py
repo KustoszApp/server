@@ -70,7 +70,8 @@ def test_update_url(db, faker, mocker, authenticated_api_client):
     )
 
 
-def test_update_title(db, faker, authenticated_api_client):
+def test_update_title(db, faker, mocker, authenticated_api_client):
+    mocker.patch("kustosz.views.dispatch_task_by_name")
     channel = ChannelFactory.create()
     url = reverse("channel_detail", args=[channel.id])
     new_title = faker.text()
@@ -81,6 +82,11 @@ def test_update_title(db, faker, authenticated_api_client):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["title"] == new_title
     assert response.data["title"] != channel.title
+    last_check_time = optional_make_aware(
+        datetime.strptime(response.data["last_check_time"], "%Y-%m-%dT%H:%M:%S.%fZ")
+    )
+    assert channel.last_check_time == last_check_time
+    assert not kustosz.views.dispatch_task_by_name.called
 
 
 def test_update_active(db, faker, authenticated_api_client):
