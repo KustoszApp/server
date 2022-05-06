@@ -309,3 +309,19 @@ def test_entry_try_add_manually_link_already_exists(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert any("already exists" in error for error in response.data)
     assert not kustosz.managers.dispatch_task_by_name.called
+
+
+def test_entry_add_manually_cors(db, mocker, faker, authenticated_api_client):
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
+    origin = faker.url()
+    url = reverse("entry_manual_add")
+    extra_headers = {
+        "HTTP_ACCESS_CONTROL_REQUEST_METHOD": "POST",
+        "HTTP_ORIGIN": origin,
+    }
+
+    response = authenticated_api_client.options(url, data=None, **extra_headers)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.headers.get("Access-Control-Allow-Origin") == origin
+    assert not kustosz.managers.dispatch_task_by_name.called
