@@ -113,16 +113,10 @@ class MetadataExtractor:
         return self.__get_meta_value(property="og:title")
 
     def _get_opengraph_published_time_upstream(self):
-        value = self.__get_meta_value(property="article:published_time")
-        if not value:
-            return
-        return datetime.fromisoformat(value)
+        return self.__get_opengraph_time_value(property="article:published_time")
 
     def _get_opengraph_updated_time_upstream(self):
-        value = self.__get_meta_value(property="article:modified_time")
-        if not value:
-            return
-        return datetime.fromisoformat(value)
+        return self.__get_opengraph_time_value(property="article:modified_time")
 
     def _get_html_author(self):
         return self.__get_meta_value(name="author")
@@ -161,9 +155,18 @@ class MetadataExtractor:
         last_modified_header = self._headers.get("Last-Modified", "")
         if not last_modified_header:
             return
-        last_modified_date = datetime.strptime(
-            last_modified_header, "%a, %d %b %Y %H:%M:%S %Z"
-        )
+        try:
+            last_modified_date = datetime.strptime(
+                last_modified_header, "%a, %d %b %Y %H:%M:%S %Z"
+            )
+        except ValueError:
+            log.debug(
+                "%s: %s has invalid date %s",
+                self._url,
+                "Last-Modified",
+                last_modified_header,
+            )
+            return
         return last_modified_date
 
     def _get_headers_updated_time_upstream(self):
@@ -189,6 +192,18 @@ class MetadataExtractor:
             return
         element_value = element.get("content")
         return element_value
+
+    def __get_opengraph_time_value(self, **kwargs):
+        value: str = self.__get_meta_value(**kwargs)
+        if not value:
+            return
+        if value.lower().endswith("z"):
+            value = value.rstrip("zZ")
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            log.debug("%s: %s has invalid date %s", self._url, kwargs, value)
+            return
 
     @classmethod
     def from_response(

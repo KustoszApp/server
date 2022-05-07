@@ -77,6 +77,40 @@ def test_metadata_extract_opengraph(faker):
     )
 
 
+def test_metadata_extract_opengraph_dates_with_z(faker):
+    correct_date = faker.iso8601()
+    date_with_z = f"{correct_date}Z"
+    metadata = {
+        "article:published_time": date_with_z,
+        "article:modified_time": date_with_z,
+    }
+    html = create_simple_html(meta=metadata)
+    resp = FakeRequestFactory(text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.published_time_upstream == datetime.fromisoformat(
+        correct_date
+    )
+    assert extracted_metadata.updated_time_upstream == datetime.fromisoformat(
+        correct_date
+    )
+
+
+def test_metadata_extract_opengraph_invalid_dates(faker):
+    metadata = {
+        "article:published_time": faker.text(),
+        "article:modified_time": faker.text(),
+    }
+    html = create_simple_html(meta=metadata)
+    resp = FakeRequestFactory(text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert not extracted_metadata.published_time_upstream
+    assert not extracted_metadata.updated_time_upstream
+
+
 def test_metadata_extract_html(faker):
     title = faker.sentence()
     metadata = {"author": faker.name()}
@@ -195,6 +229,18 @@ def test_metadata_extract_headers_link(faker, request, header_text):
         assert extracted_metadata.link == url
     else:
         assert extracted_metadata.link != url
+
+
+def test_metadata_extract_headers_invalid_dates(faker):
+    headers = {
+        "Last-Modified": faker.text(),
+    }
+    resp = FakeRequestFactory(headers=headers)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert not extracted_metadata.published_time_upstream
+    assert not extracted_metadata.updated_time_upstream
 
 
 def test_metadata_extract_url(faker):
