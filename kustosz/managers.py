@@ -61,6 +61,7 @@ class ChannelManager(models.Manager):
                 tagged_entries=Count(
                     "entries", filter=Q(entries__tags__isnull=False), distinct=True
                 ),
+                total_entries=Count("entries"),
                 last_entry_published_time=Max(
                     Coalesce(
                         "entries__published_time_upstream",

@@ -192,6 +192,7 @@ class EntryFilterSerializer(serializers.ModelSerializer):
 class ChannelSerializer(TaggitSerializer, serializers.ModelSerializer):
     unarchived_entries = serializers.IntegerField(read_only=True)
     tagged_entries = serializers.IntegerField(read_only=True)
+    total_entries = serializers.IntegerField(read_only=True)
     last_entry_published_time = serializers.DateTimeField(read_only=True)
     tags = TagListSerializerField(required=False)
 
@@ -213,6 +214,7 @@ class ChannelSerializer(TaggitSerializer, serializers.ModelSerializer):
             "is_stale",
             "unarchived_entries",
             "tagged_entries",
+            "total_entries",
             "last_entry_published_time",
             "tags",
         ]
