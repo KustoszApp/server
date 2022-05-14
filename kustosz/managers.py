@@ -352,7 +352,7 @@ class EntryManager(models.Manager):
             .get_queryset()
             .annotate(
                 published_time=Coalesce(
-                    "published_time_upstream", "updated_time_upstream"
+                    "published_time_upstream", "updated_time_upstream", "added_time"
                 )
             )
         )
