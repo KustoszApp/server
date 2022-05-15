@@ -5,11 +5,11 @@ description = "Focus on the worthwhile content with Kustosz, open source self-ho
 license = "EUPL-1.2"
 authors = ["Mirek Długosz <mirek@mirekdlugosz.com>"]
 readme = "README.md"
-homepage = "https://github.com/KustoszApp/server/"
+homepage = "https://www.kustosz.org/"
 repository = "https://github.com/KustoszApp/server/"
-documentation = "https://github.com/KustoszApp/server/"
+documentation = "https://docs.kustosz.org/"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Web Environment",
     "Framework :: Django",
     "Intended Audience :: End Users/Desktop",
