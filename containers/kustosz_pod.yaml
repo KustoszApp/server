@@ -31,9 +31,6 @@ spec:
     tty: true
   - name: kustosz_api
     image: quay.io/kustosz/app
-    volumeMounts:
-      - mountPath: /opt/kustosz/.config/kustosz/
-        name: kustosz_config-pvc
     ports:
       - containerPort: 8000
         hostPort: 80
@@ -52,6 +49,8 @@ spec:
         value: "5432"
       - name: DYNACONF_CELERY_BROKER_URL
         value: "redis://localhost:6379/"
+      - name: KUSTOSZ_SKIP_PASSWORD_GENERATION
+        value: "1"
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
   - name: celery_worker
@@ -90,6 +89,8 @@ spec:
       - name: KUSTOSZ_SKIP_CREATECACHETABLE
         value: "1"
       - name: KUSTOSZ_SKIP_COLLECTSTATIC
+        value: "1"
+      - name: KUSTOSZ_SKIP_PASSWORD_GENERATION
         value: "1"
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
@@ -132,6 +133,8 @@ spec:
         value: "1"
       - name: KUSTOSZ_SKIP_COLLECTSTATIC
         value: "1"
+      - name: KUSTOSZ_SKIP_PASSWORD_GENERATION
+        value: "1"
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
   - name: celery_beat
@@ -169,6 +172,8 @@ spec:
         value: "1"
       - name: KUSTOSZ_SKIP_COLLECTSTATIC
         value: "1"
+      - name: KUSTOSZ_SKIP_PASSWORD_GENERATION
+        value: "1"
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
   dnsConfig:
@@ -183,6 +188,3 @@ spec:
   - name: redis_data-pvc
     persistentVolumeClaim:
       claimName: redis_data
-  - name: kustosz_config-pvc
-    persistentVolumeClaim:
-      claimName: kustosz_config
