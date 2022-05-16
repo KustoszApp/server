@@ -6,6 +6,7 @@ from reader import Entry
 from reader import EntryUpdateStatus
 from reader import FeedExistsError
 from reader import make_reader
+from reader.plugins import DEFAULT_PLUGINS as READER_DEFAULT_PLUGINS
 
 from kustosz.constants import FEED_FETCHER_LOCAL_FEEDS_DIR
 from kustosz.constants import FETCHERS_CACHE_DIR
@@ -41,6 +42,26 @@ def reader_feed_url_to_local_url(path):
     return f"file://{without_prefix}"
 
 
+def aggressive_ua_fallback_plugin(reader):
+    # this is almost verbatim copy of reader.plugins.ua_fallback, except
+    # that it uses User-Agent set in Kustosz settings. If this User-Agent
+    # represents real browser, it may help with some particularly stubborn
+    # websites
+    def aggressive_ua_fallback_hook(session, response, request, **kwargs):
+        if not response.status_code == 403:
+            return None
+
+        ua = settings.KUSTOSZ_URL_FETCHER_EXTRA_HEADERS.get("User-Agent")
+        if not ua:
+            return None
+
+        request.headers["User-Agent"] = ua
+
+        return request
+
+    reader._parser.session_hooks.response.append(aggressive_ua_fallback_hook)
+
+
 class FeedFetcherPurpose(enum.Enum):
     MAIN = enum.auto()
     FEED_DISCOVERY = enum.auto()
@@ -53,7 +74,9 @@ class FeedChannelsFetcher:
         self._db_file = self._get_db_file()
         self._fetched_entries = []
         self._reader = make_reader(
-            url=str(self._db_file), feed_root=str(FEED_FETCHER_LOCAL_FEEDS_DIR)
+            url=str(self._db_file),
+            feed_root=str(FEED_FETCHER_LOCAL_FEEDS_DIR),
+            plugins=READER_DEFAULT_PLUGINS + [aggressive_ua_fallback_plugin],
         )
         self._reader.after_entry_update_hooks.append(self._reader_plugin())
 
