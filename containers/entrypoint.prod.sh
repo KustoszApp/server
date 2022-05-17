@@ -5,6 +5,9 @@ set -euo pipefail
 trap 's=$?; echo >&2 "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 shopt -s nullglob
 
+# load Node.JS provided by nvm
+[ -s "$NVM_DIR/nvm.sh"  ] && source "$NVM_DIR/nvm.sh"
+
 # ensure we have db connection
 DJANGODB=$(mktemp --suffix=.json)
 dynaconf list -k DATABASES__default --output-flat -o "$DJANGODB" > /dev/null

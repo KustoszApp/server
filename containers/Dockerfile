@@ -8,32 +8,38 @@
 # {{{ base image
 FROM python:3.9-bullseye as base
 
+ENV NODE_VERSION=16
+ENV NVM_VERSION=0.39.1
+ENV NVM_DIR=/opt/nvm
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         netcat-openbsd \
         wait-for-it \
         supervisor \
         redis \
-        jq \
-        nodejs && \
+        jq && \
     rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p $NVM_DIR
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v$NVM_VERSION/install.sh | PROFILE=/dev/null bash
 
 RUN useradd --home-dir /opt/kustosz -m --shell /bin/bash -U kustosz
 # }}}
 
 # {{{ build frontend
 FROM base as frontendbuilder
+ENV NVM_DIR=/opt/nvm
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends npm
-
-RUN npm install --prefix /opt/kustosz-node-readability -g kustosz-node-readability
+RUN . "$NVM_DIR/nvm.sh" && \
+    npm install --prefix /opt/kustosz-node-readability -g kustosz-node-readability
 
 ENV BUILDDIR=/opt/kustosz-frontend-build/
 COPY ./.frontend $BUILDDIR
 WORKDIR $BUILDDIR
-RUN npm install
-RUN npm run build
+RUN . "$NVM_DIR/nvm.sh" && \
+    npm install && \
+    npm run build
 # }}}
 
 # {{{ build backend
@@ -65,6 +71,7 @@ FROM base as release
 USER kustosz
 
 ENV SETUPTOOLS_USE_DISTUTILS="stdlib"
+ENV NVM_DIR=/opt/nvm
 ENV HOME=/opt/kustosz
 ENV PATH="$HOME/.local/bin:$PATH"
 ENV KUSTOSZ_BASE_DIR="$HOME/web"
