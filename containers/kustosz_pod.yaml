@@ -49,8 +49,6 @@ spec:
         value: "5432"
       - name: DYNACONF_CELERY_BROKER_URL
         value: "redis://localhost:6379/"
-      - name: KUSTOSZ_SKIP_PASSWORD_GENERATION
-        value: "1"
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
   - name: celery_worker
@@ -90,7 +88,7 @@ spec:
         value: "1"
       - name: KUSTOSZ_SKIP_COLLECTSTATIC
         value: "1"
-      - name: KUSTOSZ_SKIP_PASSWORD_GENERATION
+      - name: KUSTOSZ_SKIP_CREATE_USER
         value: "1"
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
@@ -133,7 +131,7 @@ spec:
         value: "1"
       - name: KUSTOSZ_SKIP_COLLECTSTATIC
         value: "1"
-      - name: KUSTOSZ_SKIP_PASSWORD_GENERATION
+      - name: KUSTOSZ_SKIP_CREATE_USER
         value: "1"
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
@@ -172,7 +170,7 @@ spec:
         value: "1"
       - name: KUSTOSZ_SKIP_COLLECTSTATIC
         value: "1"
-      - name: KUSTOSZ_SKIP_PASSWORD_GENERATION
+      - name: KUSTOSZ_SKIP_CREATE_USER
         value: "1"
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"

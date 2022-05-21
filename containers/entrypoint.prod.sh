@@ -42,15 +42,18 @@ if [ -z "${KUSTOSZ_ORCHESTRATED:+x}" ]; then
     supervisorctl -c $HOME/supervisor/supervisord.conf start redis-server
 fi
 
-# set username and password by default, unless provided explicitly
-if [ -z "${KUSTOSZ_SKIP_PASSWORD_GENERATION:+x}" ] && [ -z "${KUSTOSZ_USERNAME:+x}" ] && [ -z "${KUSTOSZ_PASSWORD:+x}" ]; then
-    export KUSTOSZ_USERNAME="admin"
-    export KUSTOSZ_PASSWORD="$(openssl rand -base64 30)"
-    export KUSTOSZ_PASSWORD_GENERATED=1
-fi
+# create user by default
+if [ -z "${KUSTOSZ_SKIP_CREATE_USER:+x}" ]; then
+    if [ -z "${KUSTOSZ_USERNAME:+x}" ]; then
+        export KUSTOSZ_USERNAME="admin"
+        export KUSTOSZ_CREDENTIALS_GENERATED=1
+    fi
 
-# maybe create user, if variables are provided / generated
-if [ ! -z "${KUSTOSZ_USERNAME:+x}" ] && [ ! -z "${KUSTOSZ_PASSWORD:+x}" ]; then
+    if [ -z "${KUSTOSZ_PASSWORD:+x}" ]; then
+        export KUSTOSZ_PASSWORD="$(openssl rand -base64 30)"
+        export KUSTOSZ_CREDENTIALS_GENERATED=1
+    fi
+
     if ! (
         echo "from django.contrib.auth import get_user_model"
         echo "get_user_model().objects.get(username='${KUSTOSZ_USERNAME}')"
@@ -63,8 +66,8 @@ if [ ! -z "${KUSTOSZ_USERNAME:+x}" ] && [ ! -z "${KUSTOSZ_PASSWORD:+x}" ]; then
             echo "user.save(update_fields=('password',))"
         ) | kustosz-manager shell
 
-        if [ ! -z "${KUSTOSZ_PASSWORD_GENERATED:+x}" ]; then
-            echo "Generated random login credentials"
+        if [ ! -z "${KUSTOSZ_CREDENTIALS_GENERATED:+x}"  ]; then
+            echo "You can log in with following credentials:"
             echo "Username: ${KUSTOSZ_USERNAME}"
             echo "Password: ${KUSTOSZ_PASSWORD}"
             echo ""
