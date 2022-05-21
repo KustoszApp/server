@@ -46,11 +46,7 @@ fi
 if [ -z "${KUSTOSZ_SKIP_PASSWORD_GENERATION:+x}" ] && [ -z "${KUSTOSZ_USERNAME:+x}" ] && [ -z "${KUSTOSZ_PASSWORD:+x}" ]; then
     export KUSTOSZ_USERNAME="admin"
     export KUSTOSZ_PASSWORD="$(openssl rand -base64 30)"
-
-    echo "Generated random login credentials"
-    echo "Username: ${KUSTOSZ_USERNAME}"
-    echo "Password: ${KUSTOSZ_PASSWORD}"
-    echo ""
+    export KUSTOSZ_PASSWORD_GENERATED=1
 fi
 
 # maybe create user, if variables are provided / generated
@@ -66,6 +62,13 @@ if [ ! -z "${KUSTOSZ_USERNAME:+x}" ] && [ ! -z "${KUSTOSZ_PASSWORD:+x}" ]; then
             echo "user.set_password('${KUSTOSZ_PASSWORD}')"
             echo "user.save(update_fields=('password',))"
         ) | kustosz-manager shell
+
+        if [ ! -z "${KUSTOSZ_PASSWORD_GENERATED:+x}" ]; then
+            echo "Generated random login credentials"
+            echo "Username: ${KUSTOSZ_USERNAME}"
+            echo "Password: ${KUSTOSZ_PASSWORD}"
+            echo ""
+        fi
     fi
 fi
 
