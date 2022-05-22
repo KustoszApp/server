@@ -1,0 +1,15 @@
+[Unit]
+Description=Run Kustosz %i component
+Documentation=https://docs.kustosz.org/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+ExecStart=/usr/local/bin/kustosz-service-dispatcher "%i"
+WorkingDirectory=/var/lib/kustosz/
+User=kustosz
+Group=kustosz
+
+[Install]
+WantedBy=multi-user.target

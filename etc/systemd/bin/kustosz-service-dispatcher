@@ -1,0 +1,31 @@
+#!/bin/sh
+# This files is part of Kustosz, https://www.kustosz.org/
+# This is simple dispatcher that will set up environment variables
+# and fork on actual process.
+# You should modify VIRTUAL_ENV and KUSTOSZ_BASE_DIR below.
+#
+# We could have used systemd Environment, except that it's only good
+# for setting static values; it can't prepend value to current $PATH.
+
+export VIRTUAL_ENV="/path/to/kustosz/virtualenv"
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+export ENV_FOR_DYNACONF="production"
+export DJANGO_SETTINGS_MODULE=kustosz.settings
+export KUSTOSZ_BASE_DIR="/path/to/kustosz/base/dir"
+
+export PORT="${PORT:-8000}"
+
+case "$1" in
+    web)
+        exec gunicorn kustosz.wsgi --bind 0.0.0.0:$PORT
+        ;;
+    worker)
+        exec celery -A kustosz worker -l INFO -Q celery
+        ;;
+    clock)
+        exec celery -A kustosz beat -l INFO
+        ;;
+    feedfetcher)
+        exec celery -A kustosz worker -l INFO -Q feed_fetcher --concurrency 1
+        ;;
+esac
