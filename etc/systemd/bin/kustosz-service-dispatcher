@@ -1,5 +1,5 @@
 #!/bin/sh
-# This files is part of Kustosz, https://www.kustosz.org/
+# This file is part of Kustosz, https://www.kustosz.org/
 # This is simple dispatcher that will set up environment variables
 # and fork on actual process.
 # You should modify VIRTUAL_ENV and KUSTOSZ_BASE_DIR below.
