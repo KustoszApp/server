@@ -31,6 +31,16 @@ jobs:
         run: poetry build
       - name: Upload to PyPI
         run: poetry publish --username=__token__ --password=${{ secrets.PYPI_TOKEN }}
+      - name: Generate requirements file for installer
+        run: poetry export -n -o requirements-installer.txt -E installer
+      - name: Generate requirements file for Heroku
+        run: poetry export -n --without-hashes -o requirements-heroku.txt -E heroku
+      - name: Add Kustosz to Heroku requirements
+        run: echo "kustosz==${{github.ref_name}}" >> requirements-heroku.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: requirements.txt
+          path: requirements-*.txt
   publish-github:
     permissions:
       contents: write
@@ -39,6 +49,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - uses: actions/download-artifact@v3
+        id: download_requirements
+        with:
+          name: requirements.txt
       - name: Prepare GitHub release body
         run: |
           export previousTag=$(git tag --sort=-creatordate | sed -n 2p)
@@ -49,6 +63,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           body_path: "${{ env.CHANGELOG_PATH }}"
+          files: |
+            ${{steps.download_requirements.outputs.download-path}}/requirements-installer.txt
+            ${{steps.download_requirements.outputs.download-path}}/requirements-heroku.txt
   publish-container:
     runs-on: ubuntu-latest
     steps:
