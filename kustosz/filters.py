@@ -29,6 +29,41 @@ class TagFilter(drf_filters.CharFilter):
         super().__init__(*args, **kwargs)
 
 
+class ReadingTimeFilter(drf_filters.NumberFilter):
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+
+        # as a naive optimization, get ids of entries that have at least
+        # one content matching criteria
+        # this has better chance of helping when lookup_expr is gt or gte
+        lookup = f"estimated_reading_time__{self.lookup_expr}"
+        entries_ids = [entry.pk for entry in qs]
+        contents = models.EntryContent.objects.filter(
+            entry__in=entries_ids,
+            **{lookup: value},
+        )
+        naively_filtered_entries = set(contents.values_list("entry", flat=True))
+
+        filtered_entries_ids = set()
+        for entry in qs:
+            if entry.pk not in naively_filtered_entries:
+                continue
+            estimated_reading_time = entry.preferred_content.estimated_reading_time
+            if self.lookup_expr == "exact" and estimated_reading_time == value:
+                filtered_entries_ids.add(entry.pk)
+            elif self.lookup_expr == "gt" and estimated_reading_time > value:
+                filtered_entries_ids.add(entry.pk)
+            elif self.lookup_expr == "gte" and estimated_reading_time >= value:
+                filtered_entries_ids.add(entry.pk)
+            elif self.lookup_expr == "lt" and estimated_reading_time < value:
+                filtered_entries_ids.add(entry.pk)
+            elif self.lookup_expr == "lte" and estimated_reading_time <= value:
+                filtered_entries_ids.add(entry.pk)
+
+        return qs.filter(pk__in=filtered_entries_ids)
+
+
 class ChannelFilter(drf_filters.FilterSet):
     tags = TagFilter(field_name="tags__slug")
     tags__not = TagFilter(field_name="tags__slug", exclude=True)
@@ -157,7 +192,24 @@ class EntryFilter(drf_filters.FilterSet):
         field_name="channel__tags", lookup_expr="isnull", exclude=True
     )
     has_note = EmptyStringFilter(field_name="note", exclude=True)
-
+    # as implementation detail, django-filter will apply filters in order
+    # of class variables definition. By putting this last, we hope
+    # to avoid going through all entries in db
+    reading_time = ReadingTimeFilter(
+        field_name="preferred_content__estimated_reading_time", lookup_expr="exact"
+    )
+    reading_time__lt = ReadingTimeFilter(
+        field_name="preferred_content__estimated_reading_time", lookup_expr="lt"
+    )
+    reading_time__gt = ReadingTimeFilter(
+        field_name="preferred_content__estimated_reading_time", lookup_expr="gt"
+    )
+    reading_time__lte = ReadingTimeFilter(
+        field_name="preferred_content__estimated_reading_time", lookup_expr="lte"
+    )
+    reading_time__gte = ReadingTimeFilter(
+        field_name="preferred_content__estimated_reading_time", lookup_expr="gte"
+    )
     order = drf_filters.OrderingFilter(
         fields=(
             "id",
