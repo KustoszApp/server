@@ -219,6 +219,7 @@ class EntryFilter(drf_filters.FilterSet):
             "published_time_upstream",
             "updated_time_upstream",
             "published_time",
+            "reader_position",
         )
     )
 
@@ -250,4 +251,5 @@ class EntryFilter(drf_filters.FilterSet):
             "updated_time": ["exact", "lt", "gt", "lte", "gte"],
             "published_time_upstream": ["exact", "lt", "gt", "lte", "gte"],
             "updated_time_upstream": ["exact", "lt", "gt", "lte", "gte"],
+            "reader_position": ["exact", "lt", "gt", "lte", "gte"],
         }
