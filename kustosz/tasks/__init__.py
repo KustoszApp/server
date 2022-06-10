@@ -1,6 +1,12 @@
 # flake8: noqa
 from .task_add_channels import add_channels
 from .task_add_readability_contents import add_readability_contents
+from .task_autodetect_channel_content_from_url import (
+    autodetect_channel_content_from_url,
+)
+from .task_autodetect_channels_from_url import autodetect_channels_from_url
+from .task_autodetect_content_from_url import autodetect_content_from_url
+from .task_autodetect_entry_content_from_url import autodetect_entry_content_from_url
 from .task_clean_feed_fetcher_cache import clean_feed_fetcher_cache
 from .task_clean_url_fetcher_cache import clean_url_fetcher_cache
 from .task_deduplicate_entries import deduplicate_entries

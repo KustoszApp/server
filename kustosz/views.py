@@ -10,11 +10,13 @@ from rest_framework.response import Response
 from kustosz import filters
 from kustosz import models
 from kustosz import serializers
+from kustosz.enums import AsyncTaskStatesEnum
 from kustosz.enums import ChannelTypesEnum
 from kustosz.enums import TaskNamesEnum
 from kustosz.exceptions import InvalidDataException
 from kustosz.types import ChannelDataInput
 from kustosz.utils import dispatch_task_by_name
+from kustosz.utils.autodetect_content import AutodetectContent
 
 
 class UserDetail(generics.RetrieveUpdateAPIView):
@@ -23,6 +25,25 @@ class UserDetail(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class AutodetectAdd(generics.CreateAPIView):
+    serializer_class = serializers.AutodetectAddSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        task_data = AutodetectContent.from_url(serializer.validated_data.get("url"))
+
+        serializer = self.get_serializer(task_data)
+        headers = self.get_success_headers(serializer.data)
+        status_code = status.HTTP_200_OK
+        if serializer.data.get("state") == AsyncTaskStatesEnum.FAILED:
+            status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+
+        return Response(serializer.data, status=status_code, headers=headers)
 
 
 class ChannelsList(generics.ListCreateAPIView):

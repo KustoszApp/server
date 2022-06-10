@@ -1,6 +1,10 @@
 from django.core.exceptions import ValidationError
 
 
+class ChildrenTasksInProgress(Exception):
+    pass
+
+
 class InvalidDataException(ValidationError):
     pass
 

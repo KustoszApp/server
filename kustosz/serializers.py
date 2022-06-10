@@ -3,6 +3,7 @@ from rest_framework import exceptions
 from rest_framework import serializers
 from taggit.models import Tag
 
+from .enums import AsyncTaskStatesEnum
 from .enums import ChannelTypesEnum
 from .enums import EntryFilterActionsEnum
 from .exceptions import InvalidDataException
@@ -14,6 +15,7 @@ from .models import User
 from .third_party.taggit_serializer.serializers import TaggitSerializer
 from .third_party.taggit_serializer.serializers import TagListSerializerField
 from .types import EntryDataInput
+from .validators import ChannelURLValidator
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -272,3 +274,35 @@ class TagsListSerializer(serializers.ModelSerializer):
             "name",
             "slug",
         ]
+
+
+class AutodetectedEntrySerializer(serializers.Serializer):
+    gid = serializers.CharField(read_only=True)
+    link = serializers.URLField(read_only=True)
+    title = serializers.CharField(read_only=True)
+    author = serializers.CharField(read_only=True)
+    published_time_upstream = serializers.DateTimeField(read_only=True)
+    updated_time_upstream = serializers.DateTimeField(read_only=True)
+    published_time = serializers.DateTimeField(read_only=True)
+
+
+class AutodetectedChannelSerializer(serializers.Serializer):
+    url = serializers.CharField(read_only=True)
+    title_upstream = serializers.CharField(read_only=True)
+    link = serializers.CharField(read_only=True)
+    total_entries = serializers.IntegerField(read_only=True)
+    last_entry_published_time = serializers.DateTimeField(read_only=True)
+    entries = serializers.ListField(child=AutodetectedEntrySerializer(), read_only=True)
+
+
+class AutodetectAddSerializer(serializers.Serializer):
+    url = serializers.URLField(
+        write_only=True, required=True, validators=[ChannelURLValidator]
+    )
+    state = serializers.ChoiceField(
+        choices=AsyncTaskStatesEnum.choices, read_only=True, allow_blank=False
+    )
+    entries = serializers.ListField(child=AutodetectedEntrySerializer(), read_only=True)
+    channels = serializers.ListField(
+        child=AutodetectedChannelSerializer(), read_only=True
+    )

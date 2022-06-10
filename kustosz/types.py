@@ -179,3 +179,62 @@ class SingleEntryExtractedMetadata:
 
     #: When entry/channel claims entry was last updated
     updated_time_upstream: Optional[datetime] = None
+
+
+@dataclass(frozen=True)
+class AutodetectedEntry:
+    # this maps to serializers.AutodetectedEntrySerializer
+    gid: str
+    link: str
+    title: Optional[str] = ""
+    author: Optional[str] = ""
+    published_time_upstream: Optional[datetime] = None
+    updated_time_upstream: Optional[datetime] = None
+    published_time: Optional[datetime] = None
+
+    def __post_init__(self):
+        if not self.published_time:
+            published_time = None
+            if self.published_time_upstream:
+                published_time = self.published_time_upstream
+            elif self.updated_time_upstream:
+                published_time = self.updated_time_upstream
+            if published_time:
+                object.__setattr__(self, "published_time", published_time)
+
+
+@dataclass(frozen=True)
+class AutodetectedChannel:
+    # this maps to serializers.AutodetectedChannelSerializer
+    url: str
+    title_upstream: Optional[str] = ""
+    link: Optional[str] = ""
+    total_entries: Optional[int] = 0
+    last_entry_published_time: Optional[datetime] = None
+    entries: Sequence["AutodetectedEntry"] = ()
+
+    def __post_init__(self):
+        if not self.total_entries:
+            object.__setattr__(self, "total_entries", len(self.entries))
+
+        if not self.last_entry_published_time:
+            last_entry_published_time = None
+            for entry in self.entries:
+                if not entry.published_time:
+                    continue
+                if (
+                    not last_entry_published_time
+                    or entry.published_time > last_entry_published_time
+                ):
+                    last_entry_published_time = entry.published_time
+            if last_entry_published_time:
+                object.__setattr__(
+                    self, "last_entry_published_time", last_entry_published_time
+                )
+
+
+@dataclass(frozen=True)
+class AutodetectContentTaskResult:
+    state: str
+    entries: Sequence["AutodetectedEntry"] = ()
+    channels: Sequence["AutodetectedChannel"] = ()

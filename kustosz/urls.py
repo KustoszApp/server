@@ -12,6 +12,7 @@ api_authentication = [
 
 main_api_paths = [
     path("users/", include(api_authentication)),
+    path("autodetect_add", views.AutodetectAdd.as_view(), name="autodetect_add"),
     path("channels/", views.ChannelsList.as_view(), name="channels_list"),
     path("channels/<int:pk>/", views.ChannelDetail.as_view(), name="channel_detail"),
     path(

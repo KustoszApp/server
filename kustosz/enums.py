@@ -1,6 +1,12 @@
 from django.db import models
 
 
+class AsyncTaskStatesEnum(models.TextChoices):
+    IN_PROGRESS = "in_progress", "In progress"
+    COMPLETED = "completed", "Completed"
+    FAILED = "failed", "Failed"
+
+
 class ChannelTypesEnum(models.TextChoices):
     MANUAL = "manual", "Manual"
     FEED = "feed", "RSS/Atom feed"
@@ -33,6 +39,10 @@ class SerialQueuesNamesEnum(models.TextChoices):
 class TaskNamesEnum(models.TextChoices):
     ADD_CHANNELS = "kustosz.add_channels"
     ADD_READABILITY_CONTENTS = "kustosz.add_readability_contents"
+    AUTODETECT_CONTENT_FROM_URL = "kustosz.autodetect_content_from_url"
+    AUTODETECT_CHANNEL_CONTENT_FROM_URL = "kustosz.autodetect_channel_content_from_url"
+    AUTODETECT_CHANNELS_FROM_URL = "kustosz.autodetect_channels_from_url"
+    AUTODETECT_ENTRY_CONTENT_FROM_URL = "kustosz.autodetect_entry_content_from_url"
     CLEAN_FEED_FETCHER_CACHE = "kustosz.clean_feed_fetcher_cache"
     CLEAN_URL_FETCHER_CACHE = "kustosz.clean_url_fetcher_cache"
     DEDUPLICATE_ENTRIES = "kustosz.deduplicate_entries"
