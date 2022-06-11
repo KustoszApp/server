@@ -1,5 +1,8 @@
 import enum
+import tempfile
+from pathlib import Path
 from typing import Iterable
+from typing import Optional
 
 from django.conf import settings
 from reader import Entry
@@ -73,9 +76,14 @@ class FeedChannelsFetcher:
         self._prepare_directories()
         self._db_file = self._get_db_file()
         self._fetched_entries = []
+
+        feed_root = FEED_FETCHER_LOCAL_FEEDS_DIR
+        if self._purpose == FeedFetcherPurpose.FEED_DISCOVERY:
+            feed_root = FETCHERS_CACHE_DIR
+
         self._reader = make_reader(
             url=str(self._db_file),
-            feed_root=str(FEED_FETCHER_LOCAL_FEEDS_DIR),
+            feed_root=str(feed_root),
             plugins=READER_DEFAULT_PLUGINS + [aggressive_ua_fallback_plugin],
         )
         self._reader.after_entry_update_hooks.append(self._reader_plugin())
@@ -93,12 +101,18 @@ class FeedChannelsFetcher:
             d.mkdir(mode=0o700, exist_ok=True)
 
     def _get_db_file(self):
+        if self._purpose == FeedFetcherPurpose.FEED_DISCOVERY:
+            if not settings.DEBUG:
+                return ":memory:"
+            _, db_path = tempfile.mkstemp(".sqlite", dir=FETCHERS_CACHE_DIR)
+            return Path(db_path)
+
         db_name = f"readerdb.{self._purpose.name}.sqlite"
         return FETCHERS_CACHE_DIR / db_name
 
     def _remove_db_from_cache(self):
-        db_name = f"readerdb.{self._purpose.name}.sqlite"
-        for path in FETCHERS_CACHE_DIR.glob("*"):
+        db_name = self._db_file.name
+        for path in self._db_file.parent.glob("*"):
             if path.is_file() and db_name in path.name:
                 path.unlink(missing_ok=True)
 
@@ -190,8 +204,12 @@ class FeedChannelsFetcher:
         return rv
 
     @classmethod
-    def fetch(cls, feed_urls: Iterable[str]) -> FeedFetcherResult:
-        fetcher = cls(purpose=FeedFetcherPurpose.MAIN)
+    def fetch(
+        cls,
+        feed_urls: Iterable[str],
+        purpose: Optional[FeedFetcherPurpose] = FeedFetcherPurpose.MAIN,
+    ) -> FeedFetcherResult:
+        fetcher = cls(purpose=purpose)
         fetcher.update(feed_urls)
         rv = fetcher.get_new_data()
         return rv
