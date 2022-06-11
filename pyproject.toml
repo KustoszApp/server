@@ -44,6 +44,7 @@ psycopg2 = { version = "^2.9.3", optional = true }
 psycopg2-binary = { version = "^2.9.3", optional = true }
 redis = { version = "^4.2.2", optional = true }
 whitenoise = { version = "^6.0.0", optional = true }
+dacite = "^1.6.0"
 
 [tool.poetry.dev-dependencies]
 # FIXME: make it two separate groups in poetry 1.2+
