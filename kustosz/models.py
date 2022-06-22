@@ -3,15 +3,19 @@ from datetime import timedelta
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.timezone import now as django_now
 from taggit.managers import TaggableManager
 
-from .constants import DEFAULT_ENTRY_OPEN_READ_TIMEOUT
+from .constants import DEFAULT_MARK_AS_READ_OPEN_TIME
+from .constants import DEFAULT_MARK_AS_READ_RATIO
 from .constants import DEFAULT_UPDATE_FREQUENCY
 from .enums import ChannelTypesEnum
 from .enums import EntryContentSourceTypesEnum
 from .enums import EntryFilterActionsEnum
+from .enums import EntryMarkAsReadStrategiesEnum
 from .enums import TaskNamesEnum
 from .exceptions import InvalidDataException
 from .forms.fields import ChannelURLFormField
@@ -39,9 +43,24 @@ class User(AbstractUser):
     )
     theme_color = models.TextField(blank=True, help_text="User preferred color theme")
     theme_view = models.TextField(blank=True, help_text="User preferred view")
-    entry_open_read_timeout = models.IntegerField(
-        default=DEFAULT_ENTRY_OPEN_READ_TIMEOUT,
-        help_text="When after opening entry it should be marked as read (in seconds)",
+    entry_mark_as_read_strategy = models.CharField(
+        max_length=20,
+        blank=False,
+        default=EntryMarkAsReadStrategiesEnum.NEVER,
+        choices=EntryMarkAsReadStrategiesEnum.choices,
+        help_text="Automatically mark entry as read when…",
+    )
+    entry_mark_as_read_open_time = models.IntegerField(
+        default=DEFAULT_MARK_AS_READ_OPEN_TIME,
+        help_text="When opened entry should be marked as read (in seconds)",
+    )
+    entry_mark_as_read_ratio = models.FloatField(
+        default=DEFAULT_MARK_AS_READ_RATIO,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text=(
+            "When entry should be marked as read "
+            "(in percent relative to article length)"
+        ),
     )
     entry_open_scroll_to_top = models.BooleanField(
         default=True,

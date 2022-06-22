@@ -28,8 +28,9 @@ class UserSerializer(serializers.ModelSerializer):
             "default_filter",
             "theme_color",
             "theme_view",
-            "entry_open_read_timeout",
-            "entry_open_scroll_to_top",
+            "entry_mark_as_read_strategy",
+            "entry_mark_as_read_open_time",
+            "entry_mark_as_read_ratio",
         ]
         extra_kwargs = {
             "username": {"read_only": True},

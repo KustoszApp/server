@@ -26,6 +26,13 @@ class EntryFilterActionsEnum(models.TextChoices):
     RUN_SCRIPT = "run_script", "Run external application"
 
 
+class EntryMarkAsReadStrategiesEnum(models.TextChoices):
+    NEVER = "never", "Never"
+    OPENED = "opened", "When opened"
+    OPEN_FOR_TIME = "open_for_time", "When opened for … seconds"
+    PERCENT_READ = "percent_read", "When …% has been read"
+
+
 class ImportChannelsActionsEnum(models.TextChoices):
     AUTODISCOVER = "autodiscover"
     OPML = "opml"
