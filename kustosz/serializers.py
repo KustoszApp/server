@@ -31,6 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
             "entry_mark_as_read_strategy",
             "entry_mark_as_read_open_time",
             "entry_mark_as_read_ratio",
+            "entry_open_scroll_to_top",
         ]
         extra_kwargs = {
             "username": {"read_only": True},
