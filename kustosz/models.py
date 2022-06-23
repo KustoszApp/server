@@ -46,7 +46,7 @@ class User(AbstractUser):
     entry_mark_as_read_strategy = models.CharField(
         max_length=20,
         blank=False,
-        default=EntryMarkAsReadStrategiesEnum.NEVER,
+        default=EntryMarkAsReadStrategiesEnum.RATIO_READ,
         choices=EntryMarkAsReadStrategiesEnum.choices,
         help_text="Automatically mark entry as read when…",
     )
