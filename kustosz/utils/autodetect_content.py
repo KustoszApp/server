@@ -33,6 +33,7 @@ from kustosz.types import AutodetectedEntry
 from kustosz.types import FeedFetcherResult
 from kustosz.utils import dispatch_task_by_name
 from kustosz.utils import make_unique
+from kustosz.utils import normalize_url
 from kustosz.utils.extract_metadata import MetadataExtractor
 
 
@@ -158,7 +159,7 @@ class FeedLinksFinder:
                 full_url = as_feed_url(elem, parsed_url)
                 if not full_url:
                     continue
-                yield full_url
+                yield normalize_url(full_url)
 
     def _find_links(self):
         sources = [

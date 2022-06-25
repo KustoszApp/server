@@ -66,7 +66,7 @@ def test_feed_links_from_url_with_subdirs(faker):
                 '<link rel="alternate" type="application/rss+xml"'
                 ' href="http://test.com"></head></html>'
             ),
-            "http://test.com",
+            "http://test.com/",
             id="link_rel_alternate",
         ),
         pytest.param(
@@ -75,7 +75,7 @@ def test_feed_links_from_url_with_subdirs(faker):
                 '<link name="alternate" type="application/rss+xml"'
                 ' href="http://test.com"></head></html>'
             ),
-            "http://test.com",
+            "http://test.com/",
             id="link_name_alternate",
         ),
         pytest.param(
@@ -84,7 +84,7 @@ def test_feed_links_from_url_with_subdirs(faker):
                 '<link rel="alternative" type="application/rss+xml"'
                 ' href="http://test.com"></head></html>'
             ),
-            "http://test.com",
+            "http://test.com/",
             id="link_rel_alternative",
         ),
         pytest.param(
@@ -94,7 +94,7 @@ def test_feed_links_from_url_with_subdirs(faker):
                 '<link rel="alternative" type="application/rss+xml"'
                 ' href="http://test-correct.com"></head></html>'
             ),
-            "http://test-correct.com",
+            "http://test-correct.com/",
             id="link_invalid_type",
         ),
         pytest.param(
@@ -111,6 +111,11 @@ def test_feed_links_from_url_with_subdirs(faker):
             t.a("RSS", href="http://test.com/somelink/"),
             "http://test.com/somelink/",
             id="a_only_content",
+        ),
+        pytest.param(
+            t.a("RSS", href="http://test.com/some/../link/"),
+            "http://test.com/link/",
+            id="normalize_path",
         ),
     ],
 )
@@ -145,6 +150,7 @@ def test_feed_links_from_response_double_slash(faker):
     [
         pytest.param("/some/url", id="link_absolute"),
         pytest.param("another/url", id="link_relative"),
+        pytest.param("./another/url", id="link_relative_with_dot"),
     ],
 )
 def test_feed_links_from_response_format(href, faker, request):
@@ -159,6 +165,8 @@ def test_feed_links_from_response_format(href, faker, request):
     found_links = list(flf._from_response())
     if request.node.callspec.id == "link_relative":
         href = f"/{href}"
+    if request.node.callspec.id == "link_relative_with_dot":
+        href = href[1:]
     assert f"{hostname}{href}" in found_links
 
 
