@@ -327,6 +327,7 @@ def test_fetch_channels_content_unexpected_channel(db, mocker):
         FetchedFeedFactory(url=deleted_channel.url),
     ]
     fetcher_rv = FeedFetcherResult(feeds=fetched_feed_data, entries=[])
+    mocker.patch("kustosz.models.dispatch_task_by_name")
     mocker.patch(
         "kustosz.managers.FeedChannelsFetcher.fetch",
         return_value=fetcher_rv,
