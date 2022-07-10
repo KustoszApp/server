@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kustosz"
-version = "22.06.1"
+version = "22.07.0"
 description = "Focus on the worthwhile content with Kustosz, open source self-hosted web application. This package contains backend server."
 license = "EUPL-1.2"
 authors = ["Mirek Długosz <mirek@mirekdlugosz.com>"]
