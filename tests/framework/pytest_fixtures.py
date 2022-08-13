@@ -19,7 +19,8 @@ def api_client():
 
 
 @pytest.fixture()
-def authenticated_api_client(user_model, api_client):
+def authenticated_api_client(user_model):
+    api_client = APIClient()
     token = Token.objects.create(user=user_model)
     api_client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
     yield api_client

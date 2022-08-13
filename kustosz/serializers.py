@@ -308,3 +308,7 @@ class AutodetectAddSerializer(serializers.Serializer):
     channels = serializers.ListField(
         child=AutodetectedChannelSerializer(), read_only=True
     )
+
+
+class ExportOTTSerializer(serializers.Serializer):
+    token = serializers.CharField(read_only=True)

@@ -1,16 +1,22 @@
 from datetime import timedelta
 
+from django.core.cache import cache
+from django.middleware.csrf import get_token
 from django.utils.timezone import now as django_now
 from rest_framework import generics
 from rest_framework import permissions
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from kustosz import authentication
 from kustosz import filters
 from kustosz import models
 from kustosz import renderers
 from kustosz import serializers
+from kustosz.constants import DATA_EXPORT_CACHE_EXPIRE_TIME
+from kustosz.constants import DATA_EXPORT_CACHE_KEY
 from kustosz.enums import AsyncTaskStatesEnum
 from kustosz.enums import ChannelTypesEnum
 from kustosz.enums import TaskNamesEnum
@@ -253,11 +259,31 @@ class EntryTagsList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
 
+class ExportOTT(generics.RetrieveAPIView):
+    serializer_class = serializers.ExportOTTSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        class Instance:
+            def __init__(self, token):
+                self.token = token
+
+        ott = get_token(request)
+        instance = Instance(ott)
+        cache.set(DATA_EXPORT_CACHE_KEY, ott, timeout=DATA_EXPORT_CACHE_EXPIRE_TIME)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
 class ExportChannels(generics.RetrieveAPIView):
+    authentication_classes = [
+        authentication.ExportOTTAuthentication,
+        TokenAuthentication,
+    ]
     permission_classes = [permissions.IsAuthenticated]
     renderer_classes = [renderers.RawDataRenderer]
 
-    def retrieve(request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):
         opml_content = models.Channel.objects.export_channels_opml()
         headers = {
             "Content-Disposition": 'attachment; filename="kustosz-subscriptions.xml"',
