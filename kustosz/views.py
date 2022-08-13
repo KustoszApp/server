@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from kustosz import filters
 from kustosz import models
+from kustosz import renderers
 from kustosz import serializers
 from kustosz.enums import AsyncTaskStatesEnum
 from kustosz.enums import ChannelTypesEnum
@@ -250,3 +251,20 @@ class EntryTagsList(generics.ListAPIView):
     queryset = models.Entry.tags.all().order_by("slug")
     serializer_class = serializers.TagsListSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+class ExportChannels(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [renderers.RawDataRenderer]
+
+    def retrieve(request, *args, **kwargs):
+        opml_content = models.Channel.objects.export_channels_opml()
+        headers = {
+            "Content-Disposition": 'attachment; filename="kustosz-subscriptions.xml"',
+        }
+        return Response(
+            data=opml_content,
+            status=status.HTTP_200_OK,
+            headers=headers,
+            content_type="text/xml",
+        )

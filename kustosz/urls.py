@@ -28,6 +28,7 @@ main_api_paths = [
     path("entries/<int:pk>/", views.EntryDetail.as_view(), name="entry_detail"),
     path("entries/archive", views.EntriesArchive.as_view(), name="entries_archive"),
     path("entries/manual_add", views.EntryManualAdd.as_view(), name="entry_manual_add"),
+    path("export/channels", views.ExportChannels.as_view(), name="export_channels"),
     path("filters/", views.EntryFiltersList.as_view(), name="entry_filters_list"),
     path(
         "filters/<int:pk>/",

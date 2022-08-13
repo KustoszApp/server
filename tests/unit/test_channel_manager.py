@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import pytest
 from django.utils.timezone import now as django_now
+from lxml import etree
 
 import kustosz
 from ..framework.factories.models import ChannelFactory
@@ -554,3 +555,59 @@ def test_fetch_feed_channels_entry_content_not_updated_no_changes(db, mocker):
         updated_entry_content.estimated_reading_time
         == entry_content.estimated_reading_time
     )
+
+
+def test_export_channels_opml(db, faker):
+    tags = [faker.word().title()]
+    channel = ChannelFactory.create(tags=tags)
+
+    raw_opml = Channel.objects.export_channels_opml()
+    parsed_opml = etree.fromstring(raw_opml.encode("UTF-8"))
+
+    tag_opml = parsed_opml.xpath("./body/outline")[0]
+    assert tag_opml.get("text") == tags[0]
+
+    assert len(tag_opml.xpath("./outline")) == 1
+
+    channel_opml = tag_opml.xpath("./outline")[0]
+
+    assert channel_opml.get("text") == channel.displayed_title
+    assert channel_opml.get("xmlUrl") == channel.url
+    assert channel_opml.get("htmlUrl") == channel.link
+
+
+def test_export_channels_opml_untagged(db):
+    channel = ChannelFactory.create()
+
+    raw_opml = Channel.objects.export_channels_opml()
+    parsed_opml = etree.fromstring(raw_opml.encode("UTF-8"))
+
+    assert len(parsed_opml.xpath("./body/outline")) == 1
+
+    channel_opml = parsed_opml.xpath("./body/outline")[0]
+
+    assert channel_opml.get("text") == channel.displayed_title
+    assert channel_opml.get("xmlUrl") == channel.url
+    assert channel_opml.get("htmlUrl") == channel.link
+
+
+def test_export_channels_opml_multiple_tags(db, faker):
+    tags = [w.title() for w in faker.words(unique=True)]
+    channel = ChannelFactory.create(tags=tags)
+
+    raw_opml = Channel.objects.export_channels_opml()
+    parsed_opml = etree.fromstring(raw_opml.encode("UTF-8"))
+
+    tag_opmls = parsed_opml.xpath("./body/outline")
+    assert len(tag_opmls) == 3
+
+    assert set([tag.get("text") for tag in tag_opmls]) == set(tags)
+
+    for tag_opml in tag_opmls:
+        assert len(tag_opml.xpath("./outline")) == 1
+
+        channel_opml = tag_opml.xpath("./outline")[0]
+
+        assert channel_opml.get("text") == channel.displayed_title
+        assert channel_opml.get("xmlUrl") == channel.url
+        assert channel_opml.get("htmlUrl") == channel.link

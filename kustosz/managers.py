@@ -45,6 +45,7 @@ from .utils.duplicate_finder import DuplicateFinder
 from .utils.extract_metadata import MetadataExtractor
 from .utils.extract_readability import ReadabilityContentExtractor
 from .utils.filter_actions import get_filter_action
+from .utils.opml_exporter import OPMLExporter
 
 
 log = logging.getLogger(__name__)
@@ -190,6 +191,16 @@ class ChannelManager(models.Manager):
                 fetch_feeds_tasks.append(task)
 
         return fetch_feeds_tasks
+
+    def export_channels_opml(self) -> str:
+        all_channels = (
+            self.get_queryset()
+            .exclude(channel_type=ChannelTypesEnum.MANUAL)
+            .prefetch_related("tags")
+        )
+        data_exporter = OPMLExporter()
+        opml_content = data_exporter.from_queryset(all_channels)
+        return opml_content
 
     def _request_feed_channels_content_fetch(
         self, channels: QuerySet, force_fetch: bool
