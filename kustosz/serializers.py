@@ -153,7 +153,7 @@ class EntrySerializer(TaggitSerializer, serializers.ModelSerializer):
             try:
                 instance.set_new_preferred_content(new_preferred_content)
             except InvalidDataException as e:
-                raise exceptions.ValidationError(e.message)
+                raise exceptions.ValidationError(e.message) from e
         instance.updated_time = django_now()
         return super().update(instance, validated_data)
 

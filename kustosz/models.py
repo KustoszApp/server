@@ -203,12 +203,12 @@ class Entry(models.Model):
     def set_new_preferred_content(self, new_preferred_content):
         try:
             found_content = self.content_set.get(pk=new_preferred_content.id)
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
             msg = "Could not find content matching provided criteria"
-            raise InvalidDataException(msg)
-        except MultipleObjectsReturned:
+            raise InvalidDataException(msg) from e
+        except MultipleObjectsReturned as e:
             msg = "Multiple content objects match provided criteria"
-            raise InvalidDataException(msg)
+            raise InvalidDataException(msg) from e
         self.selected_preferred_content = found_content
 
     @property

@@ -4,3 +4,4 @@ ignore = E203,W503
 exclude =
     kustosz/migrations
 max-line-length = 88
+extend-select = B901,B902,B904

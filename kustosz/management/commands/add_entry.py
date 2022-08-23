@@ -57,6 +57,6 @@ class Command(BaseCommand):
         try:
             Entry.objects.add_entry_from_manual_channel(serializer.validated_data)
         except InvalidDataException as e:
-            raise CommandError("\n".join(e.messages))
+            raise CommandError("\n".join(e.messages)) from e
 
         self.stdout.write(self.style.SUCCESS("DONE"))

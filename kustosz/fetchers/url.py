@@ -96,7 +96,7 @@ class SingleURLFetcher:
             requests_exceptions.ChunkedEncodingError,
         ) as e:
             log.debug("url %s raised %s:", url, e.__class__.__name__, exc_info=True)
-            raise TransientFetcherError().with_traceback(e.__traceback__)
+            raise TransientFetcherError().with_traceback(e.__traceback__) from e
         except (
             requests_exceptions.MissingSchema,
             requests_exceptions.InvalidURL,
@@ -105,7 +105,7 @@ class SingleURLFetcher:
             requests_exceptions.ContentDecodingError,
         ) as e:
             log.debug("url %s raised %s:", url, e.__class__.__name__, exc_info=True)
-            raise PermanentFetcherError().with_traceback(e.__traceback__)
+            raise PermanentFetcherError().with_traceback(e.__traceback__) from e
 
         log.debug("url %s returned HTTP code %s", url, response.status_code)
 

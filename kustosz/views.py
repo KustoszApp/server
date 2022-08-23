@@ -171,7 +171,7 @@ class EntryManualAdd(generics.CreateAPIView):
                 serializer.validated_data
             )
         except InvalidDataException as e:
-            raise ValidationError(e.messages)
+            raise ValidationError(e.messages) from e
         setattr(new_entry, "published_time", new_entry._published_time)
         serializer = self.get_serializer(new_entry)
         serializer.data

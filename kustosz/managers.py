@@ -382,7 +382,7 @@ class EntryManager(models.Manager):
         try:
             entry.full_clean()
         except ValidationError as e:
-            raise InvalidDataException(e)
+            raise InvalidDataException(e) from e
         entry_exists = self.get_queryset().filter(
             channel=entry.channel_id, link__in=(entry.gid, entry.link)
         )
