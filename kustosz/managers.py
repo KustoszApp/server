@@ -650,7 +650,7 @@ class EntryManager(models.Manager):
                     channel_model.url,
                 )
                 continue
-            EntryContent = entry.content_set.get_queryset().model
+            EntryContent = entry.content_set.model
             entry_contents = []
             for fetched_content in entry_data.content:
                 reading_time = estimate_reading_time(fetched_content.content)
