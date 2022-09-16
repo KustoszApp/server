@@ -54,11 +54,11 @@ ENV PATH="/opt/kustosz/.local/bin:$PATH"
 WORKDIR $BUILDDIR
 
 RUN pip install --no-cache --upgrade pip
-RUN pip install --no-cache poetry==1.1.14
+RUN pip install --no-cache poetry==1.2.0
 
 COPY pyproject.toml poetry.lock $BUILDDIR
 RUN poetry config virtualenvs.in-project true && \
-    poetry install --no-interaction --no-dev --no-root -E container
+    poetry install --no-interaction --only main --no-root -E container
 
 COPY --chown=kustosz:kustosz . $BUILDDIR
 RUN rm -rf $BUILDDIR/.frontend/
@@ -95,7 +95,7 @@ COPY --chown=kustosz:kustosz --from=frontendbuilder /opt/kustosz-frontend-build/
 COPY --chown=kustosz:kustosz --from=frontendbuilder /opt/kustosz-node-readability/ $HOME/.local/
 COPY --chown=kustosz:kustosz --from=backendbuilder /opt/kustosz/.venv $VIRTUAL_ENV
 COPY --chown=kustosz:kustosz --from=backendbuilder /opt/kustosz/dist/kustosz*.whl $HOME/wheels/
-RUN pip install --no-cache --upgrade pip wheel setuptools==59.6.0  # TODO: setuptools may be dropped after celery 5.2.4+
+RUN pip install --no-cache --upgrade pip wheel
 RUN pip install --no-cache --no-index --find-links $HOME/wheels/ kustosz[container]
 
 COPY --chown=kustosz:kustosz ./settings/settings.yaml $KUSTOSZ_BASE_DIR/settings/settings.yaml
