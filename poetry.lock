@@ -356,11 +356,14 @@ python-versions = "*"
 
 [[package]]
 name = "dj-database-url"
-version = "0.5.0"
+version = "1.0.0"
 description = "Use Database URLs in your Django Application."
 category = "main"
 optional = true
 python-versions = "*"
+
+[package.dependencies]
+Django = ">3.2"
 
 [[package]]
 name = "Django"
@@ -1155,7 +1158,7 @@ test = ["timeout-decorator"]
 
 [[package]]
 name = "reader"
-version = "2.17"
+version = "3.2"
 description = "A Python feed reader library."
 category = "main"
 optional = false
@@ -1164,16 +1167,15 @@ python-versions = ">=3.8"
 [package.dependencies]
 beautifulsoup4 = ">=4.5"
 feedparser = ">=6"
-iso8601 = "*"
+iso8601 = ">=1"
 requests = ">=2.18"
-typing-extensions = "*"
+typing-extensions = ">=4"
 
 [package.extras]
 app = ["PyYAML", "flask (>=0.10)", "humanize"]
 cli = ["PyYAML", "click (>=7)"]
-dev = ["build", "pre-commit", "tox", "twine"]
+dev = ["build", "pre-commit", "reader[app,cli,docs,tests,unstable-plugins]", "tox", "twine"]
 docs = ["click (>=7)", "sphinx", "sphinx-click", "sphinx-hoverxref", "sphinx-issues", "sphinx-rtd-theme (>=1.0,<2.0)", "sphinxcontrib-log-cabinet"]
-readtime = ["readtime"]
 tests = ["coverage", "flaky", "html5lib", "lxml", "mechanicalsoup", "mypy", "pytest (>=4)", "pytest-cov", "pytest-randomly", "pytest-subtests", "requests-mock", "requests-wsgi-adapter", "types-requests", "werkzeug"]
 unstable-plugins = ["Jinja2 (>=3)", "beautifulsoup4", "blinker (>=1.4)", "mutagen", "requests", "tweepy"]
 
@@ -1472,7 +1474,7 @@ installer = ["gunicorn", "redis"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b5706f020e7d7eae4b191d2af9a34f1b05a9836f412047164f1cf2eedd98d64b"
+content-hash = "6ea0355dcfda20654031c122d0b05a24ed4f0ab3cb3aad4e34ae8bd23a8d7fb8"
 
 [metadata.files]
 amqp = [
@@ -1613,8 +1615,8 @@ distlib = [
     {file = "distlib-0.3.6.tar.gz", hash = "sha256:14bad2d9b04d3a36127ac97f30b12a19268f211063d8f8ee4f47108896e11b46"},
 ]
 dj-database-url = [
-    {file = "dj-database-url-0.5.0.tar.gz", hash = "sha256:4aeaeb1f573c74835b0686a2b46b85990571159ffc21aa57ecd4d1e1cb334163"},
-    {file = "dj_database_url-0.5.0-py2.py3-none-any.whl", hash = "sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9"},
+    {file = "dj-database-url-1.0.0.tar.gz", hash = "sha256:ccf3e8718f75ddd147a1e212fca88eecdaa721759ee48e38b485481c77bca3dc"},
+    {file = "dj_database_url-1.0.0-py3-none-any.whl", hash = "sha256:cd354a3b7a9136d78d64c17b2aec369e2ae5616fbca6bfbe435ef15bb372ce39"},
 ]
 Django = [
     {file = "Django-3.2.15-py3-none-any.whl", hash = "sha256:115baf5049d5cf4163e43492cdc7139c306ed6d451e7d3571fe9612903903713"},
@@ -2043,8 +2045,8 @@ readability-lxml = [
     {file = "readability_lxml-0.8.1-py3-none-any.whl", hash = "sha256:e0d366a21b1bd6cca17de71a4e6ea16fcfaa8b0a5b4004e39e2c7eff884e6305"},
 ]
 reader = [
-    {file = "reader-2.17-py3-none-any.whl", hash = "sha256:01992a7ac00cb21cd9661d830a7b1acae45689b024c07ad51877306548976a3a"},
-    {file = "reader-2.17.tar.gz", hash = "sha256:0c7f1c25134bfc4a3fc22f418039f2a6b89a962f8d8e1441457d31aa12f52934"},
+    {file = "reader-3.2-py3-none-any.whl", hash = "sha256:5c50f44e782cc0bff6a0b25134839ccd1e83ceb87b3ff879130dd3febc44d377"},
+    {file = "reader-3.2.tar.gz", hash = "sha256:e065a52e40657701d8a7543f2a1de4556b18daf83d58680e9e1d1c5b2016a245"},
 ]
 redis = [
     {file = "redis-4.3.4-py3-none-any.whl", hash = "sha256:a52d5694c9eb4292770084fa8c863f79367ca19884b329ab574d5cb2036b3e54"},
