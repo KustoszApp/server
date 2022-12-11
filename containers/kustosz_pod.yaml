@@ -174,10 +174,6 @@ spec:
         value: "1"
       - name: KUSTOSZ_ORCHESTRATED
         value: "1"
-  dnsConfig:
-    nameservers:
-    - 10.45.248.15
-    - 1.1.1.1
   restartPolicy: OnFailure
   volumes:
   - name: postgres_data-pvc
