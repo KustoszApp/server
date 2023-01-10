@@ -21,7 +21,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.9"
 celery = "^5.2.7"
-dacite = "^1.6.0"
+dacite = "^1.7.0"
 Django = "^3.2.16"
 django-celery-beat = "^2.4.0"
 django-celery-results = "^2.4.0"
@@ -36,7 +36,7 @@ hyperlink = "^21.0.0"
 listparser = "^0.19"
 python-dateutil = "^2.8.2"
 readability-lxml = "^0.8.1"
-reader = "^3.2"
+reader = "^3.3"
 requests-cache = "^0.9.7"
 Unalix = "^0.9"
 dj-database-url = { version = "^1.0.0", optional = true }
@@ -44,8 +44,8 @@ gunicorn = { version = "^20.1.0", optional = true }
 supervisor = { version = "^4.2.4", optional = true }
 psycopg2 = { version = "^2.9.3", optional = true }
 psycopg2-binary = { version = "^2.9.3", optional = true }
-redis = { version = "^4.2.2", optional = true }
-whitenoise = { version = "^6.0.0", optional = true }
+redis = { version = "^4.4.1", optional = true }
+whitenoise = { version = "^6.3.0", optional = true }
 
 [tool.poetry.group.test]
 optional = true
