@@ -62,7 +62,7 @@ def aggressive_ua_fallback_plugin(reader):
 
         return request
 
-    reader._parser.session_hooks.response.append(aggressive_ua_fallback_hook)
+    reader._parser.session_factory.response_hooks.append(aggressive_ua_fallback_hook)
 
 
 class FeedFetcherPurpose(enum.Enum):
