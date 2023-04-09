@@ -12,6 +12,10 @@ production:
     - 'django.contrib.auth.middleware.AuthenticationMiddleware'
     - 'django.contrib.messages.middleware.MessageMiddleware'
     - 'django.middleware.clickjacking.XFrameOptionsMiddleware'
+  CACHES:
+    default:
+      BACKEND: 'django.core.cache.backends.redis.RedisCache'
+      LOCATION: 'redis://localhost:6379'
   CELERY_BROKER_URL: 'redis://localhost:6379/'
   WHITENOISE_INDEX_FILE: True
   STATIC_ROOT: '/opt/kustosz/web/static/'
