@@ -389,7 +389,10 @@ class EntryManager(models.Manager):
         if entry_exists.count():
             msg = "Entry with this Channel and Link already exists."
             raise InvalidDataException(msg)
-        entry.save()
+        with transaction.atomic():
+            entry.save()
+            if entry_data.tags:
+                entry.tags.set(entry_data.tags)
         dispatch_task_by_name(
             TaskNamesEnum.FETCH_MANUAL_ENTRY_DATA,
             kwargs={"entry_id": entry.pk},

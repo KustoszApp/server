@@ -257,6 +257,21 @@ def test_entry_add_manually(db, mocker, faker, authenticated_api_client):
     assert kustosz.managers.dispatch_task_by_name.called
 
 
+def test_entry_add_manually_with_tags(db, mocker, faker, authenticated_api_client):
+    mocker.patch("kustosz.managers.dispatch_task_by_name")
+    entry_url = faker.uri()
+    tags = faker.words(unique=True)
+    url = reverse("entry_manual_add")
+    data = {"link": entry_url, "tags": tags}
+
+    response = authenticated_api_client.post(url, data)
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["link"] == entry_url
+    assert kustosz.managers.dispatch_task_by_name.called
+    assert set(response.data["tags"]) == set(tags)
+
+
 def test_entry_try_add_manually_invalid_url(
     db, mocker, faker, authenticated_api_client
 ):
