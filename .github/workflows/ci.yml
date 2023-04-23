@@ -6,7 +6,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
 env:
-  NOX_VERSION: "2022.11.21"
+  NOX_VERSION: "2023.04.22"
   POETRY_VERSION: "1.4.2"
   # If it's good enough for nox, it's good enough for us
   FORCE_COLOR: "1"
