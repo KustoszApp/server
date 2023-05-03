@@ -16,7 +16,7 @@ def lint(session):
 
 
 @nox.session(python=["3.9", "3.10", "3.11"])
-@nox.parametrize("django_ver", ["3.2.18", "4.0.10", "4.1.8", "4.2"])
+@nox.parametrize("django_ver", ["3.2.19", "4.1.9", "4.2.1"])
 def tests(session, django_ver):
     session.run(
         "poetry", "install", "--no-interaction", "--with", "test", external=True
