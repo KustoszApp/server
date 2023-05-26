@@ -96,10 +96,6 @@ COPY --chown=kustosz:kustosz --from=frontendbuilder /opt/kustosz-node-readabilit
 COPY --chown=kustosz:kustosz --from=backendbuilder /opt/kustosz/.venv $VIRTUAL_ENV
 COPY --chown=kustosz:kustosz --from=backendbuilder /opt/kustosz/dist/kustosz*.whl $HOME/wheels/
 RUN pip install --no-cache --upgrade pip wheel
-# FIXME: poetry and pip disagree whether this should be installed
-# We should be able to remove that once redis package with
-# https://github.com/redis/redis-py/pull/2699 is released
-RUN pip install --no-cache async-timeout
 RUN pip install --no-cache --no-index --find-links $HOME/wheels/ kustosz[container]
 
 COPY --chown=kustosz:kustosz ./settings/settings.yaml $KUSTOSZ_BASE_DIR/settings/settings.yaml
