@@ -2,7 +2,6 @@ import dataclasses
 import tempfile
 import urllib.parse
 from collections import defaultdict
-from datetime import datetime
 from io import BytesIO
 from itertools import chain
 from operator import attrgetter
@@ -13,7 +12,6 @@ from typing import Union
 
 from dacite import Config as DaciteConfig
 from dacite import from_dict as dataclass_from_dict
-from dateutil import parser as dateutil_parser
 from django.core.cache import cache
 from lxml import etree
 
@@ -185,9 +183,7 @@ class FeedLinksFinder:
 class AutodetectContent:
     def __init__(self, url, **kwargs):
         self._url = url
-        self._dacite_config = DaciteConfig(
-            type_hooks={datetime: lambda f: dateutil_parser.isoparse(f)}
-        )
+        self._dacite_config = DaciteConfig()
 
     def _celery_task_start_or_result(
         self, task_name, cache_key
