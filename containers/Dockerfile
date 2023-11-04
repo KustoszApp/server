@@ -6,7 +6,7 @@
 #     sudo mount --bind /path/to/kustosz/web-ui/ .frontend
 
 # {{{ base image
-FROM python:3.11-bullseye as base
+FROM python:3.11-bookworm as base
 
 ENV NODE_VERSION=18
 ENV NVM_VERSION=0.39.3
