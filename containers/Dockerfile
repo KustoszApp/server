@@ -54,7 +54,7 @@ ENV PATH="/opt/kustosz/.local/bin:$PATH"
 WORKDIR $BUILDDIR
 
 RUN pip install --no-cache --upgrade pip
-RUN pip install --no-cache poetry==1.7.1
+RUN pip install --no-cache poetry==1.8.1
 
 COPY pyproject.toml poetry.lock $BUILDDIR
 RUN poetry config virtualenvs.in-project true && \
