@@ -51,11 +51,6 @@ jobs:
           repository: "KustoszApp/web-ui"
           path: ".frontend"
           fetch-depth: 0
-      - name: Checkout latest frontend tag
-        run: |
-          cd .frontend
-          export previousTag=$(git tag --sort=-creatordate | head -n 1)
-          git checkout "$previousTag"
       - name: Build container image
         uses: redhat-actions/buildah-build@v2
         with:
