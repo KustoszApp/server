@@ -8,8 +8,8 @@
 # {{{ base image
 FROM python:3.11-bookworm as base
 
-ENV NODE_VERSION=18
-ENV NVM_VERSION=0.39.3
+ENV NODE_VERSION=20
+ENV NVM_VERSION=0.39.7
 ENV NVM_DIR=/opt/nvm
 
 RUN apt-get update && \
