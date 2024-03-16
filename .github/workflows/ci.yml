@@ -41,3 +41,26 @@ jobs:
         run: python -m pip install nox==${{ env.NOX_VERSION}} poetry==${{ env.POETRY_VERSION}}
       - name: Actually test
         run: nox --non-interactive --error-on-missing-interpreter --session "tests-${{ matrix.python-version }}" -- --full-trace
+  build-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Fetch frontend repository
+        uses: actions/checkout@v3
+        with:
+          repository: "KustoszApp/web-ui"
+          path: ".frontend"
+          fetch-depth: 0
+      - name: Checkout latest frontend tag
+        run: |
+          cd .frontend
+          export previousTag=$(git tag --sort=-creatordate | head -n 1)
+          git checkout "$previousTag"
+      - name: Build container image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: quay.io/kustosz/app
+          tags: "latest ${{ github.ref_name }}"
+          platforms: linux/amd64
+          containerfiles: |
+            ./Dockerfile
