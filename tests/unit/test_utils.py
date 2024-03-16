@@ -174,7 +174,7 @@ def test_metadata_extract_opengraph_link_absolute(faker):
 
 def test_metadata_extract_headers(faker):
     url = faker.uri()
-    datetime_obj = faker.date_time()
+    datetime_obj = faker.date_time().replace(microsecond=0)
     headers = {
         "Last-Modified": http_date(datetime_obj.timestamp()),
         "Link": f'<{url}>; rel="canonical"',
@@ -258,7 +258,7 @@ def test_metadata_extract_url(faker):
 def test_metadata_extract_mixed(faker):
     url = faker.uri()
     author = faker.name()
-    updated_datetime = faker.date_time()
+    updated_datetime = faker.date_time().replace(microsecond=0)
     metadata = {
         "author": author,
         "article:published_time": faker.iso8601(),
