@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 env:
   NOX_VERSION: "2024.4.15"
-  POETRY_VERSION: "1.8.2"
+  POETRY_VERSION: "1.8.3"
   # If it's good enough for nox, it's good enough for us
   FORCE_COLOR: "1"
   PRE_COMMIT_COLOR: "always"
