@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">= 3.10, < 3.13"
 celery = "^5.3.1"
 dacite = "^1.8.0"
 Django = "^4.2"
@@ -34,6 +34,7 @@ djangorestframework = "^3.14.0"
 dynaconf = "^3.2.0"
 hyperlink = "^21.0.0"
 listparser = "^0.19"
+lxml_html_clean = "^0.2.2"
 readability-lxml = "^0.8.1"
 reader = "^3.9"
 requests-cache = "^1.1.0"
