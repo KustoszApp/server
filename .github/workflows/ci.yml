@@ -20,7 +20,7 @@ jobs:
       - name: Set up default Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - name: Install build tools
         run: python -m pip install nox==${{ env.NOX_VERSION}} poetry==${{ env.POETRY_VERSION}}
       - name: Actually lint
@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
