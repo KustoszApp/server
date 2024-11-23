@@ -1,6 +1,7 @@
 """
 Django settings are managed by dynaconf - see settings.yaml in parent directory
 """
+
 import os
 from pathlib import Path
 

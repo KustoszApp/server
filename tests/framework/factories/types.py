@@ -41,9 +41,9 @@ class FakeRequestFactory(factory.Factory):
     apparent_encoding = ""
     content = bytes()
     encoding = factory.LazyAttribute(
-        lambda r: "utf-8"
-        if "utf-8" in r.headers.get("Content-Type", "")
-        else "iso-8859-1"
+        lambda r: (
+            "utf-8" if "utf-8" in r.headers.get("Content-Type", "") else "iso-8859-1"
+        )
     )
     headers = factory.LazyFunction(lambda: {})
     ok = True
