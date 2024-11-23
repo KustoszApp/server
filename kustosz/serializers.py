@@ -204,6 +204,7 @@ class ChannelSerializer(TaggitSerializer, serializers.ModelSerializer):
         model = Channel
         fields = [
             "id",
+            "channel_type",
             "url",
             "title",
             "title_upstream",
@@ -224,6 +225,7 @@ class ChannelSerializer(TaggitSerializer, serializers.ModelSerializer):
         ]
         extra_kwargs = {
             "id": {"read_only": True},
+            "channel_type": {"read_only": True},
             "title_upstream": {"read_only": True},
             "displayed_title": {"read_only": True},
             "link": {"read_only": True},

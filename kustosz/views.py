@@ -182,7 +182,7 @@ class EntryManualAdd(generics.CreateAPIView):
 
 
 class ChannelsInactivate(generics.CreateAPIView):
-    queryset = models.Channel.objects.get_annotated_queryset().filter(active=True)
+    queryset = models.Channel.objects.get_annotated_feeds_queryset().filter(active=True)
     serializer_class = serializers.ChannelsInactivateSerializer
     filterset_class = filters.ChannelFilter
     permission_classes = [permissions.IsAuthenticated]
@@ -203,7 +203,9 @@ class ChannelsInactivate(generics.CreateAPIView):
 
 
 class ChannelsActivate(generics.CreateAPIView):
-    queryset = models.Channel.objects.get_annotated_queryset().filter(active=False)
+    queryset = models.Channel.objects.get_annotated_feeds_queryset().filter(
+        active=False
+    )
     serializer_class = serializers.ChannelsActivateSerializer
     filterset_class = filters.ChannelFilter
     permission_classes = [permissions.IsAuthenticated]
@@ -224,7 +226,9 @@ class ChannelsActivate(generics.CreateAPIView):
 
 
 class ChannelsDelete(generics.CreateAPIView):
-    queryset = models.Channel.objects.get_annotated_queryset().filter(active=False)
+    queryset = models.Channel.objects.get_annotated_feeds_queryset().filter(
+        active=False
+    )
     serializer_class = serializers.ChannelsDeleteSerializer
     filterset_class = filters.ChannelFilter
     permission_classes = [permissions.IsAuthenticated]

@@ -56,7 +56,6 @@ class ChannelManager(models.Manager):
         return (
             super()
             .get_queryset()
-            .exclude(channel_type=ChannelTypesEnum.MANUAL)
             .annotate(
                 unarchived_entries=Count("entries", filter=Q(entries__archived=False)),
                 tagged_entries=Count(
@@ -76,6 +75,11 @@ class ChannelManager(models.Manager):
                     output_field=TextField(),
                 ),
             )
+        )
+
+    def get_annotated_feeds_queryset(self):
+        return self.get_annotated_queryset().exclude(
+            channel_type=ChannelTypesEnum.MANUAL
         )
 
     def mark_as_inactive(self, queryset):

@@ -17,7 +17,7 @@ def test_channels_order(db, faker, authenticated_api_client):
     title = ChannelFactory.create(title="a")
     url = reverse("channels_list")
 
-    response = authenticated_api_client.get(url)
+    response = authenticated_api_client.get(url, {"id__not": 1})
 
     assert response.status_code == status.HTTP_200_OK
     response_data = response.data["results"]
