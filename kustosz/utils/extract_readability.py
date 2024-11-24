@@ -15,6 +15,8 @@ from kustosz.types import ReadabilityContentList
 
 log = logging.getLogger(__name__)
 
+ALLOWED_CONTENT_TYPES = ("text/html", "application/xml")
+
 
 class ReadabilityContentExtractor:
     def _get_python_readability(
@@ -69,7 +71,7 @@ class ReadabilityContentExtractor:
 
         try:
             readability_data = json.loads(cp.stdout)
-        except json.JSONDecoder:
+        except json.JSONDecodeError:
             log.warning("could not parse node readability script output", exc_info=True)
             return None
 
@@ -96,7 +98,10 @@ class ReadabilityContentExtractor:
     def _from_response(self, response: Response) -> ReadabilityContentList:
         obtained_content = []
         content_type = response.headers.get("Content-Type", "")
-        if "text/html" not in content_type or not response.text.strip():
+        if not (
+            response.text.strip()
+            and any(_type in content_type for _type in ALLOWED_CONTENT_TYPES)
+        ):
             return ReadabilityContentList(content=tuple(obtained_content))
 
         if settings.KUSTOSZ_READABILITY_PYTHON_ENABLED:
