@@ -627,20 +627,6 @@ files = [
 Django = ">=4.1"
 
 [[package]]
-name = "django-taggit-serializer"
-version = "0.1.7"
-description = "The Django Taggit serializer for tDjango REST Framework"
-optional = false
-python-versions = "*"
-files = [
-    {file = "django-taggit-serializer-0.1.7.tar.gz", hash = "sha256:f712eb2482079be452bcd1e82b18a820e26427c3ee1cef2b4fcd4d6b8b9f14d0"},
-]
-
-[package.dependencies]
-django-taggit = "*"
-six = "*"
-
-[[package]]
 name = "django-timezone-field"
 version = "7.0"
 description = "A Django app providing DB, form, and REST framework fields for zoneinfo and pytz timezone objects."
@@ -2146,4 +2132,4 @@ installer = ["gunicorn", "redis"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">= 3.11, < 3.14"
-content-hash = "551e0cd65ec5e21d05587a44cb7fcb971063ff78243346e422e62957ba4b6609"
+content-hash = "401b26b919c24dc20378eb4da6631af9df69d121533f8b2562a3e267d05e2328"

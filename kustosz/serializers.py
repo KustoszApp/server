@@ -2,6 +2,8 @@ from django.utils.timezone import now as django_now
 from rest_framework import exceptions
 from rest_framework import serializers
 from taggit.models import Tag
+from taggit.serializers import TaggitSerializer
+from taggit.serializers import TagListSerializerField
 
 from .enums import AsyncTaskStatesEnum
 from .enums import ChannelTypesEnum
@@ -12,8 +14,6 @@ from .models import Entry
 from .models import EntryContent
 from .models import EntryFilter
 from .models import User
-from .third_party.taggit_serializer.serializers import TaggitSerializer
-from .third_party.taggit_serializer.serializers import TagListSerializerField
 from .types import EntryDataInput
 from .validators import ChannelURLValidator
 

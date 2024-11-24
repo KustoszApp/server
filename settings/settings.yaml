@@ -27,7 +27,6 @@ default:
     - 'django_celery_results'
     - 'rest_framework.authtoken'
     - 'taggit'
-    - 'taggit_serializer'
     - 'kustosz'
   MIDDLEWARE:
     - 'django.middleware.security.SecurityMiddleware'
