@@ -97,13 +97,38 @@ class MetadataExtractor:
         # FIXME: according to spec, author should be "profile array" -
         # and may link to external site that does have this info
         # in practice, many websites just put name here
-        return self.__get_meta_value(property="article:author")
+        og_author = self.__get_meta_value(property="article:author")
+        if og_author and "facebook.com" in og_author:
+            og_author = og_author.removeprefix("http://facebook.com/")
+            og_author = og_author.removeprefix("https://facebook.com/")
+            og_author = og_author.removeprefix("http://www.facebook.com/")
+            og_author = og_author.removeprefix("http://www.facebook.com/")
+        return og_author
 
     def _get_opengraph_link(self):
+        og_url = self.__get_meta_value(property="og:url")
+        if og_url:
+            og_url_parsed = urllib.parse.urlparse(og_url)
+            # rarely, published website will have canonical url reference
+            # pointing to localhost - ignore it
+            if og_url_parsed.hostname == "localhost":
+                return
+            # some websites set og:url to main page. They seem to want to route
+            # all traffic to whole site instead of specific articles?
+            # we have limited ability to detect cases like that, especially if
+            # site is stored in directory, but "og:url and url point to the same
+            # domain, and og:url does not have path component" seems like a good
+            # heuristic
+            if (
+                og_url_parsed.hostname == self._parsed_url.hostname
+                and not og_url_parsed.path.strip("/")
+                and self._parsed_url.path.strip("/")
+            ):
+                return
+
         # according to spec, URL has to utilize http:// or https:// protocols,
         # but Facebook implementation does handle absolute path
         # (apparently while ignoring <base href="">, if present)
-        og_url = self.__get_meta_value(property="og:url")
         if og_url and not og_url.startswith(("http://", "https://")):
             og_url_parsed = self._parsed_url._replace(path=og_url)
             og_url = urllib.parse.urlunparse(og_url_parsed)
@@ -127,6 +152,12 @@ class MetadataExtractor:
         if element is None:
             return
         element_value = element.get("href")
+        # rarely, published website will have canonical url reference
+        # pointing to localhost - ignore it
+        link_url_parsed = urllib.parse.urlparse(element_value)
+        if link_url_parsed.hostname == "localhost":
+            return
+
         return element_value
 
     def _get_html_title(self):

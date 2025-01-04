@@ -77,6 +77,19 @@ def test_metadata_extract_opengraph(faker):
     )
 
 
+def test_metadata_extract_opengraph_author_facebook_url(faker):
+    author_name = faker.name()
+    metadata = {
+        "article:author": f"https://facebook.com/{author_name}",
+    }
+    html = create_simple_html(meta=metadata)
+    resp = FakeRequestFactory(text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.author == author_name
+
+
 def test_metadata_extract_opengraph_dates_with_z(faker):
     correct_date = faker.iso8601()
     date_with_z = f"{correct_date}Z"
@@ -154,6 +167,21 @@ def test_metadata_extract_link_validation(faker):
 
     assert extracted_metadata.link == url
     assert extracted_metadata.link != metadata["og:url"]
+
+
+def test_metadata_extract_html_link_ignore_localhost(faker):
+    url = faker.uri()
+    url_path = faker.file_path().lstrip("/")
+    html = (
+        "<html><head>"
+        f"<link rel='canonical' href='https://localhost:1234/{url_path}'>"
+        "</head></html>"
+    )
+    resp = FakeRequestFactory(url=url, text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.link == url
 
 
 def test_metadata_extract_opengraph_link_absolute(faker):
@@ -277,6 +305,71 @@ def test_metadata_extract_mixed(faker):
         metadata["article:published_time"]
     )
     assert extracted_metadata.updated_time_upstream == updated_datetime
+
+
+def test_metadata_extract_link_opengraph_html_prefer_path_link(faker):
+    domain = faker.url()
+    url_path = faker.file_path().lstrip("/")
+    full_url = f"{domain}{url_path}"
+    html = (
+        "<html><head>"
+        f"<link rel='canonical' href='{full_url}'>"
+        f"<meta property='og:url' content='{domain}'>"
+        "</head></html>"
+    )
+    resp = FakeRequestFactory(url=full_url, text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.link == full_url
+
+
+def test_metadata_extract_link_opengraph_html_prefer_path_opengraph(faker):
+    domain = faker.url()
+    url_path = faker.file_path().lstrip("/")
+    full_url = f"{domain}{url_path}"
+    html = (
+        "<html><head>"
+        f"<link rel='canonical' href='{domain}'>"
+        f"<meta property='og:url' content='{full_url}'>"
+        "</head></html>"
+    )
+    resp = FakeRequestFactory(url=full_url, text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.link == full_url
+
+
+def test_metadata_extract_link_ignore_localhost_canonical(faker):
+    url = faker.uri()
+    url_path = faker.file_path().lstrip("/")
+    html = (
+        "<html><head>"
+        f"<link rel='canonical' href='{url}'>"
+        f"<meta property='og:url' content='https://localhost:1234/{url_path}'>"
+        "</head></html>"
+    )
+    resp = FakeRequestFactory(text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.link == url
+
+
+def test_metadata_extract_link_ignore_localhost_header(faker):
+    url = faker.uri()
+    url_path = faker.file_path().lstrip("/")
+    html = (
+        "<html><head>"
+        f"<meta property='og:url' content='https://localhost:1234/{url_path}'>"
+        "</head></html>"
+    )
+    resp = FakeRequestFactory(url=url, text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.link == url
 
 
 def test_entry_data_env(db, faker):
