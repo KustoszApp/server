@@ -2,14 +2,11 @@
 name = "kustosz"
 version = "23.08.0"
 description = "Focus on the worthwhile content with Kustosz, open source self-hosted web application. This package contains backend server."
-license = "EUPL-1.2"
+license = { text = "EUPL-1.2" }
 authors = [
     {name = "Mirek Długosz", email = "mirek@mirekdlugosz.com"},
 ]
 readme = "README.md"
-homepage = "https://www.kustosz.org/"
-repository = "https://github.com/KustoszApp/server/"
-documentation = "https://docs.kustosz.org/"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Web Environment",
@@ -17,6 +14,10 @@ classifiers = [
     "Intended Audience :: End Users/Desktop",
     "Intended Audience :: Science/Research",
     "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
 ]
 requires-python = ">= 3.11"
@@ -79,6 +80,11 @@ dev = [
     "pre-commit",
     "nox",
 ]
+
+[project.urls]
+Homepage = "https://www.kustosz.org/"
+Repository = "https://github.com/KustoszApp/server/"
+Documentation = "https://docs.kustosz.org/"
 
 [project.scripts]
 kustosz-manager = 'kustosz.cli.manage:main'
