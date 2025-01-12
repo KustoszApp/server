@@ -19,7 +19,7 @@ def lint(session):
 @nox.parametrize("django_ver", ["4.2.17", "5.0.10", "5.1.4"])
 def tests(session, django_ver):
     session.run(
-        "poetry", "install", "--no-interaction", "--with", "test", external=True
+        "poetry", "install", "--no-interaction", "--extras", "test", external=True
     )
     session.install(f"django=={django_ver}")
     session.run("pytest", "tests/")
