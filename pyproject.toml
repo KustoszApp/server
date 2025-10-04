@@ -42,7 +42,6 @@ dependencies = [
     "Unalix (>=0.9,<1.0.0)",
 ]
 
-# we need duplication here until Poetry adds support for PEP-0735
 [project.optional-dependencies]
 container = [
     "gunicorn (>=23.0.0,<24.0.0)",
