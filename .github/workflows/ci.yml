@@ -6,7 +6,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
 env:
-  NOX_VERSION: "2025.5.1"
+  NOX_VERSION: "2025.10.16"
   POETRY_VERSION: "2.2.1"
   # If it's good enough for nox, it's good enough for us
   FORCE_COLOR: "1"
@@ -24,7 +24,7 @@ jobs:
       - name: Install build tools
         run: python -m pip install nox==${{ env.NOX_VERSION}} poetry==${{ env.POETRY_VERSION}}
       - name: Actually lint
-        run: nox --non-interactive --error-on-missing-interpreter --session "lint"
+        run: nox --non-interactive --error-on-missing-interpreters --session "lint"
   test:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -40,7 +40,7 @@ jobs:
       - name: Install build tools
         run: python -m pip install nox==${{ env.NOX_VERSION}} poetry==${{ env.POETRY_VERSION}}
       - name: Actually test
-        run: nox --non-interactive --error-on-missing-interpreter --session "tests-${{ matrix.python-version }}" -- --full-trace
+        run: nox --non-interactive --error-on-missing-interpreters --session "tests-${{ matrix.python-version }}" -- --full-trace
   build-container:
     runs-on: ubuntu-latest
     steps:
