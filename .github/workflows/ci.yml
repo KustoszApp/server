@@ -20,7 +20,7 @@ jobs:
       - name: Set up default Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: Install build tools
         run: python -m pip install nox==${{ env.NOX_VERSION}} poetry==${{ env.POETRY_VERSION}}
       - name: Actually lint
@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -40,7 +40,7 @@ jobs:
       - name: Install build tools
         run: python -m pip install nox==${{ env.NOX_VERSION}} poetry==${{ env.POETRY_VERSION}}
       - name: Actually test
-        run: nox --non-interactive --error-on-missing-interpreters --session "tests-${{ matrix.python-version }}" -- --full-trace
+        run: nox --non-interactive --error-on-missing-interpreters -p "${{ matrix.python-version }}" -- --full-trace
   build-container:
     runs-on: ubuntu-latest
     steps:
