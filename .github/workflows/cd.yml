@@ -32,10 +32,6 @@ jobs:
         run: poetry publish --username=__token__ --password=${{ secrets.PYPI_TOKEN }}
       - name: Generate requirements file for installer
         run: poetry export -n -o requirements-installer.txt -E installer
-      - name: Generate requirements file for Heroku
-        run: poetry export -n --without-hashes -o requirements-heroku.txt -E heroku
-      - name: Add Kustosz to Heroku requirements
-        run: echo "kustosz==${{github.ref_name}}" >> requirements-heroku.txt
       - uses: actions/upload-artifact@v4
         with:
           name: requirements.txt
@@ -65,7 +61,6 @@ jobs:
           body_path: "${{ env.CHANGELOG_PATH }}"
           files: |
             ${{steps.download_requirements.outputs.download-path}}/requirements-installer.txt
-            ${{steps.download_requirements.outputs.download-path}}/requirements-heroku.txt
   publish-container:
     runs-on: ubuntu-latest
     steps:
