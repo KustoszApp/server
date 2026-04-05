@@ -6,10 +6,10 @@
 #     sudo mount --bind /path/to/kustosz/web-ui/ .frontend
 
 # {{{ base image
-FROM python:3.11-bookworm as base
+FROM python:3.14-trixie as base
 
-ENV NODE_VERSION=20
-ENV NVM_VERSION=0.39.7
+ENV NODE_VERSION=22
+ENV NVM_VERSION=0.40.4
 ENV NVM_DIR=/opt/nvm
 
 RUN apt-get update && \
@@ -47,7 +47,6 @@ FROM base as backendbuilder
 
 USER kustosz
 
-ENV SETUPTOOLS_USE_DISTUTILS="stdlib"
 ENV BUILDDIR=/opt/kustosz/
 ENV PATH="/opt/kustosz/.local/bin:$PATH"
 
