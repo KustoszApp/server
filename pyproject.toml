@@ -86,3 +86,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = "*"
