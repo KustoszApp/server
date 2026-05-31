@@ -26,6 +26,15 @@ SUPPORTED_METADATA = (
 SUPPORTED_SOURCES = ("opengraph", "html", "headers", "url")
 
 
+def _reject_example_domains(url):
+    domain = urllib.parse.urlparse(url).hostname
+    example, _, _ = domain.partition(".")
+    if example == "example":
+        raise ValidationError("Ignoring link to example domain")
+    if domain == "localhost":
+        raise ValidationError("Ignoring link to localhost")
+
+
 class MetadataExtractor:
     def __init__(self, metadata=None, sources=None):
         self._metadata_keys = metadata or SUPPORTED_METADATA
@@ -86,6 +95,7 @@ class MetadataExtractor:
                 if meta_key == "link":
                     try:
                         entry_url_validator(value)
+                        _reject_example_domains(value)
                     except ValidationError:
                         continue
                 log.debug("%s: setting %s to %s", self._url, meta_key, value)
@@ -109,10 +119,6 @@ class MetadataExtractor:
         og_url = self.__get_meta_value(property="og:url")
         if og_url:
             og_url_parsed = urllib.parse.urlparse(og_url)
-            # rarely, published website will have canonical url reference
-            # pointing to localhost - ignore it
-            if og_url_parsed.hostname == "localhost":
-                return
             # some websites set og:url to main page. They seem to want to route
             # all traffic to whole site instead of specific articles?
             # we have limited ability to detect cases like that, especially if
@@ -152,11 +158,6 @@ class MetadataExtractor:
         if element is None:
             return
         element_value = element.get("href")
-        # rarely, published website will have canonical url reference
-        # pointing to localhost - ignore it
-        link_url_parsed = urllib.parse.urlparse(element_value)
-        if link_url_parsed.hostname == "localhost":
-            return
 
         return element_value
 

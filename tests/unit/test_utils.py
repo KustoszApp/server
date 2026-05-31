@@ -184,6 +184,21 @@ def test_metadata_extract_html_link_ignore_localhost(faker):
     assert extracted_metadata.link == url
 
 
+def test_metadata_extract_html_link_ignore_example(faker):
+    url = faker.uri()
+    url_path = faker.file_path().lstrip("/")
+    html = (
+        "<html><head>"
+        f"<link rel='canonical' href='https://example.com/{url_path}'>"
+        "</head></html>"
+    )
+    resp = FakeRequestFactory(url=url, text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.link == url
+
+
 def test_metadata_extract_opengraph_link_absolute(faker):
     domain = faker.url()
     correct_path = faker.file_path().lstrip("/")
@@ -357,12 +372,43 @@ def test_metadata_extract_link_ignore_localhost_canonical(faker):
     assert extracted_metadata.link == url
 
 
+def test_metadata_extract_link_ignore_example_canonical(faker):
+    url = faker.uri()
+    url_path = faker.file_path().lstrip("/")
+    html = (
+        "<html><head>"
+        f"<link rel='canonical' href='{url}'>"
+        f"<meta property='og:url' content='https://example.net/{url_path}'>"
+        "</head></html>"
+    )
+    resp = FakeRequestFactory(text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.link == url
+
+
 def test_metadata_extract_link_ignore_localhost_header(faker):
     url = faker.uri()
     url_path = faker.file_path().lstrip("/")
     html = (
         "<html><head>"
         f"<meta property='og:url' content='https://localhost:1234/{url_path}'>"
+        "</head></html>"
+    )
+    resp = FakeRequestFactory(url=url, text=html)
+
+    extracted_metadata = MetadataExtractor.from_response(resp)
+
+    assert extracted_metadata.link == url
+
+
+def test_metadata_extract_link_ignore_example_header(faker):
+    url = faker.uri()
+    url_path = faker.file_path().lstrip("/")
+    html = (
+        "<html><head>"
+        f"<meta property='og:url' content='https://example.org:1234/{url_path}'>"
         "</head></html>"
     )
     resp = FakeRequestFactory(url=url, text=html)
