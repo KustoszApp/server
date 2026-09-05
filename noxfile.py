@@ -21,7 +21,7 @@ def lint(session):
     [
         (python, django_ver)
         for python in ("3.11", "3.12", "3.13", "3.14")
-        for django_ver in ("4.2.30", "5.2.17", "6.0.8")
+        for django_ver in ("5.2.17", "6.0.8", "6.1.1")
         if not (python == "3.11" and django_ver.startswith("6"))
     ],
 )
